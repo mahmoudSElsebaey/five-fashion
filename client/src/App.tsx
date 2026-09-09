@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { MainLayout } from '@/layouts/MainLayout';
 import { HomePage } from '@/pages/HomePage';
 import { ShopPage } from '@/pages/ShopPage';
+import { ProductDetailPage } from '@/pages/ProductDetailPage';
 import { useTheme } from '@/hooks/useTheme';
 
 function App() {
@@ -23,7 +24,7 @@ function App() {
         <Route path="/shop" element={<ShopPage />} />
         <Route path="/collections" element={<ShopPage />} />
         <Route path="/about" element={<HomePage />} />
-        <Route path="/product/:id" element={<HomePage />} />
+        <Route path="/product/:id" element={<ProductDetailPage />} />
       </Route>
     </Routes>
   );
