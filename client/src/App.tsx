@@ -3,11 +3,11 @@ import { Routes, Route } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MainLayout } from '@/layouts/MainLayout';
 import { HomePage } from '@/pages/HomePage';
+import { ShopPage } from '@/pages/ShopPage';
 import { useTheme } from '@/hooks/useTheme';
 
 function App() {
   const { i18n } = useTranslation();
-  // Initialize theme on mount
   useTheme();
 
   useEffect(() => {
@@ -20,10 +20,10 @@ function App() {
     <Routes>
       <Route element={<MainLayout />}>
         <Route path="/" element={<HomePage />} />
-        {/* Placeholder routes for navigation */}
-        <Route path="/shop" element={<HomePage />} />
-        <Route path="/collections" element={<HomePage />} />
+        <Route path="/shop" element={<ShopPage />} />
+        <Route path="/collections" element={<ShopPage />} />
         <Route path="/about" element={<HomePage />} />
+        <Route path="/product/:id" element={<HomePage />} />
       </Route>
     </Routes>
   );
