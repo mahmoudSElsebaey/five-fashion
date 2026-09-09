@@ -2,18 +2,21 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { config } from './config/index.js';
+import authRoutes from './routes/authRoutes.js';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = config.port;
 
 // Security & parsing
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: config.clientUrl,
     credentials: true,
   })
 );
@@ -31,12 +34,12 @@ app.get('/api/v1/health', (_req, res) => {
   });
 });
 
-// 404 handler
+// Routes
+app.use('/api/v1/auth', authRoutes);
+
+// 404
 app.use((_req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found',
-  });
+  res.status(404).json({ success: false, message: 'Route not found' });
 });
 
 // Global error handler
@@ -44,12 +47,24 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
   console.error(err.stack);
   res.status(500).json({
     success: false,
-    message: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
+    message: config.nodeEnv === 'production' ? 'Internal server error' : err.message,
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`FIVE Fashion server running on port ${PORT}`);
-});
+// Connect DB and start
+const start = async () => {
+  try {
+    await mongoose.connect(config.mongodbUri);
+    console.log('MongoDB connected');
+    app.listen(PORT, () => {
+      console.log(`FIVE Fashion server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+};
+
+start();
 
 export default app;

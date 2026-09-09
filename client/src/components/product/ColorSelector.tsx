@@ -31,7 +31,9 @@ export function ColorSelector({ colors, selected, onChange }: ColorSelectorProps
       <h3 className="mb-3 text-sm font-semibold tracking-wide">
         {t('product.color')}
         {selected && (
-          <span className="ms-2 font-normal text-muted-foreground capitalize">— {selected}</span>
+          <span className="ms-2 font-normal text-muted-foreground capitalize">
+            — {selected}
+          </span>
         )}
       </h3>
       <div className="flex flex-wrap gap-2.5">
@@ -41,9 +43,14 @@ export function ColorSelector({ colors, selected, onChange }: ColorSelectorProps
             type="button"
             onClick={() => onChange(color)}
             title={color}
-            className={`h-9 w-9 rounded-full border-2 transition-all duration-normal ease-five ${
-              selected === color ? 'border-foreground scale-110' : 'border-transparent hover:scale-105'
-            }`}
+            className={`
+              h-9 w-9 rounded-full border-2 transition-all duration-normal ease-five
+              ${
+                selected === color
+                  ? 'border-foreground scale-110'
+                  : 'border-transparent hover:scale-105'
+              }
+            `}
             style={{ backgroundColor: colorMap[color] || '#888' }}
             aria-label={color}
           />

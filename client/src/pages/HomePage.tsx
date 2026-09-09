@@ -3,15 +3,24 @@ import { FeaturedCollections } from '@/components/home/FeaturedCollections';
 import { NewArrivals } from '@/components/home/NewArrivals';
 import { EditorialSection } from '@/components/home/EditorialSection';
 import { OffersSection } from '@/components/home/OffersSection';
+import { Reveal } from '@/components/motion/Reveal';
 
 export function HomePage() {
   return (
     <>
       <HeroSection />
-      <FeaturedCollections />
-      <NewArrivals />
-      <EditorialSection />
-      <OffersSection />
+      <Reveal>
+        <FeaturedCollections />
+      </Reveal>
+      <Reveal delay={0.05}>
+        <NewArrivals />
+      </Reveal>
+      <Reveal>
+        <EditorialSection />
+      </Reveal>
+      <Reveal delay={0.05}>
+        <OffersSection />
+      </Reveal>
     </>
   );
 }

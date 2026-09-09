@@ -6,7 +6,7 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;
 }
 
-const variantStyles: Record<BadgeVariant, string> = {
+const variantClasses: Record<BadgeVariant, string> = {
   default: 'bg-muted text-muted-foreground',
   accent: 'bg-accent/15 text-accent',
   success: 'bg-success/15 text-success',
@@ -16,8 +16,8 @@ const variantStyles: Record<BadgeVariant, string> = {
 };
 
 export function Badge({
-  variant = 'default',
   className = '',
+  variant = 'default',
   children,
   ...props
 }: BadgeProps) {
@@ -25,8 +25,8 @@ export function Badge({
     <span
       className={`
         inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-        transition-colors duration-fast ease-five
-        ${variantStyles[variant]}
+        transition-colors duration-normal ease-five
+        ${variantClasses[variant]}
         ${className}
       `}
       {...props}

@@ -10,8 +10,12 @@ export function AdminOrdersPage() {
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-semibold tracking-tight">{t('admin.orders.title')}</h2>
-      <p className="mt-1 text-sm text-muted-foreground">{t('admin.orders.subtitle', { count: orders.length })}</p>
+      <h2 className="font-display text-2xl font-semibold tracking-tight">
+        {t('admin.orders.title')}
+      </h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {t('admin.orders.subtitle', { count: orders.length })}
+      </p>
 
       {orders.length === 0 ? (
         <p className="mt-12 text-sm text-muted-foreground">{t('admin.dashboard.noOrders')}</p>
@@ -38,13 +42,26 @@ export function AdminOrdersPage() {
                   </td>
                   <td className="px-4 py-3 font-medium">${o.total.toFixed(0)}</td>
                   <td className="px-4 py-3">
-                    <Badge variant={o.status === 'confirmed' ? 'success' : o.status === 'cancelled' ? 'error' : 'default'}>
+                    <Badge
+                      variant={
+                        o.status === 'confirmed'
+                          ? 'success'
+                          : o.status === 'cancelled'
+                          ? 'error'
+                          : 'default'
+                      }
+                    >
                       {t(`checkout.status.${o.status}`)}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{new Date(o.createdAt).toLocaleDateString(i18n.language)}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {new Date(o.createdAt).toLocaleDateString(i18n.language)}
+                  </td>
                   <td className="px-4 py-3 text-end">
-                    <Link to={`/order-confirmation/${o.id}`} className="text-xs font-medium text-muted-foreground hover:text-foreground">
+                    <Link
+                      to={`/order-confirmation/${o.id}`}
+                      className="text-xs font-medium text-muted-foreground hover:text-foreground"
+                    >
                       {t('checkout.viewDetails')}
                     </Link>
                   </td>

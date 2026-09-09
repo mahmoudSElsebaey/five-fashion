@@ -40,7 +40,9 @@ function MetallicForm({ animate }: { animate: boolean }) {
     </mesh>
   );
 
-  if (!animate) return mesh;
+  if (!animate) {
+    return mesh;
+  }
 
   return (
     <Float speed={1.2} rotationIntensity={0.35} floatIntensity={0.5}>

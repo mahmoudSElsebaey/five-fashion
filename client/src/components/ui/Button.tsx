@@ -10,7 +10,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
-const variantStyles: Record<ButtonVariant, string> = {
+const variantClasses: Record<ButtonVariant, string> = {
   primary:
     'bg-primary text-primary-foreground hover:opacity-90 shadow-sm',
   secondary:
@@ -23,22 +23,22 @@ const variantStyles: Record<ButtonVariant, string> = {
     'bg-accent text-accent-foreground hover:opacity-90 shadow-sm',
 };
 
-const sizeStyles: Record<ButtonSize, string> = {
+const sizeClasses: Record<ButtonSize, string> = {
   sm: 'h-9 px-3 text-sm rounded-md',
-  md: 'h-11 px-5 text-sm rounded-lg',
+  md: 'h-10 px-5 text-sm rounded-lg',
   lg: 'h-12 px-6 text-base rounded-lg',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
+      className = '',
       variant = 'primary',
       size = 'md',
       isLoading = false,
       fullWidth = false,
-      className = '',
-      children,
       disabled,
+      children,
       ...props
     },
     ref
@@ -52,8 +52,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           transition-all duration-normal ease-five
           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
           disabled:pointer-events-none disabled:opacity-50
-          ${variantStyles[variant]}
-          ${sizeStyles[size]}
+          ${variantClasses[variant]}
+          ${sizeClasses[size]}
           ${fullWidth ? 'w-full' : ''}
           ${className}
         `}

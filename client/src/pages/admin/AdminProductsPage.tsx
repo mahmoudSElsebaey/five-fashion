@@ -12,10 +12,16 @@ export function AdminProductsPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="font-display text-2xl font-semibold tracking-tight">{t('admin.products.title')}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{t('admin.products.subtitle', { count: mockProducts.length })}</p>
+          <h2 className="font-display text-2xl font-semibold tracking-tight">
+            {t('admin.products.title')}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t('admin.products.subtitle', { count: mockProducts.length })}
+          </p>
         </div>
-        <Button size="sm" disabled title="Coming soon">{t('admin.products.add')}</Button>
+        <Button size="sm" disabled title="Coming soon">
+          {t('admin.products.add')}
+        </Button>
       </div>
 
       <div className="mt-8 overflow-hidden rounded-xl border border-border">
@@ -39,17 +45,26 @@ export function AdminProductsPage() {
                 <td className="px-4 py-3 capitalize text-muted-foreground">{p.category}</td>
                 <td className="px-4 py-3">
                   ${p.salePrice ?? p.price}
-                  {p.salePrice && <span className="ms-1 text-xs text-muted-foreground line-through">${p.price}</span>}
+                  {p.salePrice && (
+                    <span className="ms-1 text-xs text-muted-foreground line-through">
+                      ${p.price}
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">
                     {p.isNew && <Badge variant="accent">{t('shop.badges.new')}</Badge>}
                     {p.isSale && <Badge variant="error">{t('shop.badges.sale')}</Badge>}
-                    {!p.isNew && !p.isSale && <Badge variant="outline">{t('admin.products.active')}</Badge>}
+                    {!p.isNew && !p.isSale && (
+                      <Badge variant="outline">{t('admin.products.active')}</Badge>
+                    )}
                   </div>
                 </td>
                 <td className="px-4 py-3 text-end">
-                  <Link to={`/product/${p.id}`} className="text-xs font-medium text-muted-foreground hover:text-foreground">
+                  <Link
+                    to={`/product/${p.id}`}
+                    className="text-xs font-medium text-muted-foreground hover:text-foreground"
+                  >
                     {t('admin.products.view')}
                   </Link>
                 </td>

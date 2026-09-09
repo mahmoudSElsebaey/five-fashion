@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 
 const collections = [
-  { id: '1', key: 'essentials' },
-  { id: '2', key: 'evening' },
-  { id: '3', key: 'street' },
-  { id: '4', key: 'atelier' },
+  { id: '1', key: 'essentials', image: null },
+  { id: '2', key: 'evening', image: null },
+  { id: '3', key: 'street', image: null },
+  { id: '4', key: 'atelier', image: null },
 ];
 
 export function FeaturedCollections() {
@@ -38,6 +38,7 @@ export function FeaturedCollections() {
               hoverable
               className="group relative aspect-[3/4] overflow-hidden border-0 bg-muted"
             >
+              {/* Placeholder gradient surface */}
               <div
                 className={`absolute inset-0 transition-transform duration-700 ease-five group-hover:scale-105 ${
                   index % 2 === 0

@@ -22,7 +22,9 @@ export function DashboardPage() {
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-semibold tracking-tight">{t('admin.dashboard.title')}</h2>
+      <h2 className="font-display text-2xl font-semibold tracking-tight">
+        {t('admin.dashboard.title')}
+      </h2>
       <p className="mt-1 text-sm text-muted-foreground">{t('admin.dashboard.subtitle')}</p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -41,7 +43,9 @@ export function DashboardPage() {
       </div>
 
       <div className="mt-10">
-        <h3 className="mb-4 text-sm font-semibold tracking-wide">{t('admin.dashboard.recentOrders')}</h3>
+        <h3 className="mb-4 text-sm font-semibold tracking-wide">
+          {t('admin.dashboard.recentOrders')}
+        </h3>
         {orders.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('admin.dashboard.noOrders')}</p>
         ) : (
@@ -61,7 +65,9 @@ export function DashboardPage() {
                     <td className="px-4 py-3 font-mono text-xs">{o.id}</td>
                     <td className="px-4 py-3">${o.total.toFixed(0)}</td>
                     <td className="px-4 py-3 capitalize">{t(`checkout.status.${o.status}`)}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{new Date(o.createdAt).toLocaleDateString()}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {new Date(o.createdAt).toLocaleDateString()}
+                    </td>
                   </tr>
                 ))}
               </tbody>

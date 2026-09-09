@@ -18,13 +18,19 @@ export function ProductCard({ product }: ProductCardProps) {
     <Link to={`/product/${product.id}`} className="group block">
       <Card hoverable className="overflow-hidden border-0 bg-transparent shadow-none">
         <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
+          {/* Placeholder visual */}
           <div className="absolute inset-0 bg-gradient-to-br from-surface via-muted to-accent/10 transition-transform duration-700 ease-five group-hover:scale-105" />
 
           <div className="absolute top-3 start-3 flex flex-col gap-1.5">
-            {product.isNew && <Badge variant="accent">{t('shop.badges.new')}</Badge>}
-            {product.isSale && <Badge variant="error">{t('shop.badges.sale')}</Badge>}
+            {product.isNew && (
+              <Badge variant="accent">{t('shop.badges.new')}</Badge>
+            )}
+            {product.isSale && (
+              <Badge variant="error">{t('shop.badges.sale')}</Badge>
+            )}
           </div>
 
+          {/* Quick actions placeholder */}
           <div className="absolute bottom-3 end-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
             <button
               type="button"
@@ -45,7 +51,9 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">${displayPrice}</span>
             {product.salePrice && (
-              <span className="text-sm text-muted-foreground line-through">${product.price}</span>
+              <span className="text-sm text-muted-foreground line-through">
+                ${product.price}
+              </span>
             )}
           </div>
         </CardContent>

@@ -23,11 +23,14 @@ export function SizeSelector({ sizes, selected, onChange }: SizeSelectorProps) {
             key={size}
             type="button"
             onClick={() => onChange(size)}
-            className={`min-w-[3rem] rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-normal ease-five ${
-              selected === size
-                ? 'border-primary bg-primary text-primary-foreground'
-                : 'border-border text-foreground hover:border-foreground'
-            }`}
+            className={`
+              min-w-[3rem] rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-normal ease-five
+              ${
+                selected === size
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border text-foreground hover:border-foreground'
+              }
+            `}
           >
             {size}
           </button>

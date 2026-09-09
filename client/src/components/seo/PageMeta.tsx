@@ -34,6 +34,7 @@ export function PageMeta({ title, description = DEFAULT_DESC, path = '' }: PageM
     setMeta('twitter:title', fullTitle);
     setMeta('twitter:description', description);
 
+    // Canonical
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!link) {
       link = document.createElement('link');

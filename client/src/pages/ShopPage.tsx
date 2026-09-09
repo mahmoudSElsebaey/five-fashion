@@ -17,7 +17,7 @@ const defaultFilters: FilterState = {
 };
 
 export function ShopPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [sort, setSort] = useState<SortOption>('newest');
   const [search, setSearch] = useState('');
@@ -26,6 +26,7 @@ export function ShopPage() {
   const filtered = useMemo(() => {
     let result = [...mockProducts];
 
+    // Search
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -37,17 +38,21 @@ export function ShopPage() {
       );
     }
 
+    // Category
     if (filters.category !== 'all') {
       result = result.filter((p) => p.category === filters.category);
     }
 
+    // Gender
     if (filters.gender !== 'all') {
       result = result.filter((p) => p.gender === filters.gender);
     }
 
+    // New / Sale
     if (filters.onlyNew) result = result.filter((p) => p.isNew);
     if (filters.onlySale) result = result.filter((p) => p.isSale);
 
+    // Sort
     switch (sort) {
       case 'price-asc':
         result.sort((a, b) => (a.salePrice ?? a.price) - (b.salePrice ?? b.price));
@@ -58,7 +63,9 @@ export function ShopPage() {
       case 'popular':
         result.sort((a, b) => b.rating - a.rating);
         break;
+      case 'newest':
       default:
+        // keep original order (already newest-ish)
         break;
     }
 
@@ -67,6 +74,7 @@ export function ShopPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      {/* Header */}
       <div className="mb-8">
         <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
           {t('shop.title')}
@@ -76,6 +84,7 @@ export function ShopPage() {
         </p>
       </div>
 
+      {/* Toolbar */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 items-center gap-3">
           <div className="relative max-w-xs flex-1">
@@ -86,7 +95,19 @@ export function ShopPage() {
               onChange={(e) => setSearch(e.target.value)}
               className="pe-10"
             />
+            <svg
+              className="absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
           </div>
+
           <Button
             variant="outline"
             size="sm"
@@ -96,19 +117,26 @@ export function ShopPage() {
             {t('shop.filters.title')}
           </Button>
         </div>
+
         <SortSelect value={sort} onChange={setSort} />
       </div>
 
       <div className="flex gap-10">
+        {/* Desktop Filters */}
         <div className="hidden w-56 shrink-0 lg:block">
           <ProductFilters filters={filters} onChange={setFilters} />
         </div>
 
+        {/* Grid */}
         <div className="flex-1">
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
-              <p className="text-lg font-medium">{t('shop.empty.title')}</p>
-              <p className="mt-2 text-sm text-muted-foreground">{t('shop.empty.subtitle')}</p>
+              <p className="text-lg font-medium text-foreground">
+                {t('shop.empty.title')}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {t('shop.empty.subtitle')}
+              </p>
               <Button
                 variant="outline"
                 className="mt-6"
@@ -121,7 +149,7 @@ export function ShopPage() {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 xl:grid-cols-3">
               {filtered.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -130,6 +158,7 @@ export function ShopPage() {
         </div>
       </div>
 
+      {/* Mobile Filters Drawer */}
       {mobileFiltersOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div

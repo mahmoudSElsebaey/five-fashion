@@ -43,7 +43,10 @@ const cartSlice = createSlice({
     addToCart: (state, action: PayloadAction<Omit<CartItem, 'id' | 'quantity'> & { quantity?: number }>) => {
       const payload = action.payload;
       const existing = state.items.find(
-        (i) => i.productId === payload.productId && i.size === payload.size && i.color === payload.color
+        (i) =>
+          i.productId === payload.productId &&
+          i.size === payload.size &&
+          i.color === payload.color
       );
       if (existing) {
         existing.quantity += payload.quantity ?? 1;
@@ -72,15 +75,36 @@ const cartSlice = createSlice({
       state.items = [];
       save(state.items);
     },
-    openCart: (state) => { state.isOpen = true; },
-    closeCart: (state) => { state.isOpen = false; },
-    toggleCart: (state) => { state.isOpen = !state.isOpen; },
+    openCart: (state) => {
+      state.isOpen = true;
+    },
+    closeCart: (state) => {
+      state.isOpen = false;
+    },
+    toggleCart: (state) => {
+      state.isOpen = !state.isOpen;
+    },
   },
 });
 
-export const { addToCart, removeFromCart, updateQuantity, clearCart, openCart, closeCart, toggleCart } = cartSlice.actions;
+export const {
+  addToCart,
+  removeFromCart,
+  updateQuantity,
+  clearCart,
+  openCart,
+  closeCart,
+  toggleCart,
+} = cartSlice.actions;
+
 export const selectCartItems = (state: { cart: CartState }) => state.cart.items;
-export const selectCartCount = (state: { cart: CartState }) => state.cart.items.reduce((sum, i) => sum + i.quantity, 0);
-export const selectCartSubtotal = (state: { cart: CartState }) => state.cart.items.reduce((sum, i) => sum + (i.salePrice ?? i.price) * i.quantity, 0);
+export const selectCartCount = (state: { cart: CartState }) =>
+  state.cart.items.reduce((sum, i) => sum + i.quantity, 0);
+export const selectCartSubtotal = (state: { cart: CartState }) =>
+  state.cart.items.reduce(
+    (sum, i) => sum + (i.salePrice ?? i.price) * i.quantity,
+    0
+  );
 export const selectIsCartOpen = (state: { cart: CartState }) => state.cart.isOpen;
+
 export default cartSlice.reducer;

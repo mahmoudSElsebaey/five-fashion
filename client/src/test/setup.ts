@@ -1,11 +1,11 @@
 import '@testing-library/jest-dom/vitest';
 
+// Mock localStorage for Redux persistence tests
 const store: Record<string, string> = {};
-
 const localStorageMock = {
   getItem: (key: string) => store[key] ?? null,
   setItem: (key: string, value: string) => {
-    store[key] = String(value);
+    store[key] = value;
   },
   removeItem: (key: string) => {
     delete store[key];
@@ -15,11 +15,4 @@ const localStorageMock = {
   },
 };
 
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-  writable: true,
-});
-
-beforeEach(() => {
-  localStorage.clear();
-});
+Object.defineProperty(window, 'localStorage', { value: localStorageMock });

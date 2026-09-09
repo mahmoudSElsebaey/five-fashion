@@ -52,7 +52,9 @@ export function NewArrivals() {
                   {t(`home.arrivals.products.${product.nameKey}`)}
                 </h3>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">${product.price}</span>
+                  <span className="text-sm font-medium">
+                    ${product.price}
+                  </span>
                   {product.oldPrice && (
                     <span className="text-sm text-muted-foreground line-through">
                       ${product.oldPrice}
@@ -66,7 +68,9 @@ export function NewArrivals() {
       </div>
 
       <div className="mt-10 text-center sm:hidden">
-        <Button variant="outline">{t('home.arrivals.viewAll')}</Button>
+        <Button variant="outline" onClick={() => {}}>
+          {t('home.arrivals.viewAll')}
+        </Button>
       </div>
     </section>
   );

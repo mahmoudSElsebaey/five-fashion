@@ -5,7 +5,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({ hoverable = false, className = '', children, ...props }, ref) => {
+  ({ className = '', hoverable = false, children, ...props }, ref) => {
     return (
       <div
         ref={ref}
@@ -30,7 +30,7 @@ export const CardHeader = ({
   children,
   ...props
 }: HTMLAttributes<HTMLDivElement>) => (
-  <div className={`flex flex-col space-y-1.5 p-6 ${className}`} {...props}>
+  <div className={`flex flex-col space-y-1.5 p-5 ${className}`} {...props}>
     {children}
   </div>
 );
@@ -40,7 +40,7 @@ export const CardContent = ({
   children,
   ...props
 }: HTMLAttributes<HTMLDivElement>) => (
-  <div className={`p-6 pt-0 ${className}`} {...props}>
+  <div className={`p-5 pt-0 ${className}`} {...props}>
     {children}
   </div>
 );
@@ -50,7 +50,7 @@ export const CardFooter = ({
   children,
   ...props
 }: HTMLAttributes<HTMLDivElement>) => (
-  <div className={`flex items-center p-6 pt-0 ${className}`} {...props}>
+  <div className={`flex items-center p-5 pt-0 ${className}`} {...props}>
     {children}
   </div>
 );

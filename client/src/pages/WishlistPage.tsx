@@ -1,7 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { selectWishlistItems, removeFromWishlist } from '@/features/wishlist/wishlistSlice';
+import {
+  selectWishlistItems,
+  removeFromWishlist,
+} from '@/features/wishlist/wishlistSlice';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 
@@ -13,13 +16,19 @@ export function WishlistPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="font-display text-3xl font-semibold tracking-tight">{t('wishlist.title')}</h1>
-      <p className="mt-2 text-muted-foreground">{t('wishlist.subtitle', { count: items.length })}</p>
+      <h1 className="font-display text-3xl font-semibold tracking-tight">
+        {t('wishlist.title')}
+      </h1>
+      <p className="mt-2 text-muted-foreground">
+        {t('wishlist.subtitle', { count: items.length })}
+      </p>
 
       {items.length === 0 ? (
         <div className="mt-20 flex flex-col items-center text-center">
           <p className="text-muted-foreground">{t('wishlist.empty')}</p>
-          <Link to="/shop" className="mt-6"><Button variant="outline">{t('wishlist.browse')}</Button></Link>
+          <Link to="/shop" className="mt-6">
+            <Button variant="outline">{t('wishlist.browse')}</Button>
+          </Link>
         </div>
       ) : (
         <div className="mt-10 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
@@ -33,11 +42,19 @@ export function WishlistPage() {
               <CardContent className="mt-3 space-y-1 px-0">
                 <p className="text-xs text-muted-foreground">{item.brand}</p>
                 <Link to={`/product/${item.productId}`}>
-                  <h3 className="font-medium line-clamp-1">{isAr ? item.nameAr : item.nameEn}</h3>
+                  <h3 className="font-medium line-clamp-1">
+                    {isAr ? item.nameAr : item.nameEn}
+                  </h3>
                 </Link>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">${item.salePrice ?? item.price}</span>
-                  <button type="button" onClick={() => dispatch(removeFromWishlist(item.productId))} className="text-xs text-muted-foreground hover:text-error">
+                  <span className="text-sm font-medium">
+                    ${item.salePrice ?? item.price}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => dispatch(removeFromWishlist(item.productId))}
+                    className="text-xs text-muted-foreground hover:text-error"
+                  >
                     {t('wishlist.remove')}
                   </button>
                 </div>

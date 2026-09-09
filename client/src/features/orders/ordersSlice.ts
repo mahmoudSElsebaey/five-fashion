@@ -19,14 +19,27 @@ export type Order = {
   discount: number;
   total: number;
   status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
-  customer: { name: string; email: string; phone: string };
-  address: { line1: string; line2?: string; city: string; country: string; postalCode: string };
+  customer: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  address: {
+    line1: string;
+    line2?: string;
+    city: string;
+    country: string;
+    postalCode: string;
+  };
   shippingMethod: string;
   couponCode?: string;
   createdAt: string;
 };
 
-type OrdersState = { orders: Order[]; lastOrderId: string | null };
+type OrdersState = {
+  orders: Order[];
+  lastOrderId: string | null;
+};
 
 const load = (): Order[] => {
   try {
@@ -41,7 +54,10 @@ const save = (orders: Order[]) => {
   localStorage.setItem('five-orders', JSON.stringify(orders));
 };
 
-const initialState: OrdersState = { orders: load(), lastOrderId: null };
+const initialState: OrdersState = {
+  orders: load(),
+  lastOrderId: null,
+};
 
 const ordersSlice = createSlice({
   name: 'orders',
@@ -63,4 +79,5 @@ export const selectOrders = (state: { orders: OrdersState }) => state.orders.ord
 export const selectLastOrderId = (state: { orders: OrdersState }) => state.orders.lastOrderId;
 export const selectOrderById = (id: string) => (state: { orders: OrdersState }) =>
   state.orders.orders.find((o) => o.id === id);
+
 export default ordersSlice.reducer;

@@ -9,7 +9,9 @@ export type WishlistItem = {
   brand: string;
 };
 
-type WishlistState = { items: WishlistItem[] };
+type WishlistState = {
+  items: WishlistItem[];
+};
 
 const load = (): WishlistItem[] => {
   try {
@@ -24,7 +26,9 @@ const save = (items: WishlistItem[]) => {
   localStorage.setItem('five-wishlist', JSON.stringify(items));
 };
 
-const initialState: WishlistState = { items: load() };
+const initialState: WishlistState = {
+  items: load(),
+};
 
 const wishlistSlice = createSlice({
   name: 'wishlist',
@@ -51,8 +55,10 @@ const wishlistSlice = createSlice({
 });
 
 export const { toggleWishlist, removeFromWishlist, clearWishlist } = wishlistSlice.actions;
+
 export const selectWishlistItems = (state: { wishlist: WishlistState }) => state.wishlist.items;
 export const selectWishlistCount = (state: { wishlist: WishlistState }) => state.wishlist.items.length;
 export const selectIsInWishlist = (productId: string) => (state: { wishlist: WishlistState }) =>
   state.wishlist.items.some((i) => i.productId === productId);
+
 export default wishlistSlice.reducer;

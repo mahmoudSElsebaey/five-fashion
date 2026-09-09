@@ -9,6 +9,7 @@ export function EditorialSection() {
   return (
     <section className="relative overflow-hidden bg-surface">
       <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 py-24 sm:px-6 lg:grid-cols-2 lg:px-8">
+        {/* Visual side */}
         <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted lg:aspect-square">
           <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-accent/10 to-transparent" />
           <div className="absolute inset-0 flex items-center justify-center">
@@ -18,6 +19,7 @@ export function EditorialSection() {
           </div>
         </div>
 
+        {/* Content side */}
         <div className="max-w-lg">
           <p className="text-sm font-medium tracking-widest text-accent uppercase">
             {t('home.editorial.label')}
