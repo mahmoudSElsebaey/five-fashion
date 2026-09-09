@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://fivefashion.example.com/sitemap.xml
