@@ -1,8 +1,8 @@
-# Auralis
+# FIVE Fashion
 
 **Luxury 3D Fashion E-Commerce Platform**
 
-Auralis is a premium, bilingual (Arabic / English), dark & light themed fashion e-commerce experience that combines modern MERN architecture with immersive 3D interactions.
+FIVE is a premium, bilingual (Arabic / English), dark & light themed fashion e-commerce experience that combines modern MERN architecture with immersive 3D interactions.
 
 > This is not a generic store template.  
 > It is designed as a high-end digital fashion brand experience for 2026.
@@ -11,13 +11,16 @@ Auralis is a premium, bilingual (Arabic / English), dark & light themed fashion 
 
 ## Brand
 
-**Auralis** — An ethereal, refined, luminous fashion technology brand.
+**FIVE Fashion** — A luxurious, minimal, futuristic fashion technology brand.
 
 - Modern & minimal
 - Luxury without excess
 - Immersive yet performant
 - Fully bilingual (RTL + LTR)
 - Dark & Light themes powered by a centralized Design Token system
+- Signature metallic “5” logo embodying premium craftsmanship
+
+Primary Brand Name: **FIVE**
 
 ---
 
@@ -46,7 +49,7 @@ Auralis is a premium, bilingual (Arabic / English), dark & light themed fashion 
 ## Project Structure
 
 ```
-auralis/
+auralis/   (repository name – content is FIVE Fashion)
 ├── client/                 # Vite + React frontend
 │   └── src/
 │       ├── assets/
@@ -133,6 +136,8 @@ The entire visual identity is controlled by a **centralized Design Token system*
 - Single source of truth — change once, update everywhere
 
 Tokens are defined in `client/src/styles/tokens.css` and consumed via Tailwind.
+
+Logo: Signature metallic “5” mark with “FIVE / FASHION” wordmark (luxury metallic finish).
 
 ---
 
