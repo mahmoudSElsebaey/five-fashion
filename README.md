@@ -7,6 +7,8 @@ FIVE is a premium, bilingual (Arabic / English), dark & light themed fashion e-c
 > Not a generic store template.  
 > Built as a high-end digital fashion brand experience.
 
+**Repository:** https://github.com/mahmoudSElsebaey/five-fashion
+
 ---
 
 ## Brand
@@ -24,7 +26,7 @@ FIVE is a premium, bilingual (Arabic / English), dark & light themed fashion e-c
 
 ---
 
-## Features (Current)
+## Features (Phases 1–15)
 
 | Area | Status |
 |------|--------|
@@ -40,6 +42,7 @@ FIVE is a premium, bilingual (Arabic / English), dark & light themed fashion e-c
 | GSAP reveals + reduced-motion | ✅ |
 | SEO basics + skip link + lazy routes | ✅ |
 | Unit tests (cart, wishlist, coupons) | ✅ |
+| Launch documentation | ✅ |
 
 **Demo coupons:** `FIVE10` (10%), `WELCOME15` (15%)
 
@@ -63,7 +66,7 @@ FIVE is a premium, bilingual (Arabic / English), dark & light themed fashion e-c
 - MongoDB + Mongoose
 - JWT (Access + Refresh)
 - Zod validation
-- bcryptjs
+- bcryptjs, helmet, cors, morgan
 
 ---
 
@@ -103,8 +106,7 @@ five-fashion/
 
 ### Prerequisites
 - Node.js 18+
-- MongoDB (local or Atlas) for auth API
-- npm or pnpm
+- MongoDB (local or Atlas)
 
 ### 1. Clone
 
@@ -118,39 +120,31 @@ cd five-fashion
 ```bash
 cd server
 cp .env.example .env
-# Edit .env — set MONGODB_URI and JWT secrets
+# Edit .env — set JWT secrets and MONGODB_URI
 npm install
 npm run dev
 ```
 
-API default: `http://localhost:5000`  
-Health: `GET /api/v1/health`
+API runs at `http://localhost:5000`  
+Health check: `GET /api/v1/health`
 
 ### 3. Client
 
 ```bash
 cd client
 cp .env.example .env
-# Optional: VITE_API_URL=http://localhost:5000/api/v1
+# VITE_API_URL=http://localhost:5000/api/v1
 npm install
 npm run dev
 ```
 
-App default: `http://localhost:5173`
+App runs at `http://localhost:5173`
 
 ### 4. Tests
 
 ```bash
 cd client
 npm test
-```
-
-### 5. Production build (client)
-
-```bash
-cd client
-npm run build
-npm run preview
 ```
 
 ---
@@ -165,8 +159,8 @@ npm run preview
 | `PORT` | API port | `5000` |
 | `CLIENT_URL` | CORS origin | `http://localhost:5173` |
 | `MONGODB_URI` | Mongo connection | `mongodb://localhost:27017/five-fashion` |
-| `JWT_ACCESS_SECRET` | Access token secret | long random string |
-| `JWT_REFRESH_SECRET` | Refresh token secret | long random string |
+| `JWT_ACCESS_SECRET` | Access token secret | long random string (32+ chars) |
+| `JWT_REFRESH_SECRET` | Refresh token secret | long random string (32+ chars) |
 | `JWT_ACCESS_EXPIRES_IN` | Access TTL | `15m` |
 | `JWT_REFRESH_EXPIRES_IN` | Refresh TTL | `7d` |
 
@@ -199,11 +193,22 @@ npm run preview
 
 ## Design System
 
-All UI consumes **semantic Design Tokens** (CSS variables) defined in `client/src/styles/tokens.css`.
+All UI consumes **semantic Design Tokens** (CSS variables) in `client/src/styles/tokens.css`.
 
 - Light / Dark via `data-theme`
 - Do not hardcode brand colors in components
-- Motion tokens and reduced-motion are respected in 3D and GSAP
+- Motion tokens and `prefers-reduced-motion` are respected in 3D and GSAP
+
+---
+
+## Deployment Notes
+
+1. **Client:** `npm run build` → deploy `client/dist` to Vercel, Netlify, or any static host. Set `VITE_API_URL` to your production API.
+2. **Server:** `npm run build` → run `node dist/app.js` on a Node host (Railway, Render, VPS). Set production env vars and secure JWT secrets.
+3. **MongoDB:** Use MongoDB Atlas (or managed instance). Update `MONGODB_URI`.
+4. **CORS:** Set `CLIENT_URL` to the real frontend origin.
+5. **SEO:** Replace the placeholder domain in `client/public/robots.txt` and `client/public/sitemap.xml`.
+6. **HTTPS:** Always serve production over HTTPS.
 
 ---
 
@@ -213,14 +218,25 @@ See [docs/QA_CHECKLIST.md](docs/QA_CHECKLIST.md) for a full pre-release checklis
 
 ---
 
-## Known Limitations (Phase scope)
+## Known Limitations (current scope)
 
 - Product images are gradient placeholders (no real media pipeline yet)
 - Cart, wishlist, and orders persist in **localStorage** on the client
 - Checkout payment is **demo-ready only** (no real gateway charge)
-- Product 3D viewer uses a stylized geometry until real GLTF models are supplied
+- Product 3D viewer uses stylized geometry until real GLTF models are supplied
 - Admin product “Add” is reserved for a future CRUD + upload flow
 - Sitemap/robots use a placeholder domain — replace before production
+
+---
+
+## Suggested Next Steps
+
+- Wire cart/wishlist/orders to authenticated API endpoints
+- Real product media + GLTF models
+- Payment gateway (Stripe / Paymob / etc.)
+- Full admin product CRUD + image upload
+- Rate limiting and production observability
+- E2E tests (Playwright / Cypress)
 
 ---
 
@@ -231,8 +247,9 @@ See [docs/QA_CHECKLIST.md](docs/QA_CHECKLIST.md) for a full pre-release checklis
 | `client` | `npm run dev` | Vite dev server |
 | `client` | `npm run build` | Production build |
 | `client` | `npm test` | Vitest unit tests |
-| `server` | `npm run dev` | Express + tsx/watch |
+| `server` | `npm run dev` | Express + tsx watch |
 | `server` | `npm run build` | Compile TypeScript |
+| `server` | `npm start` | Run compiled server |
 
 ---
 
