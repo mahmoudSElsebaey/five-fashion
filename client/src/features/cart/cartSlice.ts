@@ -16,6 +16,8 @@ export type CartItem = {
 type CartState = {
   items: CartItem[];
   isOpen: boolean;
+  /** When true, mutations should go through the API */
+  serverSynced: boolean;
 };
 
 const load = (): CartItem[] => {
@@ -34,6 +36,7 @@ const save = (items: CartItem[]) => {
 const initialState: CartState = {
   items: load(),
   isOpen: false,
+  serverSynced: false,
 };
 
 const cartSlice = createSlice({
@@ -57,23 +60,38 @@ const cartSlice = createSlice({
           quantity: payload.quantity ?? 1,
         });
       }
-      save(state.items);
+      if (!state.serverSynced) save(state.items);
       state.isOpen = true;
     },
     removeFromCart: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter((i) => i.id !== action.payload);
-      save(state.items);
+      if (!state.serverSynced) save(state.items);
     },
     updateQuantity: (state, action: PayloadAction<{ id: string; quantity: number }>) => {
       const item = state.items.find((i) => i.id === action.payload.id);
       if (item) {
         item.quantity = Math.max(1, action.payload.quantity);
-        save(state.items);
+        if (!state.serverSynced) save(state.items);
       }
     },
     clearCart: (state) => {
       state.items = [];
-      save(state.items);
+      if (!state.serverSynced) save(state.items);
+      else localStorage.removeItem('five-cart');
+    },
+    /** Replace entire cart from server response */
+    replaceCart: (state, action: PayloadAction<CartItem[]>) => {
+      state.items = action.payload;
+      state.serverSynced = true;
+      localStorage.removeItem('five-cart');
+    },
+    setCartServerSynced: (state, action: PayloadAction<boolean>) => {
+      state.serverSynced = action.payload;
+      if (!action.payload) {
+        save(state.items);
+      } else {
+        localStorage.removeItem('five-cart');
+      }
     },
     openCart: (state) => {
       state.isOpen = true;
@@ -92,6 +110,8 @@ export const {
   removeFromCart,
   updateQuantity,
   clearCart,
+  replaceCart,
+  setCartServerSynced,
   openCart,
   closeCart,
   toggleCart,
@@ -101,10 +121,9 @@ export const selectCartItems = (state: { cart: CartState }) => state.cart.items;
 export const selectCartCount = (state: { cart: CartState }) =>
   state.cart.items.reduce((sum, i) => sum + i.quantity, 0);
 export const selectCartSubtotal = (state: { cart: CartState }) =>
-  state.cart.items.reduce(
-    (sum, i) => sum + (i.salePrice ?? i.price) * i.quantity,
-    0
-  );
-export const selectIsCartOpen = (state: { cart: CartState }) => state.cart.isOpen;
+  state.cart.items.reduce((sum, i) => sum + (i.salePrice ?? i.price) * i.quantity, 0);
+export const selectCartIsOpen = (state: { cart: CartState }) => state.cart.isOpen;
+export const selectIsCartOpen = selectCartIsOpen;
+export const selectCartServerSynced = (state: { cart: CartState }) => state.cart.serverSynced;
 
 export default cartSlice.reducer;
