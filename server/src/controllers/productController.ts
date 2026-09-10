@@ -1,11 +1,28 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { Product } from '../models/Product.js';
+import { Category } from '../models/Category.js';
+import { Collection } from '../models/Collection.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { AppError } from '../utils/AppError.js';
 import { paginationSchema, idParamSchema, slugParamSchema } from '../validators/common.js';
 import { createProductSchema, updateProductSchema } from '../validators/commerceValidators.js';
 import { slugify } from '../utils/slugify.js';
 import { AuthRequest } from '../middleware/auth.js';
+
+/** Resolve category filter value: accept ObjectId or slug */
+async function resolveCategoryId(value: string): Promise<mongoose.Types.ObjectId | null> {
+  if (mongoose.isValidObjectId(value)) return new mongoose.Types.ObjectId(value);
+  const cat = await Category.findOne({ slug: value.toLowerCase() }).select('_id').lean();
+  return cat?._id ? (cat._id as mongoose.Types.ObjectId) : null;
+}
+
+/** Resolve collection filter value: accept ObjectId or slug */
+async function resolveCollectionId(value: string): Promise<mongoose.Types.ObjectId | null> {
+  if (mongoose.isValidObjectId(value)) return new mongoose.Types.ObjectId(value);
+  const col = await Collection.findOne({ slug: value.toLowerCase() }).select('_id').lean();
+  return col?._id ? (col._id as mongoose.Types.ObjectId) : null;
+}
 
 export const getProducts = asyncHandler(async (req: Request, res: Response) => {
   const { page, limit, sort } = paginationSchema.parse(req.query);
@@ -15,8 +32,31 @@ export const getProducts = asyncHandler(async (req: Request, res: Response) => {
   if (!isAdmin || req.query.status !== 'all') {
     filter.status = (req.query.status as string) || 'active';
   }
-  if (req.query.category) filter.category = req.query.category;
-  if (req.query.collection) filter.collection = req.query.collection;
+
+  if (req.query.category) {
+    const id = await resolveCategoryId(String(req.query.category));
+    if (!id) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+        meta: { page, limit, total: 0, pages: 0 },
+      });
+    }
+    filter.category = id;
+  }
+
+  if (req.query.collection) {
+    const id = await resolveCollectionId(String(req.query.collection));
+    if (!id) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+        meta: { page, limit, total: 0, pages: 0 },
+      });
+    }
+    filter.collectionRef = id;
+  }
+
   if (req.query.gender) filter.gender = req.query.gender;
   if (req.query.featured === 'true') filter.featured = true;
   if (req.query.newArrival === 'true') filter.newArrival = true;
@@ -43,7 +83,7 @@ export const getProducts = asyncHandler(async (req: Request, res: Response) => {
   const [items, total] = await Promise.all([
     Product.find(filter)
       .populate('category', 'name slug')
-      .populate('collection', 'name slug')
+      .populate('collectionRef', 'name slug')
       .sort(sortOption)
       .skip(skip)
       .limit(limit)
@@ -62,7 +102,7 @@ export const getProductById = asyncHandler(async (req: Request, res: Response) =
   const { id } = idParamSchema.parse(req.params);
   const product = await Product.findById(id)
     .populate('category', 'name slug')
-    .populate('collection', 'name slug')
+    .populate('collectionRef', 'name slug')
     .lean();
   if (!product) throw new AppError('Product not found', 404);
   res.status(200).json({ success: true, data: product });
@@ -72,7 +112,7 @@ export const getProductBySlug = asyncHandler(async (req: Request, res: Response)
   const { slug } = slugParamSchema.parse(req.params);
   const product = await Product.findOne({ slug, status: 'active' })
     .populate('category', 'name slug')
-    .populate('collection', 'name slug')
+    .populate('collectionRef', 'name slug')
     .lean();
   if (!product) throw new AppError('Product not found', 404);
   res.status(200).json({ success: true, data: product });
@@ -83,7 +123,14 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
   const slug = data.slug || slugify(data.name.en);
   const exists = await Product.findOne({ $or: [{ slug }, { sku: data.sku }] });
   if (exists) throw new AppError('Product with this slug or SKU already exists', 409);
-  const product = await Product.create({ ...data, slug });
+
+  const payload: Record<string, unknown> = { ...data, slug };
+  if (data.collection && !payload.collectionRef) {
+    payload.collectionRef = data.collection;
+    delete payload.collection;
+  }
+
+  const product = await Product.create(payload);
   res.status(201).json({ success: true, data: product });
 });
 
@@ -93,7 +140,12 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response) =>
   if (data.name?.en && !data.slug) {
     data.slug = slugify(data.name.en);
   }
-  const product = await Product.findByIdAndUpdate(id, data, {
+  const payload: Record<string, unknown> = { ...data };
+  if (data.collection) {
+    payload.collectionRef = data.collection;
+    delete payload.collection;
+  }
+  const product = await Product.findByIdAndUpdate(id, payload, {
     new: true,
     runValidators: true,
   });

@@ -20,15 +20,14 @@ interface ProductFiltersProps {
 const genderOptions = ['all', 'women', 'men', 'unisex'];
 const categoryOptions = [
   'all',
-  'outerwear',
-  'dresses',
-  'tops',
-  'bottoms',
-  'knitwear',
-  'shoes',
-  'bags',
+  'women-dresses',
+  'women-tops',
+  'women-outerwear',
+  'men-shirts',
+  'men-trousers',
+  'men-outerwear',
   'accessories',
-  'sets',
+  'footwear',
 ];
 
 export function ProductFilters({
@@ -44,12 +43,7 @@ export function ProductFilters({
   };
 
   return (
-    <aside
-      className={`
-        space-y-8
-        ${isMobile ? 'p-4' : 'sticky top-24'}
-      `}
-    >
+    <aside className={`space-y-8 ${isMobile ? 'p-4' : 'sticky top-24'}`}>
       {isMobile && (
         <div className="mb-4 flex items-center justify-between">
           <h3 className="font-medium">{t('shop.filters.title')}</h3>
@@ -59,25 +53,19 @@ export function ProductFilters({
         </div>
       )}
 
-      {/* Category */}
       <div>
-        <h4 className="mb-3 text-sm font-semibold tracking-wide">
-          {t('shop.filters.category')}
-        </h4>
+        <h4 className="mb-3 text-sm font-semibold tracking-wide">{t('shop.filters.category')}</h4>
         <div className="flex flex-col gap-1.5">
           {categoryOptions.map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => update({ category: cat })}
-              className={`
-                rounded-md px-3 py-1.5 text-start text-sm transition-colors
-                ${
-                  filters.category === cat
-                    ? 'bg-muted font-medium text-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                }
-              `}
+              className={`rounded-md px-3 py-1.5 text-start text-sm transition-colors ${
+                filters.category === cat
+                  ? 'bg-muted font-medium text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
               {t(`shop.categories.${cat}`)}
             </button>
@@ -85,25 +73,19 @@ export function ProductFilters({
         </div>
       </div>
 
-      {/* Gender */}
       <div>
-        <h4 className="mb-3 text-sm font-semibold tracking-wide">
-          {t('shop.filters.gender')}
-        </h4>
+        <h4 className="mb-3 text-sm font-semibold tracking-wide">{t('shop.filters.gender')}</h4>
         <div className="flex flex-wrap gap-2">
           {genderOptions.map((g) => (
             <button
               key={g}
               type="button"
               onClick={() => update({ gender: g })}
-              className={`
-                rounded-full border px-3 py-1 text-xs font-medium transition-colors
-                ${
-                  filters.gender === g
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border text-muted-foreground hover:border-foreground hover:text-foreground'
-                }
-              `}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                filters.gender === g
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border text-muted-foreground hover:border-foreground hover:text-foreground'
+              }`}
             >
               {t(`shop.gender.${g}`)}
             </button>
@@ -111,7 +93,6 @@ export function ProductFilters({
         </div>
       </div>
 
-      {/* Quick toggles */}
       <div className="space-y-3">
         <label className="flex cursor-pointer items-center gap-2.5 text-sm">
           <input
@@ -133,7 +114,6 @@ export function ProductFilters({
         </label>
       </div>
 
-      {/* Reset */}
       <Button
         variant="outline"
         size="sm"
