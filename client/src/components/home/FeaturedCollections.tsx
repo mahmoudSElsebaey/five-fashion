@@ -1,16 +1,47 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
+import { Spinner } from '@/components/ui/Spinner';
+import { collectionsApi } from '@/services/apiClient';
 
-const collections = [
-  { id: '1', key: 'essentials', image: null },
-  { id: '2', key: 'evening', image: null },
-  { id: '3', key: 'street', image: null },
-  { id: '4', key: 'atelier', image: null },
-];
+type ApiCollection = {
+  _id: string;
+  name: { en: string; ar: string };
+  slug: string;
+  image?: string;
+  featured?: boolean;
+};
 
 export function FeaturedCollections() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === 'ar';
+  const [items, setItems] = useState<ApiCollection[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await collectionsApi.list({ featured: 'true', limit: 4 });
+        if (cancelled) return;
+        let list = (res.data || []) as ApiCollection[];
+        if (list.length === 0) {
+          const all = await collectionsApi.list({ limit: 4 });
+          if (cancelled) return;
+          list = (all.data || []) as ApiCollection[];
+        }
+        setItems(list.slice(0, 4));
+      } catch {
+        if (!cancelled) setItems([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
@@ -24,38 +55,54 @@ export function FeaturedCollections() {
           </h2>
         </div>
         <Link
-          to="/collections"
+          to="/shop"
           className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
         >
           {t('home.collections.viewAll')} →
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {collections.map((item, index) => (
-          <Link key={item.id} to={`/collections/${item.id}`}>
-            <Card
-              hoverable
-              className="group relative aspect-[3/4] overflow-hidden border-0 bg-muted"
-            >
-              {/* Placeholder gradient surface */}
-              <div
-                className={`absolute inset-0 transition-transform duration-700 ease-five group-hover:scale-105 ${
-                  index % 2 === 0
-                    ? 'bg-gradient-to-br from-muted via-surface to-accent/20'
-                    : 'bg-gradient-to-tl from-surface via-muted to-primary/10'
-                }`}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-              <div className="absolute bottom-0 start-0 end-0 p-5">
-                <h3 className="font-display text-lg font-medium text-foreground">
-                  {t(`home.collections.items.${item.key}`)}
-                </h3>
-              </div>
-            </Card>
-          </Link>
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <Spinner />
+        </div>
+      ) : items.length === 0 ? (
+        <p className="py-12 text-center text-sm text-muted-foreground">{t('shop.empty.subtitle')}</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {items.map((item, index) => {
+            const title = isAr ? item.name.ar : item.name.en;
+            return (
+              <Link key={item._id} to={`/shop?collection=${item.slug}`}>
+                <Card
+                  hoverable
+                  className="group relative aspect-[3/4] overflow-hidden border-0 bg-muted"
+                >
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={title}
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-five group-hover:scale-105"
+                    />
+                  ) : (
+                    <div
+                      className={`absolute inset-0 transition-transform duration-700 ease-five group-hover:scale-105 ${
+                        index % 2 === 0
+                          ? 'bg-gradient-to-br from-muted via-surface to-accent/20'
+                          : 'bg-gradient-to-tl from-surface via-muted to-primary/10'
+                      }`}
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+                  <div className="absolute bottom-0 start-0 end-0 p-5">
+                    <h3 className="font-display text-lg font-medium text-foreground">{title}</h3>
+                  </div>
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

@@ -1,3 +1,4 @@
+import { Seo } from '@/components/seo/Seo';
 import { HeroSection } from '@/components/home/HeroSection';
 import { FeaturedCollections } from '@/components/home/FeaturedCollections';
 import { NewArrivals } from '@/components/home/NewArrivals';
@@ -8,6 +9,10 @@ import { Reveal } from '@/components/motion/Reveal';
 export function HomePage() {
   return (
     <>
+      <Seo
+        title="Luxury Fashion"
+        description="FIVE Fashion — luxury 3D fashion e-commerce. Refined collections, immersive experience."
+      />
       <HeroSection />
       <Reveal>
         <FeaturedCollections />
