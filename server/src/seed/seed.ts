@@ -1,1 +1,63 @@
-PLACEHOLDER
+/**
+ * FIVE Fashion — professional re-runnable database seed
+ * Usage: npm run seed
+ */
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import { config } from '../config/index.js';
+import { User } from '../models/User.js';
+import { Category } from '../models/Category.js';
+import { Collection } from '../models/Collection.js';
+import { Product } from '../models/Product.js';
+import { Coupon } from '../models/Coupon.js';
+import { Review } from '../models/Review.js';
+
+const IMG = {
+  dress1: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&q=80',
+  dress2: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=800&q=80',
+  dress3: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=800&q=80',
+  dress4: 'https://images.unsplash.com/photo-1515372039744-b8f0229b61fd?w=800&q=80',
+  dress5: 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80',
+  top1: 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=800&q=80',
+  top2: 'https://images.unsplash.com/photo-1485462537746-965f33f7f6a7?w=800&q=80',
+  top3: 'https://images.unsplash.com/photo-1551489186-cf872a0f9f64?w=800&q=80',
+  top4: 'https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=800&q=80',
+  top5: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&q=80',
+  outer1: 'https://images.unsplash.com/photo-1548624313-0396c75e4b1a?w=800&q=80',
+  outer2: 'https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=800&q=80',
+  outer3: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80',
+  outer4: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&q=80',
+  outer5: 'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=800&q=80',
+  shirt1: 'https://images.unsplash.com/photo-1596755094514-f87e34085b81?w=800&q=80',
+  shirt2: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=800&q=80',
+  shirt3: 'https://images.unsplash.com/photo-1620012253295-c15cc4eaa953?w=800&q=80',
+  shirt4: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800&q=80',
+  shirt5: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=800&q=80',
+  trouser1: 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=800&q=80',
+  trouser2: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=800&q=80',
+  trouser3: 'https://images.unsplash.com/photo-1506629082955-511b1aa78283?w=800&q=80',
+  trouser4: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800&q=80',
+  trouser5: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=800&q=80',
+  menOuter1: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&q=80',
+  menOuter2: 'https://images.unsplash.com/photo-1495107334309-fcf795611c8c?w=800&q=80',
+  menOuter3: 'https://images.unsplash.com/photo-1520975954732-35dd22299614?w=800&q=80',
+  menOuter4: 'https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?w=800&q=80',
+  menOuter5: 'https://images.unsplash.com/photo-1544923246-77307dd654cd?w=800&q=80',
+  acc1: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&q=80',
+  acc2: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?w=800&q=80',
+  acc3: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80',
+  acc4: 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=800&q=80',
+  acc5: 'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=800&q=80',
+  shoe1: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&q=80',
+  shoe2: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&q=80',
+  shoe3: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=800&q=80',
+  shoe4: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&q=80',
+  shoe5: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&q=80',
+  d1b: 'https://images.unsplash.com/photo-1550639525-69b3c2d4e2d4?w=800&q=80',
+  d2b: 'https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=800&q=80',
+  s1b: 'https://images.unsplash.com/photo-1603252109303-2751441dd157?w=800&q=80',
+};
+
+console.log('Seed module loaded — run via npm run seed');
+
+export {};
