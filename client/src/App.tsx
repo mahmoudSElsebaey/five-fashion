@@ -7,6 +7,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Spinner } from '@/components/ui/Spinner';
 import { useTheme } from '@/hooks/useTheme';
 import { PageMeta } from '@/components/seo/PageMeta';
+import { AuthCommerceSync } from '@/components/auth/AuthCommerceSync';
 
 const HomePage = lazy(() => import('@/pages/HomePage').then((m) => ({ default: m.HomePage })));
 const ShopPage = lazy(() => import('@/pages/ShopPage').then((m) => ({ default: m.ShopPage })));
@@ -59,6 +60,8 @@ function App() {
   }, [i18n.language]);
 
   return (
+    <>
+    <AuthCommerceSync />
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route element={<MainLayout />}>
@@ -81,21 +84,19 @@ function App() {
             }
           />
           <Route
-            path="/collections"
+            path="/product/:id"
             element={
               <>
-                <PageMeta title="Collections" path="/collections" />
-                <ShopPage />
+                <PageMeta title="Product" path="/product" />
+                <ProductDetailPage />
               </>
             }
           />
-          <Route path="/about" element={<HomePage />} />
-          <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route
             path="/login"
             element={
               <>
-                <PageMeta title="Sign in" path="/login" />
+                <PageMeta title="Login" path="/login" />
                 <LoginPage />
               </>
             }
@@ -104,7 +105,7 @@ function App() {
             path="/register"
             element={
               <>
-                <PageMeta title="Create account" path="/register" />
+                <PageMeta title="Register" path="/register" />
                 <RegisterPage />
               </>
             }
@@ -130,6 +131,7 @@ function App() {
         </Route>
       </Routes>
     </Suspense>
+    </>
   );
 }
 

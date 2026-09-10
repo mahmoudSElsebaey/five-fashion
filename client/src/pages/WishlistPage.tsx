@@ -1,16 +1,16 @@
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import {
-  selectWishlistItems,
-  removeFromWishlist,
-} from '@/features/wishlist/wishlistSlice';
+import { selectWishlistItems } from '@/features/wishlist/wishlistSlice';
+import { removeFromWishlistSmart } from '@/features/wishlist/wishlistCommerce';
+import type { AppDispatch } from '@/store';
+import { store } from '@/store';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 
 export function WishlistPage() {
   const { t, i18n } = useTranslation();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const items = useSelector(selectWishlistItems);
   const isAr = i18n.language === 'ar';
 
@@ -52,7 +52,7 @@ export function WishlistPage() {
                   </span>
                   <button
                     type="button"
-                    onClick={() => dispatch(removeFromWishlist(item.productId))}
+                    onClick={() => void removeFromWishlistSmart(dispatch, store.getState, item.productId)}
                     className="text-xs text-muted-foreground hover:text-error"
                   >
                     {t('wishlist.remove')}
