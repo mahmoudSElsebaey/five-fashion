@@ -42,7 +42,6 @@ const collectionSchema = new Schema<ICollection>(
   { timestamps: true }
 );
 
-collectionSchema.index({ slug: 1 });
 collectionSchema.index({ isActive: 1, featured: 1 });
 
 export const Collection = mongoose.model<ICollection>('Collection', collectionSchema);
