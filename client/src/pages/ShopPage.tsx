@@ -1,11 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { ProductFilters, type FilterState } from '@/components/shop/ProductFilters';
 import { SortSelect, type SortOption } from '@/components/shop/SortSelect';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { mockProducts } from '@/data/mockProducts';
+import { productsApi } from '@/services/apiClient';
+import { mapApiProduct, type ApiProduct, type UiProduct } from '@/types/product';
+import { Spinner } from '@/components/ui/Spinner';
 
 const defaultFilters: FilterState = {
   category: 'all',
@@ -16,87 +18,85 @@ const defaultFilters: FilterState = {
   priceMax: 2000,
 };
 
+function sortToApi(sort: SortOption): string {
+  if (sort === 'price-asc') return 'price_asc';
+  if (sort === 'price-desc') return 'price_desc';
+  if (sort === 'popular') return 'rating';
+  return 'newest';
+}
+
 export function ShopPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [sort, setSort] = useState<SortOption>('newest');
   const [search, setSearch] = useState('');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [products, setProducts] = useState<UiProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filtered = useMemo(() => {
-    let result = [...mockProducts];
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params: Record<string, string | number | boolean | undefined> = {
+          page: 1,
+          limit: 48,
+          sort: sortToApi(sort),
+        };
+        if (search.trim()) params.q = search.trim();
+        if (filters.category !== 'all') params.category = filters.category;
+        if (filters.gender !== 'all') params.gender = filters.gender;
+        if (filters.onlyNew) params.newArrival = true;
+        if (filters.priceMin > 0) params.minPrice = filters.priceMin;
+        if (filters.priceMax < 2000) params.maxPrice = filters.priceMax;
 
-    // Search
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.nameEn.toLowerCase().includes(q) ||
-          p.nameAr.includes(q) ||
-          p.brand.toLowerCase().includes(q) ||
-          p.category.includes(q)
-      );
-    }
-
-    // Category
-    if (filters.category !== 'all') {
-      result = result.filter((p) => p.category === filters.category);
-    }
-
-    // Gender
-    if (filters.gender !== 'all') {
-      result = result.filter((p) => p.gender === filters.gender);
-    }
-
-    // New / Sale
-    if (filters.onlyNew) result = result.filter((p) => p.isNew);
-    if (filters.onlySale) result = result.filter((p) => p.isSale);
-
-    // Sort
-    switch (sort) {
-      case 'price-asc':
-        result.sort((a, b) => (a.salePrice ?? a.price) - (b.salePrice ?? b.price));
-        break;
-      case 'price-desc':
-        result.sort((a, b) => (b.salePrice ?? b.price) - (a.salePrice ?? a.price));
-        break;
-      case 'popular':
-        result.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'newest':
-      default:
-        // keep original order (already newest-ish)
-        break;
-    }
-
-    return result;
+        const res = await productsApi.list(params);
+        if (cancelled) return;
+        const list = (res.data || []) as ApiProduct[];
+        let mapped = list.map(mapApiProduct);
+        if (filters.onlySale) mapped = mapped.filter((p) => p.isSale);
+        setProducts(mapped);
+      } catch (e) {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : 'Failed to load products');
+          setProducts([]);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    const timer = setTimeout(load, 200);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [filters, sort, search]);
+
+  const filtered = useMemo(() => products, [products]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
           {t('shop.title')}
         </h1>
-        <p className="mt-2 text-muted-foreground">
-          {t('shop.subtitle', { count: filtered.length })}
-        </p>
+        <p className="mt-2 text-muted-foreground">{t('shop.subtitle')}</p>
       </div>
 
-      {/* Toolbar */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 items-center gap-3">
-          <div className="relative max-w-xs flex-1">
+          <div className="relative max-w-sm flex-1">
             <Input
-              type="search"
-              placeholder={t('shop.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pe-10"
+              placeholder={t('shop.searchPlaceholder')}
+              className="ps-10"
             />
             <svg
-              className="absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill="none"
@@ -107,7 +107,6 @@ export function ShopPage() {
               <path d="m21 21-4.3-4.3" />
             </svg>
           </div>
-
           <Button
             variant="outline"
             size="sm"
@@ -117,26 +116,37 @@ export function ShopPage() {
             {t('shop.filters.title')}
           </Button>
         </div>
-
         <SortSelect value={sort} onChange={setSort} />
       </div>
 
       <div className="flex gap-10">
-        {/* Desktop Filters */}
         <div className="hidden w-56 shrink-0 lg:block">
           <ProductFilters filters={filters} onChange={setFilters} />
         </div>
 
-        {/* Grid */}
         <div className="flex-1">
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="flex justify-center py-24">
+              <Spinner />
+            </div>
+          ) : error ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
-              <p className="text-lg font-medium text-foreground">
-                {t('shop.empty.title')}
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {t('shop.empty.subtitle')}
-              </p>
+              <p className="text-lg font-medium text-foreground">{error}</p>
+              <Button
+                variant="outline"
+                className="mt-6"
+                onClick={() => {
+                  setFilters({ ...defaultFilters });
+                  setSearch('');
+                }}
+              >
+                {t('shop.filters.reset')}
+              </Button>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <p className="text-lg font-medium text-foreground">{t('shop.empty.title')}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{t('shop.empty.subtitle')}</p>
               <Button
                 variant="outline"
                 className="mt-6"
@@ -158,7 +168,6 @@ export function ShopPage() {
         </div>
       </div>
 
-      {/* Mobile Filters Drawer */}
       {mobileFiltersOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
