@@ -11,6 +11,7 @@ export type WishlistItem = {
 
 type WishlistState = {
   items: WishlistItem[];
+  serverSynced: boolean;
 };
 
 const load = (): WishlistItem[] => {
@@ -28,6 +29,7 @@ const save = (items: WishlistItem[]) => {
 
 const initialState: WishlistState = {
   items: load(),
+  serverSynced: false,
 };
 
 const wishlistSlice = createSlice({
@@ -41,20 +43,40 @@ const wishlistSlice = createSlice({
       } else {
         state.items.push(action.payload);
       }
-      save(state.items);
+      if (!state.serverSynced) save(state.items);
     },
     removeFromWishlist: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter((i) => i.productId !== action.payload);
-      save(state.items);
+      if (!state.serverSynced) save(state.items);
     },
     clearWishlist: (state) => {
       state.items = [];
-      save(state.items);
+      if (!state.serverSynced) save(state.items);
+      else localStorage.removeItem('five-wishlist');
+    },
+    replaceWishlist: (state, action: PayloadAction<WishlistItem[]>) => {
+      state.items = action.payload;
+      state.serverSynced = true;
+      localStorage.removeItem('five-wishlist');
+    },
+    setWishlistServerSynced: (state, action: PayloadAction<boolean>) => {
+      state.serverSynced = action.payload;
+      if (!action.payload) {
+        save(state.items);
+      } else {
+        localStorage.removeItem('five-wishlist');
+      }
     },
   },
 });
 
-export const { toggleWishlist, removeFromWishlist, clearWishlist } = wishlistSlice.actions;
+export const {
+  toggleWishlist,
+  removeFromWishlist,
+  clearWishlist,
+  replaceWishlist,
+  setWishlistServerSynced,
+} = wishlistSlice.actions;
 
 export const selectWishlistItems = (state: { wishlist: WishlistState }) => state.wishlist.items;
 export const selectWishlistCount = (state: { wishlist: WishlistState }) => state.wishlist.items.length;
