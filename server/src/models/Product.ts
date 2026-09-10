@@ -8,7 +8,7 @@ export interface IProductVariant {
   stock: number;
 }
 
-export interface IProduct extends Document {
+export interface IProduct extends Omit<Document, 'collection'> {
   name: ILocalizedString;
   slug: string;
   description?: ILocalizedString;
