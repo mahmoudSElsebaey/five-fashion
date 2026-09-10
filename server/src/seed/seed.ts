@@ -155,7 +155,7 @@ async function main() {
             ar: `${ar} من FIVE Fashion — خامات راقية وتفصيل دقيق.`,
           },
           category: catMap[group.cat]?._id,
-          collection: colMap[group.coll]?._id,
+          collectionRef: colMap[group.coll]?._id,
           brand: 'FIVE', gender: group.gender, price: sale ? price - 40 : price,
           compareAtPrice: sale ? price : undefined,
           discount: sale ? Math.round((40 / price) * 100) : undefined,
