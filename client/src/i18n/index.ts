@@ -95,15 +95,14 @@ const resources = {
         },
         categories: {
           all: 'All',
-          outerwear: 'Outerwear',
-          dresses: 'Dresses',
-          tops: 'Tops',
-          bottoms: 'Bottoms',
-          knitwear: 'Knitwear',
-          shoes: 'Shoes',
-          bags: 'Bags',
+          'women-dresses': 'Women Dresses',
+          'women-tops': 'Women Tops',
+          'women-outerwear': 'Women Outerwear',
+          'men-shirts': 'Men Shirts',
+          'men-trousers': 'Men Trousers',
+          'men-outerwear': 'Men Outerwear',
           accessories: 'Accessories',
-          sets: 'Sets',
+          footwear: 'Footwear',
         },
         gender: {
           all: 'All',
@@ -123,7 +122,6 @@ const resources = {
           subtitle: 'Try adjusting your filters or search term.',
         },
       },
-      
       auth: {
         loginTitle: 'Welcome back',
         loginSubtitle: 'Sign in to your FIVE account',
@@ -145,7 +143,6 @@ const resources = {
         accountInfo: 'Account information',
         role: 'Role',
       },
-
       product: {
         notFound: 'Product not found',
         backToShop: 'Back to Shop',
@@ -263,10 +260,6 @@ const resources = {
           date: 'Date',
         },
       },
-
-
-
-
     },
   },
   ar: {
@@ -362,15 +355,14 @@ const resources = {
         },
         categories: {
           all: 'الكل',
-          outerwear: 'المعاطف',
-          dresses: 'الفساتين',
-          tops: 'البلوزات',
-          bottoms: 'السراويل',
-          knitwear: 'التريكو',
-          shoes: 'الأحذية',
-          bags: 'الحقائب',
-          accessories: 'الإكسسوارات',
-          sets: 'الأطقم',
+          'women-dresses': 'فساتين نسائية',
+          'women-tops': 'بلوزات وتوبات',
+          'women-outerwear': 'معاطف نسائية',
+          'men-shirts': 'قمصان رجالية',
+          'men-trousers': 'بناطيل رجالية',
+          'men-outerwear': 'معاطف رجالية',
+          accessories: 'إكسسوارات',
+          footwear: 'أحذية',
         },
         gender: {
           all: 'الكل',
@@ -390,7 +382,6 @@ const resources = {
           subtitle: 'جرّب تعديل الفلاتر أو كلمة البحث.',
         },
       },
-      
       auth: {
         loginTitle: 'مرحباً بعودتك',
         loginSubtitle: 'سجّل الدخول إلى حساب FIVE',
@@ -412,7 +403,6 @@ const resources = {
         accountInfo: 'معلومات الحساب',
         role: 'الدور',
       },
-
       product: {
         notFound: 'المنتج غير موجود',
         backToShop: 'العودة للمتجر',
@@ -530,10 +520,6 @@ const resources = {
           date: 'التاريخ',
         },
       },
-
-
-
-
     },
   },
 };
