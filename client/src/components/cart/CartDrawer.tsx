@@ -3,17 +3,21 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import {
   closeCart,
-  removeFromCart,
-  updateQuantity,
   selectCartItems,
   selectCartSubtotal,
   selectIsCartOpen,
 } from '@/features/cart/cartSlice';
+import {
+  removeFromCartSmart,
+  updateQuantitySmart,
+} from '@/features/cart/cartCommerce';
+import type { AppDispatch } from '@/store';
+import { store } from '@/store';
 import { Button } from '@/components/ui/Button';
 
 export function CartDrawer() {
   const { t, i18n } = useTranslation();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const isOpen = useSelector(selectIsCartOpen);
   const items = useSelector(selectCartItems);
   const subtotal = useSelector(selectCartSubtotal);
@@ -23,13 +27,11 @@ export function CartDrawer() {
 
   return (
     <div className="fixed inset-0 z-[60]">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-background/70 backdrop-blur-sm"
         onClick={() => dispatch(closeCart())}
       />
 
-      {/* Panel */}
       <div className="absolute inset-y-0 end-0 flex w-full max-w-md flex-col bg-background shadow-xl">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <h2 className="font-display text-lg font-semibold">
@@ -75,7 +77,7 @@ export function CartDrawer() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => dispatch(removeFromCart(item.id))}
+                          onClick={() => void removeFromCartSmart(dispatch, store.getState, item.id)}
                           className="text-muted-foreground hover:text-error"
                           aria-label="Remove"
                         >
@@ -90,7 +92,7 @@ export function CartDrawer() {
                             type="button"
                             className="flex h-7 w-7 items-center justify-center rounded border border-border text-sm"
                             onClick={() =>
-                              dispatch(updateQuantity({ id: item.id, quantity: item.quantity - 1 }))
+                              void updateQuantitySmart(dispatch, store.getState, item.id, item.quantity - 1)
                             }
                           >
                             −
@@ -100,7 +102,7 @@ export function CartDrawer() {
                             type="button"
                             className="flex h-7 w-7 items-center justify-center rounded border border-border text-sm"
                             onClick={() =>
-                              dispatch(updateQuantity({ id: item.id, quantity: item.quantity + 1 }))
+                              void updateQuantitySmart(dispatch, store.getState, item.id, item.quantity + 1)
                             }
                           >
                             +
