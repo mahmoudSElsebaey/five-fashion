@@ -1,17 +1,19 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { mockProducts } from '@/data/mockProducts';
 import { ProductGallery } from '@/components/product/ProductGallery';
 import { SizeSelector } from '@/components/product/SizeSelector';
 import { ColorSelector } from '@/components/product/ColorSelector';
 import { Product3DViewer } from '@/components/3d/Product3DViewer';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { Button } from '@/components/ui/Button';
+import { productsApi } from '@/services/apiClient';
+import { mapApiProduct, type ApiProduct, type UiProduct } from '@/types/product';
+import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { addToCart } from '@/features/cart/cartSlice';
-import { toggleWishlist, selectIsInWishlist } from '@/features/wishlist/wishlistSlice';
+import { toggleWishlist } from '@/features/wishlist/wishlistSlice';
 
 export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,28 +21,75 @@ export function ProductDetailPage() {
   const isAr = i18n.language === 'ar';
   const dispatch = useDispatch();
 
-  const product = useMemo(
-    () => mockProducts.find((p) => p.id === id),
-    [id]
-  );
+  const [product, setProduct] = useState<UiProduct | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setLoadError(null);
+      try {
+        const res = await productsApi.getById(id);
+        if (cancelled) return;
+        setProduct(mapApiProduct(res.data as ApiProduct));
+      } catch (e) {
+        if (!cancelled) {
+          setProduct(null);
+          setLoadError(e instanceof Error ? e.message : 'Not found');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
 
-  const related = useMemo(() => {
-    if (!product) return [];
-    return mockProducts
-      .filter((p) => p.id !== product.id && (p.category === product.category || p.gender === product.gender))
-      .slice(0, 4);
+  const [related, setRelated] = useState<UiProduct[]>([]);
+  useEffect(() => {
+    if (!product) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await productsApi.list({ limit: 8 });
+        if (cancelled) return;
+        const list = ((res.data || []) as ApiProduct[])
+          .map(mapApiProduct)
+          .filter((p) => p.id !== product.id)
+          .slice(0, 4);
+        setRelated(list);
+      } catch {
+        if (!cancelled) setRelated([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [product]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-center px-4 py-32 text-center">
         <h1 className="font-display text-2xl font-semibold">{t('product.notFound')}</h1>
-        <Button className="mt-6" variant="outline" as-child={false}>
+        {loadError && <p className="mt-2 text-sm text-muted-foreground">{loadError}</p>}
+        <Button className="mt-6" variant="outline">
           <Link to="/shop">{t('product.backToShop')}</Link>
         </Button>
       </div>
@@ -79,7 +128,6 @@ export function ProductDetailPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      {/* Breadcrumb */}
       <nav className="mb-8 text-sm text-muted-foreground">
         <Link to="/" className="hover:text-foreground">{t('nav.home')}</Link>
         <span className="mx-2">/</span>
@@ -89,10 +137,8 @@ export function ProductDetailPage() {
       </nav>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
-        {/* Gallery */}
         <ProductGallery productId={product.id} name={name} />
 
-        {/* Info */}
         <div className="flex flex-col">
           <div className="mb-2 flex flex-wrap gap-2">
             {product.isNew && <Badge variant="accent">{t('shop.badges.new')}</Badge>}
@@ -116,8 +162,6 @@ export function ProductDetailPage() {
           <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
             <span className="text-accent">★</span>
             <span>{product.rating}</span>
-            <span>·</span>
-            <span>{t('product.reviews', { count: 12 })}</span>
           </div>
 
           <p className="mt-6 text-muted-foreground leading-relaxed">
@@ -130,14 +174,11 @@ export function ProductDetailPage() {
               selected={selectedColor}
               onChange={setSelectedColor}
             />
-
             <SizeSelector
               sizes={product.sizes}
               selected={selectedSize}
               onChange={setSelectedSize}
             />
-
-            {/* Quantity */}
             <div>
               <h3 className="mb-3 text-sm font-semibold tracking-wide">
                 {t('product.quantity')}
@@ -162,7 +203,6 @@ export function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Actions */}
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <Button
               size="lg"
@@ -179,13 +219,11 @@ export function ProductDetailPage() {
             </Button>
           </div>
 
-          {/* 3D Viewer placeholder */}
           <div className="mt-10">
             <h3 className="mb-3 text-sm font-semibold tracking-wide">{t('product.view3d')}</h3>
             <Product3DViewer className="h-56 w-full border border-border" />
           </div>
 
-          {/* Details accordion-like */}
           <div className="mt-8 space-y-4 border-t border-border pt-8">
             <details className="group">
               <summary className="cursor-pointer list-none text-sm font-semibold tracking-wide">
@@ -207,7 +245,6 @@ export function ProductDetailPage() {
         </div>
       </div>
 
-      {/* Related */}
       {related.length > 0 && (
         <section className="mt-24">
           <h2 className="mb-8 font-display text-2xl font-semibold tracking-tight">
