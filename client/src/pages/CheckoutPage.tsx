@@ -8,14 +8,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   selectCartItems,
   selectCartSubtotal,
-  clearCart,
 } from '@/features/cart/cartSlice';
+import { clearCartSmart } from '@/features/cart/cartCommerce';
 import { addOrder } from '@/features/orders/ordersSlice';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { getCouponRate } from '@/utils/coupons';
 import { ordersApi, couponsApi } from '@/services/apiClient';
-import type { RootState } from '@/store';
+import type { AppDispatch, RootState } from '@/store';
+import { store } from '@/store';
 
 const schema = z.object({
   name: z.string().min(2),
@@ -36,7 +36,7 @@ const SHIPPING_PRICES = { standard: 15, express: 35 };
 
 export function CheckoutPage() {
   const { t, i18n } = useTranslation();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const items = useSelector(selectCartItems);
   const subtotal = useSelector(selectCartSubtotal);
@@ -62,7 +62,7 @@ export function CheckoutPage() {
   const discountAmount = subtotal * appliedDiscount;
   const total = Math.max(0, subtotal + shipping - discountAmount);
 
-  const applyCoupon = () => {
+  const applyCoupon = async () => {
     const code = (watch('coupon') || '').trim().toUpperCase();
     if (!code) {
       setCouponError('');
@@ -70,12 +70,28 @@ export function CheckoutPage() {
       setAppliedCode('');
       return;
     }
-    const rate = getCouponRate(code);
-    if (rate) {
-      setAppliedDiscount(rate);
-      setAppliedCode(code);
-      setCouponError('');
-    } else {
+    try {
+      const res = await couponsApi.validate(code);
+      const data = res.data as {
+        discountType?: string;
+        discountValue?: number;
+        code?: string;
+      };
+      if (data?.discountType === 'percentage' && data.discountValue != null) {
+        setAppliedDiscount(data.discountValue / 100);
+        setAppliedCode(data.code || code);
+        setCouponError('');
+      } else if (data?.discountType === 'fixed' && data.discountValue != null) {
+        const rate = subtotal > 0 ? Math.min(1, data.discountValue / subtotal) : 0;
+        setAppliedDiscount(rate);
+        setAppliedCode(data.code || code);
+        setCouponError('');
+      } else {
+        setAppliedDiscount(0);
+        setAppliedCode('');
+        setCouponError(t('checkout.invalidCoupon'));
+      }
+    } catch {
       setAppliedDiscount(0);
       setAppliedCode('');
       setCouponError(t('checkout.invalidCoupon'));
@@ -114,7 +130,7 @@ export function CheckoutPage() {
         });
         const created = res.data as { _id?: string; orderNumber?: string; id?: string };
         const oid = created._id || created.orderNumber || created.id || 'unknown';
-        dispatch(clearCart());
+        void clearCartSmart(dispatch, store.getState);
         setSubmitting(false);
         navigate(`/order-confirmation/${oid}`);
         return;
@@ -158,7 +174,7 @@ export function CheckoutPage() {
     };
 
     dispatch(addOrder(order));
-    dispatch(clearCart());
+    void clearCartSmart(dispatch, store.getState);
     setSubmitting(false);
     navigate(`/order-confirmation/${order.id}`);
   };
@@ -221,17 +237,10 @@ export function CheckoutPage() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      value={method}
-                      {...register('shippingMethod')}
-                      className="accent-accent"
-                    />
+                    <input type="radio" value={method} {...register('shippingMethod')} className="accent-accent" />
                     <div>
                       <p className="text-sm font-medium">{t(`checkout.${method}`)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {t(`checkout.${method}Desc`)}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{t(`checkout.${method}Desc`)}</p>
                     </div>
                   </div>
                   <span className="text-sm font-medium">${SHIPPING_PRICES[method]}</span>
@@ -244,7 +253,6 @@ export function CheckoutPage() {
         <div className="lg:col-span-2">
           <div className="sticky top-24 rounded-2xl border border-border bg-card p-6 shadow-sm">
             <h2 className="font-display text-lg font-semibold">{t('checkout.orderSummary')}</h2>
-
             <ul className="mt-6 max-h-48 space-y-3 overflow-y-auto">
               {items.map((item) => (
                 <li key={item.id} className="flex justify-between gap-3 text-sm">
@@ -257,24 +265,16 @@ export function CheckoutPage() {
                 </li>
               ))}
             </ul>
-
             <div className="mt-6 flex gap-2">
-              <Input
-                placeholder={t('checkout.couponPlaceholder')}
-                {...register('coupon')}
-                className="flex-1"
-              />
-              <Button type="button" variant="outline" onClick={applyCoupon}>
+              <Input placeholder={t('checkout.couponPlaceholder')} {...register('coupon')} className="flex-1" />
+              <Button type="button" variant="outline" onClick={() => void applyCoupon()}>
                 {t('checkout.apply')}
               </Button>
             </div>
             {couponError && <p className="mt-1 text-xs text-error">{couponError}</p>}
             {appliedCode && (
-              <p className="mt-1 text-xs text-success">
-                {t('checkout.couponApplied', { code: appliedCode })}
-              </p>
+              <p className="mt-1 text-xs text-success">{t('checkout.couponApplied', { code: appliedCode })}</p>
             )}
-
             <div className="mt-6 space-y-2 border-t border-border pt-4 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t('cart.subtotal')}</span>
@@ -295,14 +295,10 @@ export function CheckoutPage() {
                 <span>${total.toFixed(0)}</span>
               </div>
             </div>
-
             <Button type="submit" size="lg" fullWidth className="mt-6" isLoading={submitting}>
               {t('checkout.placeOrder')}
             </Button>
-
-            <p className="mt-4 text-center text-xs text-muted-foreground">
-              {t('checkout.paymentNote')}
-            </p>
+            <p className="mt-4 text-center text-xs text-muted-foreground">{t('checkout.paymentNote')}</p>
           </div>
         </div>
       </form>
