@@ -52,7 +52,6 @@ const categorySchema = new Schema<ICategory>(
   { timestamps: true }
 );
 
-categorySchema.index({ slug: 1 });
 categorySchema.index({ isActive: 1, displayOrder: 1 });
 categorySchema.index({ gender: 1 });
 

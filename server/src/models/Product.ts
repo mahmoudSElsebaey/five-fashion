@@ -8,12 +8,13 @@ export interface IProductVariant {
   stock: number;
 }
 
-export interface IProduct extends Omit<Document, 'collection'> {
+export interface IProduct extends Document {
   name: ILocalizedString;
   slug: string;
   description?: ILocalizedString;
   category?: Types.ObjectId;
-  collection?: Types.ObjectId;
+  /** Fashion collection reference (not mongoose Document.collection) */
+  collectionRef?: Types.ObjectId;
   brand: string;
   gender: 'men' | 'women' | 'unisex';
   price: number;
@@ -67,7 +68,7 @@ const productSchema = new Schema<IProduct>(
     },
     description: localizedSchema,
     category: { type: Schema.Types.ObjectId, ref: 'Category' },
-    collection: { type: Schema.Types.ObjectId, ref: 'Collection' },
+    collectionRef: { type: Schema.Types.ObjectId, ref: 'Collection' },
     brand: { type: String, default: 'FIVE', trim: true },
     gender: {
       type: String,
@@ -99,11 +100,10 @@ const productSchema = new Schema<IProduct>(
   { timestamps: true }
 );
 
-productSchema.index({ slug: 1 });
-productSchema.index({ sku: 1 });
+// unique:true already indexes slug + sku — do not duplicate
 productSchema.index({ status: 1, featured: 1 });
 productSchema.index({ category: 1, status: 1 });
-productSchema.index({ collection: 1, status: 1 });
+productSchema.index({ collectionRef: 1, status: 1 });
 productSchema.index({ gender: 1, status: 1 });
 productSchema.index({ newArrival: 1, status: 1 });
 productSchema.index({ bestseller: 1, status: 1 });
