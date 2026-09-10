@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import type { Product } from '@/data/mockProducts';
+import type { UiProduct as Product } from '@/types/product';
 
 interface ProductCardProps {
   product: Product;
