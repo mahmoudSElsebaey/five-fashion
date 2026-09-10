@@ -12,14 +12,16 @@ import { mapApiProduct, type ApiProduct, type UiProduct } from '@/types/product'
 import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
 import { useDispatch } from 'react-redux';
-import { addToCart } from '@/features/cart/cartSlice';
-import { toggleWishlist } from '@/features/wishlist/wishlistSlice';
+import { addToCartSmart } from '@/features/cart/cartCommerce';
+import { toggleWishlistSmart } from '@/features/wishlist/wishlistCommerce';
+import type { AppDispatch } from '@/store';
+import { store } from '@/store';
 
 export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
 
   const [product, setProduct] = useState<UiProduct | null>(null);
   const [loading, setLoading] = useState(true);
@@ -101,7 +103,7 @@ export function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (!selectedSize && product.sizes.length > 0) return;
-    dispatch(addToCart({
+    void addToCartSmart(dispatch, store.getState, {
       productId: product.id,
       nameEn: product.nameEn,
       nameAr: product.nameAr,
@@ -110,20 +112,21 @@ export function ProductDetailPage() {
       quantity,
       size: selectedSize || undefined,
       color: selectedColor || undefined,
-    }));
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
+    }).then(() => {
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000);
+    });
   };
 
   const handleToggleWishlist = () => {
-    dispatch(toggleWishlist({
+    void toggleWishlistSmart(dispatch, store.getState, {
       productId: product.id,
       nameEn: product.nameEn,
       nameAr: product.nameAr,
       price: product.price,
       salePrice: product.salePrice,
       brand: product.brand,
-    }));
+    });
   };
 
   return (
