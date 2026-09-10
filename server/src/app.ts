@@ -6,6 +6,14 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { config } from './config/index.js';
 import authRoutes from './routes/authRoutes.js';
+import productRoutes from './routes/productRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
+import collectionRoutes from './routes/collectionRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
+import couponRoutes from './routes/couponRoutes.js';
+import addressRoutes from './routes/addressRoutes.js';
+import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
 
@@ -29,27 +37,24 @@ app.get('/api/v1/health', (_req, res) => {
   res.status(200).json({
     success: true,
     message: 'FIVE Fashion API is running',
-    version: '0.1.0',
+    version: '0.2.0',
     timestamp: new Date().toISOString(),
   });
 });
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/products', productRoutes);
+app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/collections', collectionRoutes);
+app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/coupons', couponRoutes);
+app.use('/api/v1/addresses', addressRoutes);
 
-// 404
-app.use((_req, res) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
-});
-
-// Global error handler
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: config.nodeEnv === 'production' ? 'Internal server error' : err.message,
-  });
-});
+// 404 + errors
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // Connect DB and start
 const start = async () => {
