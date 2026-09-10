@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,6 +14,8 @@ import { addOrder } from '@/features/orders/ordersSlice';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { getCouponRate } from '@/utils/coupons';
+import { ordersApi, couponsApi } from '@/services/apiClient';
+import type { RootState } from '@/store';
 
 const schema = z.object({
   name: z.string().min(2),
@@ -31,6 +33,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const SHIPPING_PRICES = { standard: 15, express: 35 };
+
 export function CheckoutPage() {
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
@@ -48,7 +51,6 @@ export function CheckoutPage() {
     register,
     handleSubmit,
     watch,
-    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -80,9 +82,46 @@ export function CheckoutPage() {
     }
   };
 
+  const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
+
   const onSubmit = async (data: FormData) => {
     if (items.length === 0) return;
     setSubmitting(true);
+
+    try {
+      if (isAuthenticated) {
+        const res = await ordersApi.create({
+          items: items.map((i) => ({
+            productId: i.productId,
+            quantity: i.quantity,
+            size: i.size,
+            color: i.color,
+          })),
+          shippingAddress: {
+            fullName: data.name,
+            phone: data.phone,
+            country: data.country,
+            city: data.city,
+            street: data.line1,
+            apartment: data.line2 || undefined,
+            postalCode: data.postalCode || undefined,
+          },
+          paymentMethod: 'cod',
+          couponCode: appliedCode || undefined,
+          shippingCost: shipping,
+          customerEmail: data.email,
+          customerPhone: data.phone,
+        });
+        const created = res.data as { _id?: string; orderNumber?: string; id?: string };
+        const oid = created._id || created.orderNumber || created.id || 'unknown';
+        dispatch(clearCart());
+        setSubmitting(false);
+        navigate(`/order-confirmation/${oid}`);
+        return;
+      }
+    } catch (err) {
+      console.warn('Server order failed, using local fallback', err);
+    }
 
     const order = {
       id: `ORD-${Date.now().toString(36).toUpperCase()}`,
@@ -142,9 +181,7 @@ export function CheckoutPage() {
       </h1>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-10 grid gap-12 lg:grid-cols-5">
-        {/* Left: forms */}
         <div className="space-y-10 lg:col-span-3">
-          {/* Contact */}
           <section>
             <h2 className="mb-4 text-sm font-semibold tracking-wide uppercase text-muted-foreground">
               {t('checkout.contact')}
@@ -156,7 +193,6 @@ export function CheckoutPage() {
             </div>
           </section>
 
-          {/* Address */}
           <section>
             <h2 className="mb-4 text-sm font-semibold tracking-wide uppercase text-muted-foreground">
               {t('checkout.shippingAddress')}
@@ -170,7 +206,6 @@ export function CheckoutPage() {
             </div>
           </section>
 
-          {/* Shipping method */}
           <section>
             <h2 className="mb-4 text-sm font-semibold tracking-wide uppercase text-muted-foreground">
               {t('checkout.shippingMethod')}
@@ -206,7 +241,6 @@ export function CheckoutPage() {
           </section>
         </div>
 
-        {/* Right: summary */}
         <div className="lg:col-span-2">
           <div className="sticky top-24 rounded-2xl border border-border bg-card p-6 shadow-sm">
             <h2 className="font-display text-lg font-semibold">{t('checkout.orderSummary')}</h2>
@@ -224,7 +258,6 @@ export function CheckoutPage() {
               ))}
             </ul>
 
-            {/* Coupon */}
             <div className="mt-6 flex gap-2">
               <Input
                 placeholder={t('checkout.couponPlaceholder')}
