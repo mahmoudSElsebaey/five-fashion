@@ -41,14 +41,14 @@ export function NewArrivals() {
       <div className="mb-10 flex items-end justify-between gap-4">
         <div>
           <p className="text-sm font-medium tracking-widest text-accent uppercase">
-            {t('home.newArrivals.label')}
+            {t('home.arrivals.label')}
           </p>
           <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-            {t('home.newArrivals.title')}
+            {t('home.arrivals.title')}
           </h2>
         </div>
         <Button variant="outline" size="sm" as-child={false}>
-          <Link to="/shop">{t('home.newArrivals.viewAll')}</Link>
+          <Link to="/shop">{t('home.arrivals.viewAll')}</Link>
         </Button>
       </div>
 
