@@ -16,6 +16,7 @@ import { addToCartSmart } from '@/features/cart/cartCommerce';
 import { toggleWishlistSmart } from '@/features/wishlist/wishlistCommerce';
 import type { AppDispatch } from '@/store';
 import { store } from '@/store';
+import { Seo } from '@/components/seo/Seo';
 
 export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -131,6 +132,12 @@ export function ProductDetailPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <Seo
+        title={name}
+        description={`${name} — ${product.brand} | FIVE Fashion luxury`}
+        image={product.images?.[0]}
+        type="product"
+      />
       <nav className="mb-8 text-sm text-muted-foreground">
         <Link to="/" className="hover:text-foreground">{t('nav.home')}</Link>
         <span className="mx-2">/</span>
@@ -140,7 +147,7 @@ export function ProductDetailPage() {
       </nav>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
-        <ProductGallery productId={product.id} name={name} />
+        <ProductGallery images={product.images} name={name} />
 
         <div className="flex flex-col">
           <div className="mb-2 flex flex-wrap gap-2">
@@ -149,16 +156,12 @@ export function ProductDetailPage() {
           </div>
 
           <p className="text-sm text-muted-foreground">{product.brand}</p>
-          <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-            {name}
-          </h1>
+          <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight sm:text-4xl">{name}</h1>
 
           <div className="mt-4 flex items-baseline gap-3">
             <span className="text-2xl font-semibold">${displayPrice}</span>
             {product.salePrice && (
-              <span className="text-lg text-muted-foreground line-through">
-                ${product.price}
-              </span>
+              <span className="text-lg text-muted-foreground line-through">${product.price}</span>
             )}
           </div>
 
@@ -167,58 +170,27 @@ export function ProductDetailPage() {
             <span>{product.rating}</span>
           </div>
 
-          <p className="mt-6 text-muted-foreground leading-relaxed">
-            {t('product.descriptionPlaceholder')}
-          </p>
+          <p className="mt-6 text-muted-foreground leading-relaxed">{t('product.descriptionPlaceholder')}</p>
 
           <div className="mt-8 space-y-6">
-            <ColorSelector
-              colors={product.colors}
-              selected={selectedColor}
-              onChange={setSelectedColor}
-            />
-            <SizeSelector
-              sizes={product.sizes}
-              selected={selectedSize}
-              onChange={setSelectedSize}
-            />
+            <ColorSelector colors={product.colors} selected={selectedColor} onChange={setSelectedColor} />
+            <SizeSelector sizes={product.sizes} selected={selectedSize} onChange={setSelectedSize} />
             <div>
-              <h3 className="mb-3 text-sm font-semibold tracking-wide">
-                {t('product.quantity')}
-              </h3>
+              <h3 className="mb-3 text-sm font-semibold tracking-wide">{t('product.quantity')}</h3>
               <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-lg hover:bg-surface-hover"
-                >
-                  −
-                </button>
+                <button type="button" onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-lg hover:bg-surface-hover">−</button>
                 <span className="w-8 text-center font-medium">{quantity}</span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity((q) => q + 1)}
-                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-lg hover:bg-surface-hover"
-                >
-                  +
-                </button>
+                <button type="button" onClick={() => setQuantity((q) => q + 1)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-lg hover:bg-surface-hover">+</button>
               </div>
             </div>
           </div>
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-            <Button
-              size="lg"
-              className="flex-1"
-              onClick={handleAddToCart}
-              disabled={product.sizes.length > 0 && !selectedSize}
-            >
+            <Button size="lg" className="flex-1" onClick={handleAddToCart} disabled={product.sizes.length > 0 && !selectedSize}>
               {addedToCart ? t('product.added') : t('product.addToCart')}
             </Button>
             <Button size="lg" variant="outline" className="sm:w-14" aria-label="Wishlist" onClick={handleToggleWishlist}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>
             </Button>
           </div>
 
@@ -229,20 +201,12 @@ export function ProductDetailPage() {
 
           <div className="mt-8 space-y-4 border-t border-border pt-8">
             <details className="group">
-              <summary className="cursor-pointer list-none text-sm font-semibold tracking-wide">
-                {t('product.details')}
-              </summary>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                {t('product.detailsContent')}
-              </p>
+              <summary className="cursor-pointer list-none text-sm font-semibold tracking-wide">{t('product.details')}</summary>
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{t('product.detailsContent')}</p>
             </details>
             <details className="group">
-              <summary className="cursor-pointer list-none text-sm font-semibold tracking-wide">
-                {t('product.shipping')}
-              </summary>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                {t('product.shippingContent')}
-              </p>
+              <summary className="cursor-pointer list-none text-sm font-semibold tracking-wide">{t('product.shipping')}</summary>
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{t('product.shippingContent')}</p>
             </details>
           </div>
         </div>
@@ -250,9 +214,7 @@ export function ProductDetailPage() {
 
       {related.length > 0 && (
         <section className="mt-24">
-          <h2 className="mb-8 font-display text-2xl font-semibold tracking-tight">
-            {t('product.related')}
-          </h2>
+          <h2 className="mb-8 font-display text-2xl font-semibold tracking-tight">{t('product.related')}</h2>
           <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />
