@@ -1,18 +1,40 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
+import { ProductCard } from '@/components/shop/ProductCard';
 import { Button } from '@/components/ui/Button';
-
-const products = [
-  { id: '1', nameKey: 'silkBlazer', price: 890, tag: 'new' },
-  { id: '2', nameKey: 'structuredCoat', price: 1240, tag: 'new' },
-  { id: '3', nameKey: 'fluidDress', price: 720, tag: 'sale', oldPrice: 980 },
-  { id: '4', nameKey: 'tailoredTrousers', price: 480, tag: null },
-];
+import { Spinner } from '@/components/ui/Spinner';
+import { productsApi } from '@/services/apiClient';
+import { mapApiProduct, type ApiProduct, type UiProduct } from '@/types/product';
 
 export function NewArrivals() {
   const { t } = useTranslation();
+  const [products, setProducts] = useState<UiProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await productsApi.list({ newArrival: true, limit: 4, sort: 'newest' });
+        if (cancelled) return;
+        let list = ((res.data || []) as ApiProduct[]).map(mapApiProduct);
+        if (list.length === 0) {
+          const fallback = await productsApi.list({ limit: 4, sort: 'newest' });
+          if (cancelled) return;
+          list = ((fallback.data || []) as ApiProduct[]).map(mapApiProduct);
+        }
+        setProducts(list.slice(0, 4));
+      } catch {
+        if (!cancelled) setProducts([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
@@ -25,53 +47,26 @@ export function NewArrivals() {
             {t('home.arrivals.title')}
           </h2>
         </div>
-        <Link
-          to="/shop?sort=newest"
-          className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
-        >
-          {t('home.arrivals.viewAll')} →
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {products.map((product) => (
-          <Link key={product.id} to={`/product/${product.id}`}>
-            <Card hoverable className="overflow-hidden border-0 bg-transparent shadow-none">
-              <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
-                <div className="absolute inset-0 bg-gradient-to-br from-surface via-muted to-accent/10" />
-                {product.tag && (
-                  <div className="absolute top-3 start-3">
-                    <Badge variant={product.tag === 'sale' ? 'error' : 'accent'}>
-                      {product.tag === 'sale' ? t('home.arrivals.sale') : t('home.arrivals.new')}
-                    </Badge>
-                  </div>
-                )}
-              </div>
-              <CardContent className="mt-4 space-y-1 px-0">
-                <h3 className="font-medium text-foreground">
-                  {t(`home.arrivals.products.${product.nameKey}`)}
-                </h3>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">
-                    ${product.price}
-                  </span>
-                  {product.oldPrice && (
-                    <span className="text-sm text-muted-foreground line-through">
-                      ${product.oldPrice}
-                    </span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-
-      <div className="mt-10 text-center sm:hidden">
-        <Button variant="outline" onClick={() => {}}>
-          {t('home.arrivals.viewAll')}
+        <Button variant="outline" size="sm" as-child={false}>
+          <Link to="/shop">{t('home.arrivals.viewAll')}</Link>
         </Button>
       </div>
+
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <Spinner />
+        </div>
+      ) : products.length === 0 ? (
+        <p className="py-12 text-center text-sm text-muted-foreground">
+          {t('shop.empty.subtitle')}
+        </p>
+      ) : (
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
