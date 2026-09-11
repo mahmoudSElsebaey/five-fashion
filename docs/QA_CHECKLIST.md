@@ -24,6 +24,7 @@ Use this checklist before each release. Mark items as pass/fail.
 - [ ] Search filters products
 - [ ] Sort changes order
 - [ ] Product detail shows size/color selectors
+- [ ] Product images load (or show gradient fallback)
 - [ ] 3D viewer loads (or falls back gracefully)
 
 ## 5. Cart & Wishlist
@@ -36,7 +37,7 @@ Use this checklist before each release. Mark items as pass/fail.
 ## 6. Checkout & Orders
 - [ ] Empty cart redirects/blocks checkout appropriately
 - [ ] Checkout form validates required fields
-- [ ] Coupons: `FIVE10` (10%), `WELCOME15` (15%)
+- [ ] Coupons: `FIVE10` (10%), `WELCOME15` (15%), `EVENING20` (20%)
 - [ ] Place order clears cart and shows confirmation
 - [ ] Orders page lists placed orders
 
@@ -48,7 +49,7 @@ Use this checklist before each release. Mark items as pass/fail.
 
 ## 8. Admin
 - [ ] Dashboard shows stats
-- [ ] Products table lists mock products
+- [ ] Products table lists API/seed products
 - [ ] Orders table lists local orders
 
 ## 9. Performance & a11y (smoke)
