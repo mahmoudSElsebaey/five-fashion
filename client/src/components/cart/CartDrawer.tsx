@@ -63,7 +63,16 @@ export function CartDrawer() {
                 {items.map((item) => (
                   <li key={item.id} className="flex gap-4">
                     <div className="h-24 w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
-                      <div className="h-full w-full bg-gradient-to-br from-surface via-muted to-accent/10" />
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={isAr ? item.nameAr : item.nameEn}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-gradient-to-br from-surface via-muted to-accent/10" />
+                      )}
                     </div>
                     <div className="flex flex-1 flex-col">
                       <div className="flex justify-between gap-2">
