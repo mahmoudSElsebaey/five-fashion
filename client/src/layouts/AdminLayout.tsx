@@ -9,8 +9,9 @@ import { useState } from 'react';
 export function AdminLayout() {
   const { isAuthenticated, user } = useSelector((s: RootState) => s.auth);
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const isArabic = i18n.language === 'ar';
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
@@ -21,9 +22,9 @@ export function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div dir={isArabic ? 'rtl' : 'ltr'} className="min-h-screen bg-background text-foreground">
       <div
-        className={`fixed inset-y-0 start-0 z-40 w-56 transform transition-transform duration-normal ease-five rtl:start-auto rtl:end-0 lg:translate-x-0 ${
+        className={`fixed inset-y-0 start-0 z-40 w-56 transform transition-transform duration-normal ease-five lg:translate-x-0 ${
           mobileOpen
             ? 'translate-x-0'
             : '-translate-x-full rtl:translate-x-full'
@@ -39,7 +40,7 @@ export function AdminLayout() {
           onClick={() => setMobileOpen(false)}
         />
       )}
-      <div className="flex min-h-screen min-w-0 flex-col lg:ms-56 rtl:lg:ms-0 rtl:lg:me-56">
+      <div className="flex min-h-screen min-w-0 flex-col lg:ms-56">
         <header className="flex h-14 items-center justify-between gap-3 border-b border-border bg-background/95 px-4 backdrop-blur sm:px-6">
           <button
             type="button"
@@ -51,7 +52,7 @@ export function AdminLayout() {
             Menu
           </button>
           <h1 className="text-sm font-medium text-muted-foreground">
-            FIVE Fashion · {t('admin.dashboard.title', { defaultValue: 'Admin' })}
+            FIVE Fashion · {t('admin.dashboard.title', { defaultValue: isArabic ? 'لوحة التحكم' : 'Admin' })}
           </h1>
           <span className="truncate text-sm text-muted-foreground">{user?.email}</span>
         </header>
