@@ -18,8 +18,27 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+type DemoAccount = {
+  key: 'customer' | 'admin';
+  email: string;
+  password: string;
+};
+
+const DEMO_ACCOUNTS: DemoAccount[] = [
+  {
+    key: 'customer',
+    email: 'demo.customer@fivefashion.com',
+    password: 'FiveDemo2026!',
+  },
+  {
+    key: 'admin',
+    email: 'demo.admin@fivefashion.com',
+    password: 'FiveAdmin2026!',
+  },
+];
+
 export function LoginPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,10 +52,12 @@ export function LoginPage() {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedDemo, setSelectedDemo] = useState<DemoAccount['key'] | null>(null);
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
@@ -45,6 +66,13 @@ export function LoginPage() {
       navigate(from === '/login' ? '/' : from, { replace: true });
     }
   }, [isAuthenticated, from, navigate]);
+
+  const useDemoAccount = (account: DemoAccount) => {
+    setError('');
+    setSelectedDemo(account.key);
+    setValue('email', account.email, { shouldValidate: true });
+    setValue('password', account.password, { shouldValidate: true });
+  };
 
   const onSubmit = async (data: FormData) => {
     setError('');
@@ -76,6 +104,8 @@ export function LoginPage() {
       setLoading(false);
     }
   };
+
+  const isArabic = i18n.language.startsWith('ar');
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-16">
@@ -119,6 +149,51 @@ export function LoginPage() {
           {t('auth.login')}
         </Button>
       </form>
+
+      <div className="mt-8 rounded-2xl border border-border/70 bg-muted/20 p-4">
+        <div className="mb-3 text-center">
+          <p className="text-sm font-semibold text-foreground">
+            {isArabic ? 'حسابات التجربة' : 'Demo accounts'}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {isArabic ? 'جرّب المتجر كعميل أو استكشف لوحة الإدارة' : 'Explore the store as a customer or admin'}
+          </p>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-2">
+          {DEMO_ACCOUNTS.map((account) => {
+            const isSelected = selectedDemo === account.key;
+            const isAdmin = account.key === 'admin';
+            return (
+              <button
+                key={account.key}
+                type="button"
+                onClick={() => useDemoAccount(account)}
+                className={`rounded-xl border px-3 py-3 text-start transition-all hover:-translate-y-0.5 hover:border-foreground/30 hover:bg-background ${
+                  isSelected ? 'border-primary bg-background shadow-sm' : 'border-border/70 bg-background/50'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium">
+                    {isArabic ? (isAdmin ? 'مدير المتجر' : 'عميل تجريبي') : isAdmin ? 'Store Admin' : 'Demo Customer'}
+                  </span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                    {isAdmin ? 'Admin' : 'Customer'}
+                  </span>
+                </div>
+                <p className="mt-1 truncate text-[11px] text-muted-foreground">{account.email}</p>
+                <p className="mt-2 text-xs font-medium text-foreground">
+                  {isArabic ? 'استخدام الحساب' : 'Use this account'}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+
+        <p className="mt-3 text-center text-[10px] text-muted-foreground">
+          {isArabic ? 'حسابات تجريبية عامة للمراجعة والعرض فقط.' : 'Public demo accounts for review and showcase only.'}
+        </p>
+      </div>
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
         {t('auth.noAccount')}{' '}
