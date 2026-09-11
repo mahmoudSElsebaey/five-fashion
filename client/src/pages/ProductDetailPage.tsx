@@ -5,6 +5,7 @@ import { ProductGallery } from '@/components/product/ProductGallery';
 import { SizeSelector } from '@/components/product/SizeSelector';
 import { ColorSelector } from '@/components/product/ColorSelector';
 import { Product3DViewer } from '@/components/3d/Product3DViewer';
+import { ProductReviews } from '@/components/product/ProductReviews';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
@@ -22,7 +23,7 @@ import { store } from '@/store';
 
 const OBJECT_ID_RE = /^[a-f\d]{24}$/i;
 
-/** SECTION 06 — Product Detail: real description, slug/id load, related by category, stock-aware qty */
+/** SECTION 06 + 12 — PDP with ProductReviews */
 export function ProductDetailPage() {
   const { id: param } = useParams<{ id: string }>();
   const { t, i18n } = useTranslation();
@@ -142,11 +143,6 @@ export function ProductDetailPage() {
             actionTo="/shop"
           />
         )}
-        <div className="mt-4 flex justify-center">
-          <Button variant="outline">
-            <Link to="/shop">{t('product.backToShop')}</Link>
-          </Button>
-        </div>
       </div>
     );
   }
@@ -205,9 +201,13 @@ export function ProductDetailPage() {
       />
 
       <nav className="mb-8 text-sm text-muted-foreground" aria-label="Breadcrumb">
-        <Link to="/" className="hover:text-foreground">{t('nav.home')}</Link>
+        <Link to="/" className="hover:text-foreground">
+          {t('nav.home')}
+        </Link>
         <span className="mx-2">/</span>
-        <Link to="/shop" className="hover:text-foreground">{t('nav.shop')}</Link>
+        <Link to="/shop" className="hover:text-foreground">
+          {t('nav.shop')}
+        </Link>
         {product.category && (
           <>
             <span className="mx-2">/</span>
@@ -247,7 +247,9 @@ export function ProductDetailPage() {
 
           {(product.rating > 0 || reviewCount > 0) && (
             <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
-              <span className="text-accent" aria-hidden>★</span>
+              <span className="text-accent" aria-hidden>
+                ★
+              </span>
               <span>{product.rating.toFixed(1)}</span>
               {reviewCount > 0 && (
                 <>
@@ -295,7 +297,9 @@ export function ProductDetailPage() {
                 >
                   −
                 </button>
-                <span className="w-8 text-center font-medium" aria-live="polite">{quantity}</span>
+                <span className="w-8 text-center font-medium" aria-live="polite">
+                  {quantity}
+                </span>
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
@@ -305,14 +309,6 @@ export function ProductDetailPage() {
                 >
                   +
                 </button>
-                {typeof product.stock === 'number' && product.stock > 0 && product.stock <= 5 && (
-                  <span className="text-xs text-muted-foreground">
-                    {t('product.lowStock', {
-                      count: product.stock,
-                      defaultValue: `Only ${product.stock} left`,
-                    })}
-                  </span>
-                )}
               </div>
             </div>
           </div>
@@ -332,7 +328,18 @@ export function ProductDetailPage() {
               aria-label={t('product.wishlist', { defaultValue: 'Wishlist' })}
               onClick={handleToggleWishlist}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
                 <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
               </svg>
             </Button>
@@ -345,7 +352,9 @@ export function ProductDetailPage() {
 
           <div className="mt-8 space-y-4 border-t border-border pt-8">
             <details className="group">
-              <summary className="cursor-pointer list-none text-sm font-semibold tracking-wide">{t('product.details')}</summary>
+              <summary className="cursor-pointer list-none text-sm font-semibold tracking-wide">
+                {t('product.details')}
+              </summary>
               <div className="mt-3 space-y-1 text-sm text-muted-foreground leading-relaxed">
                 {product.sku && <p>SKU: {product.sku}</p>}
                 <p className="capitalize">
@@ -355,16 +364,24 @@ export function ProductDetailPage() {
               </div>
             </details>
             <details className="group">
-              <summary className="cursor-pointer list-none text-sm font-semibold tracking-wide">{t('product.shipping')}</summary>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{t('product.shippingContent')}</p>
+              <summary className="cursor-pointer list-none text-sm font-semibold tracking-wide">
+                {t('product.shipping')}
+              </summary>
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                {t('product.shippingContent')}
+              </p>
             </details>
           </div>
         </div>
       </div>
 
+      {product.id && <ProductReviews productId={product.id} />}
+
       {related.length > 0 && (
         <section className="mt-24">
-          <h2 className="mb-8 font-display text-2xl font-semibold tracking-tight">{t('product.related')}</h2>
+          <h2 className="mb-8 font-display text-2xl font-semibold tracking-tight">
+            {t('product.related')}
+          </h2>
           <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />
