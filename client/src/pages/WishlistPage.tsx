@@ -1,21 +1,26 @@
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import type { RootState } from '@/store';
-import { store } from '@/store';
+import { Link } from 'react-router-dom';
+import { selectWishlistItems } from '@/features/wishlist/wishlistSlice';
 import { removeFromWishlistSmart } from '@/features/wishlist/wishlistCommerce';
+import type { AppDispatch } from '@/store';
+import { store } from '@/store';
 import { Button } from '@/components/ui/Button';
 import { ProductImage } from '@/components/ui/ProductImage';
 import { Card, CardContent } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Seo } from '@/components/seo/Seo';
 
+/** SECTION 07 — Wishlist with EmptyState */
 export function WishlistPage() {
   const { t, i18n } = useTranslation();
+  const dispatch = useDispatch<AppDispatch>();
+  const items = useSelector(selectWishlistItems);
   const isAr = i18n.language === 'ar';
-  const dispatch = useDispatch();
-  const items = useSelector((s: RootState) => s.wishlist.items);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <Seo title="Wishlist" description="Your saved FIVE Fashion pieces." />
       <h1 className="font-display text-3xl font-semibold tracking-tight">
         {t('wishlist.title')}
       </h1>
@@ -24,12 +29,15 @@ export function WishlistPage() {
       </p>
 
       {items.length === 0 ? (
-        <div className="mt-20 flex flex-col items-center text-center">
-          <p className="text-muted-foreground">{t('wishlist.empty')}</p>
-          <Link to="/shop" className="mt-6">
-            <Button variant="outline">{t('wishlist.browse')}</Button>
-          </Link>
-        </div>
+        <EmptyState
+          className="mt-12"
+          title={t('wishlist.empty')}
+          description={t('wishlist.emptyDesc', {
+            defaultValue: 'Save pieces you love while browsing the shop.',
+          })}
+          actionLabel={t('wishlist.browse')}
+          actionTo="/shop"
+        />
       ) : (
         <div className="mt-10 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
           {items.map((item) => (
@@ -48,13 +56,13 @@ export function WishlistPage() {
                     {isAr ? item.nameAr : item.nameEn}
                   </h3>
                 </Link>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">
-                    ${item.salePrice ?? item.price}
-                  </span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium">${item.salePrice ?? item.price}</span>
                   <button
                     type="button"
-                    onClick={() => void removeFromWishlistSmart(dispatch, store.getState, item.productId)}
+                    onClick={() =>
+                      void removeFromWishlistSmart(dispatch, store.getState, item.productId)
+                    }
                     className="text-xs text-muted-foreground hover:text-error"
                   >
                     {t('wishlist.remove')}
