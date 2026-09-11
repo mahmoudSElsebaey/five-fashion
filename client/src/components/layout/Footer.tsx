@@ -22,9 +22,12 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
           <div className="space-y-4 md:col-span-1">
-            <Link to="/" className="inline-flex items-center gap-2">
-              <img src="/logo.png" alt="FIVE" className="h-7 w-auto object-contain" />
-              <span className="font-display text-lg font-semibold tracking-tight">FIVE</span>
+            <Link to="/" className="inline-flex items-center">
+              <img
+                src="/logo.png"
+                alt="FIVE Fashion"
+                className="h-14 w-auto max-w-full object-contain drop-shadow-[2px_3px_rgba(0,0,0,0.65)] dark:drop-shadow-none sm:h-18 lg:h-20"
+              />
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
               {t('footer.tagline', {
