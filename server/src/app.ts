@@ -17,11 +17,13 @@ import cartRoutes from './routes/cartRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
+import { apiLimiter } from './middleware/rateLimit.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = config.port;
+const startedAt = new Date();
 
 app.use(helmet());
 app.use(
@@ -32,16 +34,27 @@ app.use(
 );
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev'));
+app.use(morgan(config.isProduction ? 'combined' : 'dev'));
 
+/** Health is unauthenticated and not rate-limited (for uptime monitors) */
 app.get('/api/v1/health', (_req, res) => {
+  const mongoState = mongoose.connection.readyState;
+  const mongoStatus =
+    mongoState === 1 ? 'connected' : mongoState === 2 ? 'connecting' : 'disconnected';
+
   res.status(200).json({
     success: true,
     message: 'FIVE Fashion API is running',
-    version: '0.4.0',
+    version: config.apiVersion,
+    env: config.nodeEnv,
     timestamp: new Date().toISOString(),
+    uptimeSeconds: Math.floor((Date.now() - startedAt.getTime()) / 1000),
+    mongo: mongoStatus,
   });
 });
+
+/** Global API rate limit for the rest of /api/v1 */
+app.use('/api/v1', apiLimiter);
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/products', productRoutes);
@@ -63,7 +76,9 @@ const start = async () => {
     await mongoose.connect(config.mongodbUri);
     console.log('MongoDB connected');
     app.listen(PORT, () => {
-      console.log(`FIVE Fashion server running on port ${PORT}`);
+      console.log(
+        `FIVE Fashion server running on port ${PORT} [${config.nodeEnv}] v${config.apiVersion}`
+      );
     });
   } catch (err) {
     console.error('Failed to start server:', err);
