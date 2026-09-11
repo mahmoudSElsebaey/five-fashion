@@ -38,7 +38,7 @@ function parseSort(raw: string | null): SortOption {
 }
 
 export function ShopPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState<FilterState>(() => ({
     ...defaultFilters,
@@ -141,6 +141,16 @@ export function ShopPage() {
       ? t('shop.subtitleCount', { count: total, defaultValue: `${total} pieces` })
       : t('shop.subtitle');
 
+  const paginationItems: Array<number | 'ellipsis'> = (() => {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, index) => index + 1);
+    if (page <= 4) return [1, 2, 3, 4, 5, 'ellipsis', totalPages];
+    if (page >= totalPages - 3) return [1, 'ellipsis', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    return [1, 'ellipsis', page - 1, page, page + 1, 'ellipsis', totalPages];
+  })();
+
+  const previousLabel = i18n.language.startsWith('ar') ? 'السابق' : 'Previous';
+  const nextLabel = i18n.language.startsWith('ar') ? 'التالي' : 'Next';
+
   return (
     <>
       <Seo
@@ -225,27 +235,49 @@ export function ShopPage() {
                 </div>
 
                 {totalPages > 1 && (
-                  <div className="mt-10 flex items-center justify-center gap-3" aria-label="Pagination">
+                  <nav className="mt-10 flex flex-wrap items-center justify-center gap-2" aria-label="Pagination">
                     <Button
                       variant="outline"
                       size="sm"
                       disabled={page <= 1}
                       onClick={() => setPage((current) => Math.max(1, current - 1))}
+                      aria-label={previousLabel}
+                      className="min-w-20"
                     >
-                      {t('common.previous', { defaultValue: 'Previous' })}
+                      {previousLabel}
                     </Button>
-                    <span className="min-w-20 text-center text-sm text-muted-foreground">
-                      {page} / {totalPages}
-                    </span>
+
+                    {paginationItems.map((item, index) =>
+                      item === 'ellipsis' ? (
+                        <span key={`ellipsis-${index}`} className="flex h-9 w-9 items-center justify-center text-sm text-muted-foreground" aria-hidden="true">
+                          …
+                        </span>
+                      ) : (
+                        <Button
+                          key={item}
+                          variant={page === item ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setPage(item)}
+                          aria-current={page === item ? 'page' : undefined}
+                          aria-label={`${i18n.language.startsWith('ar') ? 'الصفحة' : 'Page'} ${item}`}
+                          className="h-9 w-9 p-0"
+                        >
+                          {item}
+                        </Button>
+                      ),
+                    )}
+
                     <Button
                       variant="outline"
                       size="sm"
                       disabled={page >= totalPages}
                       onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                      aria-label={nextLabel}
+                      className="min-w-20"
                     >
-                      {t('common.next', { defaultValue: 'Next' })}
+                      {nextLabel}
                     </Button>
-                  </div>
+                  </nav>
                 )}
               </>
             )}
