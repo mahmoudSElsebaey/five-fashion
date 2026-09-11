@@ -10,14 +10,15 @@ import {
   resetPassword,
 } from '../controllers/authController.js';
 import { protect } from '../middleware/auth.js';
+import { authLimiter, passwordResetLimiter } from '../middleware/rateLimit.js';
 
 const router = Router();
 
-router.post('/register', register);
-router.post('/login', login);
-router.post('/refresh', refresh);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+router.post('/register', authLimiter, register);
+router.post('/login', authLimiter, login);
+router.post('/refresh', authLimiter, refresh);
+router.post('/forgot-password', passwordResetLimiter, forgotPassword);
+router.post('/reset-password', passwordResetLimiter, resetPassword);
 
 router.post('/logout', protect, logout);
 router.get('/me', protect, getMe);
