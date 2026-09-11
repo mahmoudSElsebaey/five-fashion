@@ -1,3 +1,4 @@
+import type { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import app from '../src/app.js';
 import { config } from '../src/config/index.js';
@@ -15,7 +16,7 @@ function connectToDatabase() {
   return connectionPromise;
 }
 
-export default async function handler(req: Parameters<typeof app>[0], res: Parameters<typeof app>[1]) {
+export default async function handler(req: Request, res: Response) {
   try {
     await connectToDatabase();
     return app(req, res);
