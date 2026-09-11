@@ -10,14 +10,12 @@ import { createProductSchema, updateProductSchema } from '../validators/commerce
 import { slugify } from '../utils/slugify.js';
 import { AuthRequest } from '../middleware/auth.js';
 
-/** Resolve category filter value: accept ObjectId or slug */
 async function resolveCategoryId(value: string): Promise<mongoose.Types.ObjectId | null> {
   if (mongoose.isValidObjectId(value)) return new mongoose.Types.ObjectId(value);
   const cat = await Category.findOne({ slug: value.toLowerCase() }).select('_id').lean();
   return cat?._id ? (cat._id as mongoose.Types.ObjectId) : null;
 }
 
-/** Resolve collection filter value: accept ObjectId or slug */
 async function resolveCollectionId(value: string): Promise<mongoose.Types.ObjectId | null> {
   if (mongoose.isValidObjectId(value)) return new mongoose.Types.ObjectId(value);
   const col = await Collection.findOne({ slug: value.toLowerCase() }).select('_id').lean();
@@ -35,25 +33,13 @@ export const getProducts = asyncHandler(async (req: Request, res: Response) => {
 
   if (req.query.category) {
     const id = await resolveCategoryId(String(req.query.category));
-    if (!id) {
-      return res.status(200).json({
-        success: true,
-        data: [],
-        meta: { page, limit, total: 0, pages: 0 },
-      });
-    }
+    if (!id) return res.status(200).json({ success: true, data: [], meta: { page, limit, total: 0, pages: 0 } });
     filter.category = id;
   }
 
   if (req.query.collection) {
     const id = await resolveCollectionId(String(req.query.collection));
-    if (!id) {
-      return res.status(200).json({
-        success: true,
-        data: [],
-        meta: { page, limit, total: 0, pages: 0 },
-      });
-    }
+    if (!id) return res.status(200).json({ success: true, data: [], meta: { page, limit, total: 0, pages: 0 } });
     filter.collectionRef = id;
   }
 
@@ -61,7 +47,6 @@ export const getProducts = asyncHandler(async (req: Request, res: Response) => {
   if (req.query.featured === 'true') filter.featured = true;
   if (req.query.newArrival === 'true') filter.newArrival = true;
   if (req.query.bestseller === 'true') filter.bestseller = true;
-  // SECTION 05 — products with compareAtPrice greater than current price
   if (req.query.onSale === 'true') {
     filter.compareAtPrice = { $exists: true, $ne: null };
     filter.$expr = { $gt: ['$compareAtPrice', '$price'] };
@@ -74,8 +59,23 @@ export const getProducts = asyncHandler(async (req: Request, res: Response) => {
     if (req.query.minPrice) (filter.price as Record<string, number>).$gte = Number(req.query.minPrice);
     if (req.query.maxPrice) (filter.price as Record<string, number>).$lte = Number(req.query.maxPrice);
   }
+
+  // Use regex search instead of relying only on Mongo text search so Arabic,
+  // partial words, and mixed English/Arabic queries work consistently.
   if (req.query.q) {
-    filter.$text = { $search: String(req.query.q) };
+    const rawQuery = String(req.query.q).trim().slice(0, 80);
+    if (rawQuery) {
+      const escaped = rawQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const searchRegex = new RegExp(escaped, 'i');
+      filter.$or = [
+        { 'name.en': searchRegex },
+        { 'name.ar': searchRegex },
+        { 'description.en': searchRegex },
+        { 'description.ar': searchRegex },
+        { brand: searchRegex },
+        { sku: searchRegex },
+      ];
+    }
   }
 
   let sortOption: Record<string, 1 | -1> = { createdAt: -1 };
@@ -105,20 +105,14 @@ export const getProducts = asyncHandler(async (req: Request, res: Response) => {
 
 export const getProductById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = idParamSchema.parse(req.params);
-  const product = await Product.findById(id)
-    .populate('category', 'name slug')
-    .populate('collectionRef', 'name slug')
-    .lean();
+  const product = await Product.findById(id).populate('category', 'name slug').populate('collectionRef', 'name slug').lean();
   if (!product) throw new AppError('Product not found', 404);
   res.status(200).json({ success: true, data: product });
 });
 
 export const getProductBySlug = asyncHandler(async (req: Request, res: Response) => {
   const { slug } = slugParamSchema.parse(req.params);
-  const product = await Product.findOne({ slug, status: 'active' })
-    .populate('category', 'name slug')
-    .populate('collectionRef', 'name slug')
-    .lean();
+  const product = await Product.findOne({ slug, status: 'active' }).populate('category', 'name slug').populate('collectionRef', 'name slug').lean();
   if (!product) throw new AppError('Product not found', 404);
   res.status(200).json({ success: true, data: product });
 });
@@ -128,13 +122,8 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
   const slug = data.slug || slugify(data.name.en);
   const exists = await Product.findOne({ $or: [{ slug }, { sku: data.sku }] });
   if (exists) throw new AppError('Product with this slug or SKU already exists', 409);
-
   const payload: Record<string, unknown> = { ...data, slug };
-  if (data.collection && !payload.collectionRef) {
-    payload.collectionRef = data.collection;
-    delete payload.collection;
-  }
-
+  if (data.collection && !payload.collectionRef) { payload.collectionRef = data.collection; delete payload.collection; }
   const product = await Product.create(payload);
   res.status(201).json({ success: true, data: product });
 });
@@ -142,18 +131,10 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
 export const updateProduct = asyncHandler(async (req: Request, res: Response) => {
   const { id } = idParamSchema.parse(req.params);
   const data = updateProductSchema.parse(req.body);
-  if (data.name?.en && !data.slug) {
-    data.slug = slugify(data.name.en);
-  }
+  if (data.name?.en && !data.slug) data.slug = slugify(data.name.en);
   const payload: Record<string, unknown> = { ...data };
-  if (data.collection) {
-    payload.collectionRef = data.collection;
-    delete payload.collection;
-  }
-  const product = await Product.findByIdAndUpdate(id, payload, {
-    new: true,
-    runValidators: true,
-  });
+  if (data.collection) { payload.collectionRef = data.collection; delete payload.collection; }
+  const product = await Product.findByIdAndUpdate(id, payload, { new: true, runValidators: true });
   if (!product) throw new AppError('Product not found', 404);
   res.status(200).json({ success: true, data: product });
 });
