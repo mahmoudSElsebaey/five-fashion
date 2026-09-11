@@ -40,7 +40,7 @@ export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
   auth = false
-): Promise<ApiResponse<T> {
+): Promise<ApiResponse<T>> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> | undefined),
