@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,9 +13,11 @@ import { clearCartSmart } from '@/features/cart/cartCommerce';
 import { addOrder } from '@/features/orders/ordersSlice';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { ordersApi, couponsApi } from '@/services/apiClient';
 import type { AppDispatch, RootState } from '@/store';
 import { store } from '@/store';
+import { Seo } from '@/components/seo/Seo';
 
 const schema = z.object({
   name: z.string().min(2),
@@ -34,18 +36,31 @@ type FormData = z.infer<typeof schema>;
 
 const SHIPPING_PRICES = { standard: 15, express: 35 };
 
+/** SECTION 07 — Checkout: auth-required real orders, correct coupons, empty state */
 export function CheckoutPage() {
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const items = useSelector(selectCartItems);
   const subtotal = useSelector(selectCartSubtotal);
+  const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
+  const user = useSelector((s: RootState) => s.auth.user);
   const isAr = i18n.language === 'ar';
 
   const [couponError, setCouponError] = useState('');
-  const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const [discountAmount, setDiscountAmount] = useState(0);
   const [appliedCode, setAppliedCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  const defaultValues = useMemo(
+    () => ({
+      shippingMethod: 'standard' as const,
+      name: user?.name || '',
+      email: user?.email || '',
+    }),
+    [user?.name, user?.email]
+  );
 
   const {
     register,
@@ -54,19 +69,18 @@ export function CheckoutPage() {
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { shippingMethod: 'standard' },
+    defaultValues,
   });
 
   const shippingMethod = watch('shippingMethod');
   const shipping = SHIPPING_PRICES[shippingMethod] ?? 15;
-  const discountAmount = subtotal * appliedDiscount;
   const total = Math.max(0, subtotal + shipping - discountAmount);
 
   const applyCoupon = async () => {
     const code = (watch('coupon') || '').trim().toUpperCase();
     if (!code) {
       setCouponError('');
-      setAppliedDiscount(0);
+      setDiscountAmount(0);
       setAppliedCode('');
       return;
     }
@@ -78,128 +92,159 @@ export function CheckoutPage() {
         code?: string;
       };
       if (data?.discountType === 'percentage' && data.discountValue != null) {
-        setAppliedDiscount(data.discountValue / 100);
+        const amt = Math.min(subtotal, (subtotal * data.discountValue) / 100);
+        setDiscountAmount(amt);
         setAppliedCode(data.code || code);
         setCouponError('');
       } else if (data?.discountType === 'fixed' && data.discountValue != null) {
-        const rate = subtotal > 0 ? Math.min(1, data.discountValue / subtotal) : 0;
-        setAppliedDiscount(rate);
+        setDiscountAmount(Math.min(subtotal, data.discountValue));
         setAppliedCode(data.code || code);
         setCouponError('');
       } else {
-        setAppliedDiscount(0);
+        setDiscountAmount(0);
         setAppliedCode('');
         setCouponError(t('checkout.invalidCoupon'));
       }
     } catch {
-      setAppliedDiscount(0);
+      setDiscountAmount(0);
       setAppliedCode('');
       setCouponError(t('checkout.invalidCoupon'));
     }
   };
 
-  const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
-
   const onSubmit = async (data: FormData) => {
     if (items.length === 0) return;
-    setSubmitting(true);
+    setSubmitError('');
 
+    if (!isAuthenticated) {
+      setSubmitError(
+        t('checkout.loginRequired', {
+          defaultValue: 'Please sign in to place your order.',
+        })
+      );
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      if (isAuthenticated) {
-        const res = await ordersApi.create({
+      const res = await ordersApi.create({
+        items: items.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+          size: i.size,
+          color: i.color,
+        })),
+        shippingAddress: {
+          fullName: data.name,
+          phone: data.phone,
+          country: data.country,
+          city: data.city,
+          street: data.line1,
+          apartment: data.line2 || undefined,
+          postalCode: data.postalCode || undefined,
+        },
+        paymentMethod: 'cod',
+        couponCode: appliedCode || undefined,
+        shippingCost: shipping,
+        customerEmail: data.email,
+        customerPhone: data.phone,
+      });
+      const created = res.data as {
+        _id?: string;
+        orderNumber?: string;
+        id?: string;
+      };
+      const oid = created.orderNumber || created._id || created.id || 'unknown';
+
+      dispatch(
+        addOrder({
+          id: String(oid),
           items: items.map((i) => ({
             productId: i.productId,
+            nameEn: i.nameEn,
+            nameAr: i.nameAr,
+            price: i.price,
+            salePrice: i.salePrice,
             quantity: i.quantity,
             size: i.size,
             color: i.color,
           })),
-          shippingAddress: {
-            fullName: data.name,
+          subtotal,
+          shipping,
+          discount: discountAmount,
+          total,
+          status: 'confirmed' as const,
+          customer: {
+            name: data.name,
+            email: data.email,
             phone: data.phone,
-            country: data.country,
-            city: data.city,
-            street: data.line1,
-            apartment: data.line2 || undefined,
-            postalCode: data.postalCode || undefined,
           },
-          paymentMethod: 'cod',
+          address: {
+            line1: data.line1,
+            line2: data.line2,
+            city: data.city,
+            country: data.country,
+            postalCode: data.postalCode,
+          },
+          shippingMethod: data.shippingMethod,
           couponCode: appliedCode || undefined,
-          shippingCost: shipping,
-          customerEmail: data.email,
-          customerPhone: data.phone,
-        });
-        const created = res.data as { _id?: string; orderNumber?: string; id?: string };
-        const oid = created._id || created.orderNumber || created.id || 'unknown';
-        void clearCartSmart(dispatch, store.getState);
-        setSubmitting(false);
-        navigate(`/order-confirmation/${oid}`);
-        return;
-      }
+          createdAt: new Date().toISOString(),
+        })
+      );
+
+      void clearCartSmart(dispatch, store.getState);
+      setSubmitting(false);
+      navigate(`/order-confirmation/${oid}`);
     } catch (err) {
-      console.warn('Server order failed, using local fallback', err);
+      setSubmitting(false);
+      const msg =
+        err instanceof Error
+          ? err.message
+          : t('checkout.orderFailed', { defaultValue: 'Order failed. Please try again.' });
+      setSubmitError(msg);
     }
-
-    const order = {
-      id: `ORD-${Date.now().toString(36).toUpperCase()}`,
-      items: items.map((i) => ({
-        productId: i.productId,
-        nameEn: i.nameEn,
-        nameAr: i.nameAr,
-        price: i.price,
-        salePrice: i.salePrice,
-        quantity: i.quantity,
-        size: i.size,
-        color: i.color,
-      })),
-      subtotal,
-      shipping,
-      discount: discountAmount,
-      total,
-      status: 'confirmed' as const,
-      customer: {
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-      },
-      address: {
-        line1: data.line1,
-        line2: data.line2,
-        city: data.city,
-        country: data.country,
-        postalCode: data.postalCode,
-      },
-      shippingMethod: data.shippingMethod,
-      couponCode: appliedCode || undefined,
-      createdAt: new Date().toISOString(),
-    };
-
-    dispatch(addOrder(order));
-    void clearCartSmart(dispatch, store.getState);
-    setSubmitting(false);
-    navigate(`/order-confirmation/${order.id}`);
   };
 
   if (items.length === 0) {
     return (
-      <div className="mx-auto flex max-w-lg flex-col items-center px-4 py-24 text-center">
-        <h1 className="font-display text-2xl font-semibold">{t('checkout.emptyCart')}</h1>
-        <Link to="/shop" className="mt-6">
-          <Button variant="outline">{t('cart.continueShopping')}</Button>
-        </Link>
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <EmptyState
+          title={t('checkout.emptyCart')}
+          description={t('checkout.emptyCartDesc', {
+            defaultValue: 'Add pieces from the shop before checking out.',
+          })}
+          actionLabel={t('cart.continueShopping')}
+          actionTo="/shop"
+        />
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <h1 className="font-display text-3xl font-semibold tracking-tight">
-        {t('checkout.title')}
-      </h1>
+      <Seo title="Checkout" description="Complete your FIVE Fashion order." />
+      <h1 className="font-display text-3xl font-semibold tracking-tight">{t('checkout.title')}</h1>
+
+      {!isAuthenticated && (
+        <div className="mt-6 rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm" role="status">
+          <p className="text-foreground">
+            {t('checkout.loginRequired', {
+              defaultValue: 'Please sign in to place your order.',
+            })}
+          </p>
+          <Link
+            to={`/login?redirect=${encodeURIComponent('/checkout')}`}
+            className="mt-1 inline-block font-medium text-primary underline-offset-2 hover:underline"
+          >
+            {t('auth.login', { defaultValue: 'Sign in' })}
+          </Link>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-10 grid gap-12 lg:grid-cols-5">
         <div className="space-y-10 lg:col-span-3">
           <section>
-            <h2 className="mb-4 text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               {t('checkout.contact')}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -210,7 +255,7 @@ export function CheckoutPage() {
           </section>
 
           <section>
-            <h2 className="mb-4 text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               {t('checkout.shippingAddress')}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -223,7 +268,7 @@ export function CheckoutPage() {
           </section>
 
           <section>
-            <h2 className="mb-4 text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               {t('checkout.shippingMethod')}
             </h2>
             <div className="space-y-3">
@@ -265,9 +310,10 @@ export function CheckoutPage() {
                 </li>
               ))}
             </ul>
+
             <div className="mt-6 flex gap-2">
               <Input placeholder={t('checkout.couponPlaceholder')} {...register('coupon')} className="flex-1" />
-              <Button type="button" variant="outline" onClick={() => void applyCoupon()}>
+              <Button type="button" variant="outline" onClick={applyCoupon}>
                 {t('checkout.apply')}
               </Button>
             </div>
@@ -275,6 +321,7 @@ export function CheckoutPage() {
             {appliedCode && (
               <p className="mt-1 text-xs text-success">{t('checkout.couponApplied', { code: appliedCode })}</p>
             )}
+
             <div className="mt-6 space-y-2 border-t border-border pt-4 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t('cart.subtotal')}</span>
@@ -295,6 +342,13 @@ export function CheckoutPage() {
                 <span>${total.toFixed(0)}</span>
               </div>
             </div>
+
+            {submitError && (
+              <p className="mt-4 text-sm text-error" role="alert">
+                {submitError}
+              </p>
+            )}
+
             <Button type="submit" size="lg" fullWidth className="mt-6" isLoading={submitting}>
               {t('checkout.placeOrder')}
             </Button>
