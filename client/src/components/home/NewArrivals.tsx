@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ProductCard } from '@/components/shop/ProductCard';
-import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { productsApi } from '@/services/apiClient';
 import { mapApiProduct, type ApiProduct, type UiProduct } from '@/types/product';
@@ -47,9 +46,12 @@ export function NewArrivals() {
             {t('home.arrivals.title')}
           </h2>
         </div>
-        <Button variant="outline" size="sm" as-child={false}>
-          <Link to="/shop">{t('home.arrivals.viewAll')}</Link>
-        </Button>
+        <Link
+          to="/shop?new=1"
+          className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-transparent px-3 text-sm font-medium transition-colors hover:bg-surface-hover"
+        >
+          {t('home.arrivals.viewAll')}
+        </Link>
       </div>
 
       {loading ? (
