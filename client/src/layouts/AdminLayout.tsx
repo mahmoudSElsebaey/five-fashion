@@ -21,17 +21,26 @@ export function AdminLayout() {
     return <Navigate to="/" replace />;
   }
 
+  const sidebarPosition = isArabic
+    ? 'right-0 left-auto'
+    : 'left-0 right-auto';
+  const sidebarClosed = isArabic
+    ? 'translate-x-full'
+    : '-translate-x-full';
+  const contentOffset = isArabic
+    ? 'lg:mr-56 lg:ml-0'
+    : 'lg:ml-56 lg:mr-0';
+
   return (
     <div dir={isArabic ? 'rtl' : 'ltr'} className="min-h-screen bg-background text-foreground">
       <div
-        className={`fixed inset-y-0 start-0 z-40 w-56 transform transition-transform duration-normal ease-five lg:translate-x-0 ${
-          mobileOpen
-            ? 'translate-x-0'
-            : '-translate-x-full rtl:translate-x-full'
+        className={`fixed inset-y-0 ${sidebarPosition} z-40 w-56 transform transition-transform duration-normal ease-five lg:translate-x-0 ${
+          mobileOpen ? 'translate-x-0' : sidebarClosed
         }`}
       >
         <AdminSidebar onNavigate={() => setMobileOpen(false)} />
       </div>
+
       {mobileOpen && (
         <button
           type="button"
@@ -40,7 +49,8 @@ export function AdminLayout() {
           onClick={() => setMobileOpen(false)}
         />
       )}
-      <div className="flex min-h-screen min-w-0 flex-col lg:ms-56">
+
+      <div className={`flex min-h-screen min-w-0 flex-col ${contentOffset}`}>
         <header className="flex h-14 items-center justify-between gap-3 border-b border-border bg-background/95 px-4 backdrop-blur sm:px-6">
           <button
             type="button"
@@ -56,6 +66,7 @@ export function AdminLayout() {
           </h1>
           <span className="truncate text-sm text-muted-foreground">{user?.email}</span>
         </header>
+
         <main className="flex-1 overflow-auto p-4 sm:p-6">
           <ErrorBoundary>
             <Outlet />
