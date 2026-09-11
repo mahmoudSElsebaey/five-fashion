@@ -28,26 +28,11 @@ type ProductRow = {
 };
 
 const emptyForm = {
-  nameEn: '',
-  nameAr: '',
-  slug: '',
-  sku: '',
-  price: '',
-  compareAtPrice: '',
-  stock: '0',
-  gender: 'unisex',
-  category: '',
-  collection: '',
-  status: 'active',
-  sizes: 'S,M,L',
-  colors: 'Black,Ivory',
-  images: '',
-  featured: false,
-  newArrival: false,
-  brand: 'FIVE',
+  nameEn: '', nameAr: '', slug: '', sku: '', price: '', compareAtPrice: '', stock: '0',
+  gender: 'unisex', category: '', collection: '', status: 'active', sizes: 'S,M,L',
+  colors: 'Black,Ivory', images: '', featured: false, newArrival: false, brand: 'FIVE',
 };
 
-/** SECTION 10 — Products admin: Empty/Error, actionError instead of alert */
 export function AdminProductsPage() {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
@@ -66,373 +51,152 @@ export function AdminProductsPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  const text = (en: string, ar: string) => (isAr ? ar : en);
+
   const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
-      const res = await productsApi.list({ limit: 20, page, status: 'all', q: q || undefined });
+      const res = await productsApi.adminList({ limit: 20, page, status: 'all', q: q || undefined });
       setRows((res.data as ProductRow[]) || []);
       setTotal(res.meta?.total ?? 0);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed');
-    } finally {
-      setLoading(false);
-    }
-  }, [page, q]);
+      setError(e instanceof Error ? e.message : text('Failed to load products', 'تعذر تحميل المنتجات'));
+    } finally { setLoading(false); }
+  }, [page, q, isAr]);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
   useEffect(() => {
     Promise.all([categoriesApi.list({ limit: 100 }), collectionsApi.list({ limit: 100 })])
-      .then(([c, col]) => {
-        setCats((c.data as any[]) || []);
-        setCols((col.data as any[]) || []);
-      })
+      .then(([c, col]) => { setCats((c.data as any[]) || []); setCols((col.data as any[]) || []); })
       .catch(() => undefined);
   }, []);
 
-  const openCreate = () => {
-    setEditingId(null);
-    setForm(emptyForm);
-    setFormError(null);
-    setFormOpen(true);
-  };
+  const openCreate = () => { setEditingId(null); setForm(emptyForm); setFormError(null); setFormOpen(true); };
 
   const openEdit = (p: ProductRow) => {
     setEditingId(p._id);
     setForm({
-      nameEn: p.name?.en || '',
-      nameAr: p.name?.ar || '',
-      slug: p.slug || '',
-      sku: p.sku || '',
-      price: String(p.price ?? ''),
-      compareAtPrice: p.compareAtPrice != null ? String(p.compareAtPrice) : '',
-      stock: String(p.stock ?? 0),
-      gender: p.gender || 'unisex',
+      nameEn: p.name?.en || '', nameAr: p.name?.ar || '', slug: p.slug || '', sku: p.sku || '',
+      price: String(p.price ?? ''), compareAtPrice: p.compareAtPrice != null ? String(p.compareAtPrice) : '',
+      stock: String(p.stock ?? 0), gender: p.gender || 'unisex',
       category: typeof p.category === 'object' ? p.category?._id : p.category || '',
       collection: typeof p.collectionRef === 'object' ? p.collectionRef?._id : p.collectionRef || '',
-      status: p.status || 'active',
-      sizes: (p.sizes || []).join(','),
-      colors: (p.colors || []).join(','),
-      images: (p.images || []).join('\n'),
-      featured: Boolean(p.featured),
-      newArrival: Boolean(p.newArrival),
-      brand: p.brand || 'FIVE',
+      status: p.status || 'active', sizes: (p.sizes || []).join(','), colors: (p.colors || []).join(','),
+      images: (p.images || []).join('\n'), featured: Boolean(p.featured), newArrival: Boolean(p.newArrival), brand: p.brand || 'FIVE',
     });
-    setFormError(null);
-    setFormOpen(true);
+    setFormError(null); setFormOpen(true);
   };
 
   const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
-    const price = Number(form.price);
-    const stock = Number(form.stock);
-    if (!form.nameEn.trim() || !form.nameAr.trim()) {
-      setFormError('Name EN/AR required');
-      return;
-    }
-    if (!form.sku.trim()) {
-      setFormError('SKU required');
-      return;
-    }
-    if (!Number.isFinite(price) || price < 0) {
-      setFormError('Invalid price');
-      return;
-    }
-    if (!Number.isFinite(stock) || stock < 0) {
-      setFormError('Invalid stock');
-      return;
-    }
+    e.preventDefault(); setFormError(null);
+    const price = Number(form.price), stock = Number(form.stock);
+    const compareAtPrice = form.compareAtPrice ? Number(form.compareAtPrice) : undefined;
+    if (!form.nameEn.trim() || !form.nameAr.trim()) return setFormError(text('English and Arabic names are required', 'اسم المنتج بالإنجليزية والعربية مطلوب'));
+    if (!form.sku.trim()) return setFormError(text('SKU is required', 'كود SKU مطلوب'));
+    if (!Number.isFinite(price) || price < 0) return setFormError(text('Enter a valid price', 'أدخل سعرًا صحيحًا'));
+    if (!Number.isFinite(stock) || stock < 0 || !Number.isInteger(stock)) return setFormError(text('Stock must be a whole number 0 or greater', 'الكمية يجب أن تكون رقمًا صحيحًا 0 أو أكبر'));
+    if (compareAtPrice !== undefined && (!Number.isFinite(compareAtPrice) || compareAtPrice < 0)) return setFormError(text('Enter a valid compare-at price', 'أدخل سعر المقارنة بشكل صحيح'));
+
     const body: Record<string, unknown> = {
       name: { en: form.nameEn.trim(), ar: form.nameAr.trim() },
-      slug: form.slug.trim() || undefined,
-      sku: form.sku.trim(),
-      price,
-      stock,
-      gender: form.gender,
-      status: form.status,
-      brand: form.brand || 'FIVE',
-      sizes: form.sizes.split(',').map((s) => s.trim()).filter(Boolean),
-      colors: form.colors.split(',').map((s) => s.trim()).filter(Boolean),
-      images: form.images.split('\n').map((s) => s.trim()).filter(Boolean),
-      featured: form.featured,
-      newArrival: form.newArrival,
+      slug: form.slug.trim() || undefined, sku: form.sku.trim(), price, stock,
+      gender: form.gender, status: form.status, brand: form.brand || 'FIVE',
+      sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
+      colors: form.colors.split(',').map(s => s.trim()).filter(Boolean),
+      images: form.images.split('\n').map(s => s.trim()).filter(Boolean),
+      featured: form.featured, newArrival: form.newArrival,
     };
-    if (form.compareAtPrice) body.compareAtPrice = Number(form.compareAtPrice);
+    if (compareAtPrice !== undefined) body.compareAtPrice = compareAtPrice;
     if (form.category) body.category = form.category;
     if (form.collection) body.collection = form.collection;
+
     setSaving(true);
     try {
-      if (editingId) await productsApi.update(editingId, body);
-      else await productsApi.create(body);
-      setFormOpen(false);
-      await load();
+      if (editingId) await productsApi.update(editingId, body); else await productsApi.create(body);
+      setFormOpen(false); await load();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Save failed');
-    } finally {
-      setSaving(false);
-    }
+      setFormError(err instanceof Error ? err.message : text('Could not save product', 'تعذر حفظ المنتج'));
+    } finally { setSaving(false); }
   };
 
   const onDelete = async (id: string) => {
-    if (!confirm('Delete this product?')) return;
+    if (!window.confirm(text('Delete this product?', 'هل تريد حذف هذا المنتج؟'))) return;
     setActionError(null);
-    try {
-      await productsApi.remove(id);
-      await load();
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Delete failed');
-    }
+    try { await productsApi.remove(id); await load(); }
+    catch (err) { setActionError(err instanceof Error ? err.message : text('Delete failed', 'فشل حذف المنتج')); }
   };
+
+  const label = (key: string, en: string, ar: string) => t(key, { defaultValue: text(en, ar) });
 
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="font-display text-2xl font-semibold tracking-tight">
-            {t('admin.products.title')}
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('admin.products.subtitle', { count: total })}
-          </p>
+          <h2 className="font-display text-2xl font-semibold tracking-tight">{label('admin.products.title', 'Products', 'المنتجات')}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{label('admin.products.subtitle', '{{count}} products', '{{count}} منتج').replace('{{count}}', String(total))}</p>
         </div>
-        <Button onClick={openCreate}>{t('admin.products.add')}</Button>
+        <Button onClick={openCreate}>{label('admin.products.add', 'Add product', 'إضافة منتج')}</Button>
       </div>
 
       <div className="mt-4 flex gap-2">
-        <input
-          className="w-full max-w-sm rounded-lg border border-border bg-background px-3 py-2 text-sm"
-          placeholder="Search..."
-          value={q}
-          onChange={(e) => {
-            setPage(1);
-            setQ(e.target.value);
-          }}
-        />
+        <input className="w-full max-w-sm rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder={text('Search products...', 'ابحث عن المنتجات...')} value={q} onChange={e => { setPage(1); setQ(e.target.value); }} />
       </div>
 
-      {actionError && (
-        <p className="mt-4 text-sm text-error" role="alert">
-          {actionError}
-        </p>
-      )}
-
-      {loading ? (
-        <div className="flex justify-center py-16" role="status">
-          <Spinner />
-        </div>
-      ) : error ? (
-        <ErrorState className="mt-8" message={error} onRetry={() => void load()} />
-      ) : rows.length === 0 ? (
-        <EmptyState
-          className="mt-8"
-          title="No products"
-          description="Create a product to start the catalog."
-        />
+      {actionError && <p className="mt-4 text-sm text-error" role="alert">{actionError}</p>}
+      {loading ? <div className="flex justify-center py-16" role="status"><Spinner /></div> : error ? <ErrorState className="mt-8" message={error} onRetry={() => void load()} /> : rows.length === 0 ? (
+        <EmptyState className="mt-8" title={text('No products', 'لا توجد منتجات')} description={text('Create a product to start the catalog.', 'أضف منتجًا لبدء الكتالوج.')} />
       ) : (
         <div className="mt-6 overflow-x-auto rounded-xl border border-border">
           <table className="w-full min-w-[720px] text-start text-sm">
-            <thead className="border-b border-border bg-surface text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 font-medium">{t('admin.products.name')}</th>
-                <th className="px-4 py-3 font-medium">SKU</th>
-                <th className="px-4 py-3 font-medium">{t('admin.products.price')}</th>
-                <th className="px-4 py-3 font-medium">Stock</th>
-                <th className="px-4 py-3 font-medium">{t('admin.products.status')}</th>
-                <th className="px-4 py-3 font-medium" />
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((p) => (
-                <tr key={p._id} className="border-b border-border last:border-0">
-                  <td className="px-4 py-3">
-                    <div className="font-medium">{isAr ? p.name?.ar : p.name?.en}</div>
-                    <div className="text-xs text-muted-foreground">{p.slug}</div>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{p.sku}</td>
-                  <td className="px-4 py-3">${Number(p.price || 0).toFixed(2)}</td>
-                  <td className="px-4 py-3">
-                    <span className={(p.stock ?? 0) < 10 ? 'text-error' : ''}>{p.stock ?? 0}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge variant={p.status === 'active' ? 'default' : 'outline'}>{p.status}</Badge>
-                  </td>
-                  <td className="px-4 py-3 text-end space-x-2 rtl:space-x-reverse">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(p)}>
-                      Edit
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => void onDelete(p._id)}>
-                      Delete
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+            <thead className="border-b border-border bg-surface text-muted-foreground"><tr>
+              <th className="px-4 py-3 font-medium">{label('admin.products.name', 'Name', 'الاسم')}</th>
+              <th className="px-4 py-3 font-medium">SKU</th>
+              <th className="px-4 py-3 font-medium">{label('admin.products.price', 'Price', 'السعر')}</th>
+              <th className="px-4 py-3 font-medium">{text('Stock', 'المخزون')}</th>
+              <th className="px-4 py-3 font-medium">{label('admin.products.status', 'Status', 'الحالة')}</th>
+              <th className="px-4 py-3 font-medium" />
+            </tr></thead>
+            <tbody>{rows.map(p => <tr key={p._id} className="border-b border-border last:border-0">
+              <td className="px-4 py-3"><div className="font-medium">{isAr ? p.name?.ar : p.name?.en}</div><div className="text-xs text-muted-foreground">{p.slug}</div></td>
+              <td className="px-4 py-3 text-muted-foreground">{p.sku}</td>
+              <td className="px-4 py-3">${Number(p.price || 0).toFixed(2)}</td>
+              <td className="px-4 py-3"><span className={(p.stock ?? 0) < 10 ? 'text-error' : ''}>{p.stock ?? 0}</span></td>
+              <td className="px-4 py-3"><Badge variant={p.status === 'active' ? 'default' : 'outline'}>{p.status === 'active' ? text('Active', 'نشط') : p.status === 'draft' ? text('Draft', 'مسودة') : text('Archived', 'مؤرشف')}</Badge></td>
+              <td className="px-4 py-3 text-end space-x-2 rtl:space-x-reverse">
+                <Button variant="ghost" size="sm" onClick={() => openEdit(p)} className="text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/30">{text('Edit', 'تعديل')}</Button>
+                <Button variant="ghost" size="sm" onClick={() => void onDelete(p._id)} className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30">{text('Delete', 'حذف')}</Button>
+              </td>
+            </tr>)}</tbody>
           </table>
         </div>
       )}
 
       <div className="mt-4 flex items-center gap-2">
-        <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-          Prev
-        </Button>
-        <span className="text-sm text-muted-foreground">Page {page}</span>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={page * 20 >= total}
-          onClick={() => setPage((p) => p + 1)}
-        >
-          Next
-        </Button>
+        <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>{text('Prev', 'السابق')}</Button>
+        <span className="text-sm text-muted-foreground">{text('Page', 'صفحة')} {page}</span>
+        <Button variant="outline" size="sm" disabled={page * 20 >= total} onClick={() => setPage(p => p + 1)}>{text('Next', 'التالي')}</Button>
       </div>
 
-      {formOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <form
-            onSubmit={submit}
-            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-background p-6 shadow-xl"
-          >
-            <h3 className="font-display text-xl font-semibold">
-              {editingId ? 'Edit product' : 'Create product'}
-            </h3>
-            {formError && (
-              <p className="mt-2 text-sm text-error" role="alert">
-                {formError}
-              </p>
-            )}
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {(
-                [
-                  ['nameEn', 'Name EN'],
-                  ['nameAr', 'Name AR'],
-                  ['slug', 'Slug'],
-                  ['sku', 'SKU'],
-                  ['price', 'Price'],
-                  ['compareAtPrice', 'Compare at'],
-                  ['stock', 'Stock'],
-                  ['brand', 'Brand'],
-                ] as const
-              ).map(([key, label]) => (
-                <label key={key} className="block text-sm">
-                  <span className="text-muted-foreground">{label}</span>
-                  <input
-                    className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
-                    value={(form as any)[key]}
-                    onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                  />
-                </label>
-              ))}
-              <label className="block text-sm">
-                <span className="text-muted-foreground">Gender</span>
-                <select
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
-                  value={form.gender}
-                  onChange={(e) => setForm({ ...form, gender: e.target.value })}
-                >
-                  <option value="women">women</option>
-                  <option value="men">men</option>
-                  <option value="unisex">unisex</option>
-                </select>
-              </label>
-              <label className="block text-sm">
-                <span className="text-muted-foreground">Status</span>
-                <select
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
-                  value={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.value })}
-                >
-                  <option value="active">active</option>
-                  <option value="draft">draft</option>
-                  <option value="archived">archived</option>
-                </select>
-              </label>
-              <label className="block text-sm">
-                <span className="text-muted-foreground">Category</span>
-                <select
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                >
-                  <option value="">—</option>
-                  {cats.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name?.en || c.slug}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block text-sm">
-                <span className="text-muted-foreground">Collection</span>
-                <select
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
-                  value={form.collection}
-                  onChange={(e) => setForm({ ...form, collection: e.target.value })}
-                >
-                  <option value="">—</option>
-                  {cols.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name?.en || c.slug}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block text-sm sm:col-span-2">
-                <span className="text-muted-foreground">Sizes (comma)</span>
-                <input
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
-                  value={form.sizes}
-                  onChange={(e) => setForm({ ...form, sizes: e.target.value })}
-                />
-              </label>
-              <label className="block text-sm sm:col-span-2">
-                <span className="text-muted-foreground">Colors (comma)</span>
-                <input
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
-                  value={form.colors}
-                  onChange={(e) => setForm({ ...form, colors: e.target.value })}
-                />
-              </label>
-              <label className="block text-sm sm:col-span-2">
-                <span className="text-muted-foreground">Image URLs (one per line)</span>
-                <textarea
-                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
-                  rows={3}
-                  value={form.images}
-                  onChange={(e) => setForm({ ...form, images: e.target.value })}
-                />
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={form.featured}
-                  onChange={(e) => setForm({ ...form, featured: e.target.checked })}
-                />
-                Featured
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={form.newArrival}
-                  onChange={(e) => setForm({ ...form, newArrival: e.target.checked })}
-                />
-                New arrival
-              </label>
-            </div>
-            <div className="mt-6 flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? 'Saving…' : 'Save'}
-              </Button>
-            </div>
-          </form>
-        </div>
-      )}
+      {formOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <form onSubmit={submit} className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-background p-6 shadow-xl">
+          <h3 className="font-display text-xl font-semibold">{editingId ? text('Edit product', 'تعديل المنتج') : text('Create product', 'إضافة منتج')}</h3>
+          {formError && <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-400" role="alert">{formError}</p>}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {([['nameEn', 'Name EN', 'اسم المنتج بالإنجليزية'], ['nameAr', 'Name AR', 'اسم المنتج بالعربية'], ['slug', 'Slug', 'الرابط المختصر'], ['sku', 'SKU', 'كود SKU'], ['price', 'Price', 'السعر'], ['compareAtPrice', 'Compare at', 'السعر قبل الخصم'], ['stock', 'Stock', 'المخزون'], ['brand', 'Brand', 'العلامة التجارية']] as const).map(([key, en, ar]) => <label key={key} className="block text-sm"><span className="text-muted-foreground">{text(en, ar)}</span><input className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" value={(form as any)[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} /></label>)}
+            <label className="block text-sm"><span className="text-muted-foreground">{text('Gender', 'الجنس')}</span><select className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })}><option value="women">{text('Women', 'نساء')}</option><option value="men">{text('Men', 'رجال')}</option><option value="unisex">{text('Unisex', 'للجميع')}</option></select></label>
+            <label className="block text-sm"><span className="text-muted-foreground">{text('Status', 'الحالة')}</span><select className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option value="active">{text('Active', 'نشط')}</option><option value="draft">{text('Draft', 'مسودة')}</option><option value="archived">{text('Archived', 'مؤرشف')}</option></select></label>
+            <label className="block text-sm"><span className="text-muted-foreground">{text('Category', 'الفئة')}</span><select className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}><option value="">—</option>{cats.map(c => <option key={c._id} value={c._id}>{c.name?.[isAr ? 'ar' : 'en'] || c.slug}</option>)}</select></label>
+            <label className="block text-sm"><span className="text-muted-foreground">{text('Collection', 'المجموعة')}</span><select className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"><option value="">—</option>{cols.map(c => <option key={c._id} value={c._id}>{c.name?.[isAr ? 'ar' : 'en'] || c.slug}</option>)}</select></label>
+            <label className="block text-sm sm:col-span-2"><span className="text-muted-foreground">{text('Sizes (comma separated)', 'المقاسات (افصل بينها بفاصلة)')}</span><input className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" value={form.sizes} onChange={e => setForm({ ...form, sizes: e.target.value })} /></label>
+            <label className="block text-sm sm:col-span-2"><span className="text-muted-foreground">{text('Colors (comma separated)', 'الألوان (افصل بينها بفاصلة)')}</span><input className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" value={form.colors} onChange={e => setForm({ ...form, colors: e.target.value })} /></label>
+            <label className="block text-sm sm:col-span-2"><span className="text-muted-foreground">{text('Image URLs (one per line)', 'روابط الصور (رابط لكل سطر)')}</span><textarea className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" rows={3} value={form.images} onChange={e => setForm({ ...form, images: e.target.value })} /></label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.featured} onChange={e => setForm({ ...form, featured: e.target.checked })} />{text('Featured', 'منتج مميز')}</label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.newArrival} onChange={e => setForm({ ...form, newArrival: e.target.checked })} />{text('New arrival', 'وصل حديثًا')}</label>
+          </div>
+          <div className="mt-6 flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setFormOpen(false)}>{text('Cancel', 'إلغاء')}</Button><Button type="submit" disabled={saving}>{saving ? text('Saving…', 'جارٍ الحفظ…') : text('Save product', 'حفظ المنتج')}</Button></div>
+        </form>
+      </div>}
     </div>
   );
 }
