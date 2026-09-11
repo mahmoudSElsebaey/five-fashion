@@ -65,6 +65,7 @@ Use this checklist before each release. Mark items as pass/fail.
 
 ## 11. SEO smoke
 - [ ] Product pages inject Product JSON-LD
+- [ ] Home injects Organization JSON-LD
 - [ ] Document title changes per page (where PageMeta is used)
 - [ ] `/robots.txt` and `/sitemap.xml` are reachable in production build
 
