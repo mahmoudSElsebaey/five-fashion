@@ -52,92 +52,82 @@ export async function apiRequest<T>(
 
   const res = await fetch(`${API_URL}${path}`, { ...options, headers });
   let data: ApiResponse<T> = { success: false };
-  try {
-    data = await res.json();
-  } catch {
-    /* empty */
-  }
-  if (!res.ok) {
-    throw new ApiError(data.message || 'Request failed', res.status, data);
-  }
+  try { data = await res.json(); } catch { /* empty */ }
+  if (!res.ok) throw new ApiError(data.message || 'Request failed', res.status, data);
+  return data;
+}
+
+async function uploadRequest<T>(path: string, body: FormData): Promise<ApiResponse<T>> {
+  const headers: Record<string, string> = {};
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(`${API_URL}${path}`, { method: 'POST', headers, body });
+  let data: ApiResponse<T> = { success: false };
+  try { data = await res.json(); } catch { /* empty */ }
+  if (!res.ok) throw new ApiError(data.message || 'Upload failed', res.status, data);
   return data;
 }
 
 export const productsApi = {
   list: (params: Record<string, string | number | boolean | undefined> = {}) => {
     const q = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== '' && v !== null) q.set(k, String(v));
-    });
+    Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== '' && v !== null) q.set(k, String(v)); });
     const qs = q.toString();
     return apiRequest<unknown[]>(`/products${qs ? `?${qs}` : ''}`);
   },
   adminList: (params: Record<string, string | number | boolean | undefined> = {}) => {
     const q = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== '' && v !== null) q.set(k, String(v));
-    });
+    Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== '' && v !== null) q.set(k, String(v)); });
     const qs = q.toString();
     return apiRequest<unknown[]>(`/products/admin/all${qs ? `?${qs}` : ''}`, {}, true);
   },
   getById: (id: string) => apiRequest<unknown>(`/products/${id}`),
   getBySlug: (slug: string) => apiRequest<unknown>(`/products/slug/${slug}`),
-  create: (body: unknown) =>
-    apiRequest<unknown>('/products', { method: 'POST', body: JSON.stringify(body) }, true),
-  update: (id: string, body: unknown) =>
-    apiRequest<unknown>(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(body) }, true),
-  remove: (id: string) =>
-    apiRequest<unknown>(`/products/${id}`, { method: 'DELETE' }, true),
-  updateStock: (id: string, stock: number) =>
-    apiRequest<unknown>(`/products/${id}/stock`, {
-      method: 'PATCH',
-      body: JSON.stringify({ stock }),
-    }, true),
+  create: (body: unknown) => apiRequest<unknown>('/products', { method: 'POST', body: JSON.stringify(body) }, true),
+  update: (id: string, body: unknown) => apiRequest<unknown>(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(body) }, true),
+  remove: (id: string) => apiRequest<unknown>(`/products/${id}`, { method: 'DELETE' }, true),
+  updateStock: (id: string, stock: number) => apiRequest<unknown>(`/products/${id}/stock`, { method: 'PATCH', body: JSON.stringify({ stock }) }, true),
+};
+
+export const uploadsApi = {
+  images: (files: File[]) => {
+    const form = new FormData();
+    files.forEach(file => form.append('images', file));
+    return uploadRequest<Array<{ url: string; publicId: string; width?: number; height?: number; format?: string; bytes?: number }>>('/uploads/images', form);
+  },
+  deleteImage: (publicId: string) =>
+    apiRequest<unknown>('/uploads/images', { method: 'DELETE', body: JSON.stringify({ publicId }) }, true),
 };
 
 export const categoriesApi = {
   list: (params: Record<string, string | number | undefined> = {}) => {
     const q = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== '') q.set(k, String(v));
-    });
+    Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== '') q.set(k, String(v)); });
     const qs = q.toString();
     return apiRequest<unknown[]>(`/categories${qs ? `?${qs}` : ''}`);
   },
-  create: (body: unknown) =>
-    apiRequest<unknown>('/categories', { method: 'POST', body: JSON.stringify(body) }, true),
-  update: (id: string, body: unknown) =>
-    apiRequest<unknown>(`/categories/${id}`, { method: 'PATCH', body: JSON.stringify(body) }, true),
-  remove: (id: string) =>
-    apiRequest<unknown>(`/categories/${id}`, { method: 'DELETE' }, true),
+  create: (body: unknown) => apiRequest<unknown>('/categories', { method: 'POST', body: JSON.stringify(body) }, true),
+  update: (id: string, body: unknown) => apiRequest<unknown>(`/categories/${id}`, { method: 'PATCH', body: JSON.stringify(body) }, true),
+  remove: (id: string) => apiRequest<unknown>(`/categories/${id}`, { method: 'DELETE' }, true),
 };
 
 export const collectionsApi = {
   list: (params: Record<string, string | number | undefined> = {}) => {
     const q = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== '') q.set(k, String(v));
-    });
+    Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== '') q.set(k, String(v)); });
     const qs = q.toString();
     return apiRequest<unknown[]>(`/collections${qs ? `?${qs}` : ''}`);
   },
-  create: (body: unknown) =>
-    apiRequest<unknown>('/collections', { method: 'POST', body: JSON.stringify(body) }, true),
-  update: (id: string, body: unknown) =>
-    apiRequest<unknown>(`/collections/${id}`, { method: 'PATCH', body: JSON.stringify(body) }, true),
-  remove: (id: string) =>
-    apiRequest<unknown>(`/collections/${id}`, { method: 'DELETE' }, true),
+  create: (body: unknown) => apiRequest<unknown>('/collections', { method: 'POST', body: JSON.stringify(body) }, true),
+  update: (id: string, body: unknown) => apiRequest<unknown>(`/collections/${id}`, { method: 'PATCH', body: JSON.stringify(body) }, true),
+  remove: (id: string) => apiRequest<unknown>(`/collections/${id}`, { method: 'DELETE' }, true),
 };
 
 export const cartApi = {
   get: () => apiRequest<unknown>('/cart', {}, true),
-  addItem: (body: { productId: string; quantity?: number; size?: string; color?: string }) =>
-    apiRequest<unknown>('/cart/items', { method: 'POST', body: JSON.stringify(body) }, true),
-  updateItem: (itemId: string, quantity: number) =>
-    apiRequest<unknown>(`/cart/items/${itemId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ quantity }),
-    }, true),
+  addItem: (body: { productId: string; quantity?: number; size?: string; color?: string }) => apiRequest<unknown>('/cart/items', { method: 'POST', body: JSON.stringify(body) }, true),
+  updateItem: (itemId: string, quantity: number) => apiRequest<unknown>(`/cart/items/${itemId}`, { method: 'PATCH', body: JSON.stringify({ quantity }) }, true),
   removeItem: (itemId: string) => apiRequest<unknown>(`/cart/items/${itemId}`, { method: 'DELETE' }, true),
   clear: () => apiRequest<unknown>('/cart', { method: 'DELETE' }, true),
   merge: (items: unknown[]) => apiRequest<unknown>('/cart/merge', { method: 'POST', body: JSON.stringify({ items }) }, true),
@@ -152,24 +142,16 @@ export const wishlistApi = {
 
 export const ordersApi = {
   list: (params: Record<string, string | number | undefined> = {}) => {
-    const q = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== '') q.set(k, String(v));
-    });
-    const qs = q.toString();
-    return apiRequest<unknown[]>(`/orders${qs ? `?${qs}` : ''}`, {}, true);
+    const q = new URLSearchParams(); Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== '') q.set(k, String(v)); });
+    const qs = q.toString(); return apiRequest<unknown[]>(`/orders${qs ? `?${qs}` : ''}`, {}, true);
   },
   getById: (id: string) => apiRequest<unknown>(`/orders/${id}`, {}, true),
   getByNumber: (orderNumber: string) => apiRequest<unknown>(`/orders/number/${encodeURIComponent(orderNumber)}`, {}, true),
   create: (body: unknown) => apiRequest<unknown>('/orders', { method: 'POST', body: JSON.stringify(body) }, true),
   cancel: (id: string) => apiRequest<unknown>(`/orders/${id}/cancel`, { method: 'POST' }, true),
   adminList: (params: Record<string, string | number | undefined> = {}) => {
-    const q = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== '') q.set(k, String(v));
-    });
-    const qs = q.toString();
-    return apiRequest<unknown[]>(`/orders/admin/all${qs ? `?${qs}` : ''}`, {}, true);
+    const q = new URLSearchParams(); Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== '') q.set(k, String(v)); });
+    const qs = q.toString(); return apiRequest<unknown[]>(`/orders/admin/all${qs ? `?${qs}` : ''}`, {}, true);
   },
   adminGet: (id: string) => apiRequest<unknown>(`/orders/admin/${id}`, {}, true),
   adminUpdate: (id: string, body: unknown) => apiRequest<unknown>(`/orders/admin/${id}`, { method: 'PATCH', body: JSON.stringify(body) }, true),
@@ -178,12 +160,8 @@ export const ordersApi = {
 export const couponsApi = {
   validate: (code: string) => apiRequest<unknown>(`/coupons/${encodeURIComponent(code)}`),
   adminList: (params: Record<string, string | number | undefined> = {}) => {
-    const q = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== '') q.set(k, String(v));
-    });
-    const qs = q.toString();
-    return apiRequest<unknown[]>(`/coupons/admin/all${qs ? `?${qs}` : ''}`, {}, true);
+    const q = new URLSearchParams(); Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== '') q.set(k, String(v)); });
+    const qs = q.toString(); return apiRequest<unknown[]>(`/coupons/admin/all${qs ? `?${qs}` : ''}`, {}, true);
   },
   create: (body: unknown) => apiRequest<unknown>('/coupons', { method: 'POST', body: JSON.stringify(body) }, true),
   update: (id: string, body: unknown) => apiRequest<unknown>(`/coupons/${id}`, { method: 'PATCH', body: JSON.stringify(body) }, true),
@@ -202,12 +180,8 @@ export const reviewsApi = {
   listForProduct: (productId: string, page = 1) => apiRequest<unknown[]>(`/reviews/product/${productId}?page=${page}`),
   create: (body: { productId: string; rating: number; title?: string; comment?: string }) => apiRequest<unknown>('/reviews', { method: 'POST', body: JSON.stringify(body) }, true),
   adminList: (params: Record<string, string | number | undefined> = {}) => {
-    const q = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== '') q.set(k, String(v));
-    });
-    const qs = q.toString();
-    return apiRequest<unknown[]>(`/reviews/admin/all${qs ? `?${qs}` : ''}`, {}, true);
+    const q = new URLSearchParams(); Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== '') q.set(k, String(v)); });
+    const qs = q.toString(); return apiRequest<unknown[]>(`/reviews/admin/all${qs ? `?${qs}` : ''}`, {}, true);
   },
   moderate: (id: string, status: string) => apiRequest<unknown>(`/reviews/admin/${id}/moderate`, { method: 'PATCH', body: JSON.stringify({ status }) }, true),
   adminDelete: (id: string) => apiRequest<unknown>(`/reviews/admin/${id}`, { method: 'DELETE' }, true),
@@ -215,12 +189,8 @@ export const reviewsApi = {
 
 export const usersApi = {
   list: (params: Record<string, string | number | undefined> = {}) => {
-    const q = new URLSearchParams();
-    Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== '') q.set(k, String(v));
-    });
-    const qs = q.toString();
-    return apiRequest<unknown[]>(`/users${qs ? `?${qs}` : ''}`, {}, true);
+    const q = new URLSearchParams(); Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== '') q.set(k, String(v)); });
+    const qs = q.toString(); return apiRequest<unknown[]>(`/users${qs ? `?${qs}` : ''}`, {}, true);
   },
   getById: (id: string) => apiRequest<unknown>(`/users/${id}`, {}, true),
   update: (id: string, body: unknown) => apiRequest<unknown>(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(body) }, true),
