@@ -16,6 +16,7 @@ import addressRoutes from './routes/addressRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 import { apiLimiter } from './middleware/rateLimit.js';
 
@@ -36,7 +37,6 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan(config.isProduction ? 'combined' : 'dev'));
 
-/** Health is unauthenticated and not rate-limited (for uptime monitors) */
 app.get('/api/v1/health', (_req, res) => {
   const mongoState = mongoose.connection.readyState;
   const mongoStatus =
@@ -53,7 +53,6 @@ app.get('/api/v1/health', (_req, res) => {
   });
 });
 
-/** Global API rate limit for the rest of /api/v1 */
 app.use('/api/v1', apiLimiter);
 
 app.use('/api/v1/auth', authRoutes);
@@ -67,6 +66,7 @@ app.use('/api/v1/addresses', addressRoutes);
 app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/wishlist', wishlistRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/uploads', uploadRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
@@ -86,6 +86,9 @@ const start = async () => {
   }
 };
 
-start();
+// Vercel imports the Express app as a serverless function and manages the HTTP server.
+if (!process.env.VERCEL) {
+  start();
+}
 
 export default app;
