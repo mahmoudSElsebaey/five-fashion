@@ -11,11 +11,10 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
           {/* Brand */}
           <div className="space-y-4 md:col-span-1">
-            <Link to="/" className="inline-flex items-center gap-2">
-              <img src="/logo.png" alt="FIVE" className="h-7 w-auto object-contain" />
-              <span className="font-display text-lg font-semibold tracking-tight">FIVE</span>
+            <Link to="/" className="inline-flex items-center" aria-label="FIVE Fashion home">
+              <img src="/logo.png" alt="FIVE Fashion" className="h-21 w-auto max-w-[210px] object-contain sm:h-24 sm:max-w-[240px]" />
             </Link>
-            <p className="max-w-xs text-sm text-muted-foreground leading-relaxed">
+            <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
               {t('footer.tagline')}
             </p>
           </div>
@@ -26,10 +25,10 @@ export function Footer() {
               {t('footer.shop')}
             </h4>
             <ul className="space-y-2.5 text-sm text-muted-foreground">
-              <li><Link to="/shop" className="hover:text-foreground transition-colors">{t('nav.shop')}</Link></li>
-              <li><Link to="/collections" className="hover:text-foreground transition-colors">{t('nav.collections')}</Link></li>
-              <li><Link to="/shop?new=true" className="hover:text-foreground transition-colors">{t('footer.newArrivals')}</Link></li>
-              <li><Link to="/shop?sale=true" className="hover:text-foreground transition-colors">{t('footer.sale')}</Link></li>
+              <li><Link to="/shop" className="transition-colors hover:text-foreground">{t('nav.shop')}</Link></li>
+              <li><Link to="/collections" className="transition-colors hover:text-foreground">{t('nav.collections')}</Link></li>
+              <li><Link to="/shop?new=true" className="transition-colors hover:text-foreground">{t('footer.newArrivals')}</Link></li>
+              <li><Link to="/shop?sale=true" className="transition-colors hover:text-foreground">{t('footer.sale')}</Link></li>
             </ul>
           </div>
 
@@ -39,14 +38,14 @@ export function Footer() {
               {t('footer.support')}
             </h4>
             <ul className="space-y-2.5 text-sm text-muted-foreground">
-              <li><Link to="/contact" className="hover:text-foreground transition-colors">{t('footer.contact')}</Link></li>
-              <li><Link to="/shipping" className="hover:text-foreground transition-colors">{t('footer.shipping')}</Link></li>
-              <li><Link to="/returns" className="hover:text-foreground transition-colors">{t('footer.returns')}</Link></li>
-              <li><Link to="/faq" className="hover:text-foreground transition-colors">{t('footer.faq')}</Link></li>
+              <li><Link to="/contact" className="transition-colors hover:text-foreground">{t('footer.contact')}</Link></li>
+              <li><Link to="/shipping" className="transition-colors hover:text-foreground">{t('footer.shipping')}</Link></li>
+              <li><Link to="/returns" className="transition-colors hover:text-foreground">{t('footer.returns')}</Link></li>
+              <li><Link to="/faq" className="transition-colors hover:text-foreground">{t('footer.faq')}</Link></li>
             </ul>
           </div>
 
-          {/* Newsletter placeholder */}
+          {/* Newsletter */}
           <div>
             <h4 className="mb-4 text-sm font-semibold tracking-wide text-foreground">
               {t('footer.newsletter')}
@@ -75,8 +74,8 @@ export function Footer() {
             © {year} FIVE Fashion. {t('footer.rights')}
           </p>
           <div className="flex gap-6 text-xs text-muted-foreground">
-            <Link to="/privacy" className="hover:text-foreground transition-colors">{t('footer.privacy')}</Link>
-            <Link to="/terms" className="hover:text-foreground transition-colors">{t('footer.terms')}</Link>
+            <Link to="/privacy" className="transition-colors hover:text-foreground">{t('footer.privacy')}</Link>
+            <Link to="/terms" className="transition-colors hover:text-foreground">{t('footer.terms')}</Link>
           </div>
         </div>
       </div>
