@@ -3,6 +3,8 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 type AuthResponse = {
   success: boolean;
   message?: string;
+  /** Development-only password reset token from API */
+  resetToken?: string;
   data?: {
     user?: { id: string; name: string; email: string; role: string };
     accessToken?: string;
@@ -18,7 +20,12 @@ async function request(path: string, options: RequestInit = {}): Promise<AuthRes
       ...options.headers,
     },
   });
-  const data = await res.json();
+  let data: AuthResponse = { success: false };
+  try {
+    data = await res.json();
+  } catch {
+    /* empty body */
+  }
   if (!res.ok) {
     throw new Error(data.message || 'Request failed');
   }
@@ -47,6 +54,13 @@ export const authApi = {
   getMe: (accessToken: string) =>
     request('/auth/me', {
       headers: { Authorization: `Bearer ${accessToken}` },
+    }),
+
+  updateProfile: (accessToken: string, body: { name?: string }) =>
+    request('/auth/me', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify(body),
     }),
 
   forgotPassword: (email: string) =>

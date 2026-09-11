@@ -18,6 +18,12 @@ const LoginPage = lazy(() => import('@/pages/LoginPage').then((m) => ({ default:
 const RegisterPage = lazy(() =>
   import('@/pages/RegisterPage').then((m) => ({ default: m.RegisterPage }))
 );
+const ForgotPasswordPage = lazy(() =>
+  import('@/pages/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage }))
+);
+const ResetPasswordPage = lazy(() =>
+  import('@/pages/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage }))
+);
 const ProfilePage = lazy(() =>
   import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage }))
 );
@@ -99,19 +105,21 @@ function App() {
             }
           />
           <Route
-            path="/product/:id"
+            path="/collections"
             element={
               <>
-                <PageMeta title="Product" path="/product" />
-                <ProductDetailPage />
+                <PageMeta title="Collections" path="/collections" />
+                <ShopPage />
               </>
             }
           />
+          <Route path="/about" element={<HomePage />} />
+          <Route path="/product/:id" element={<ProductDetailPage />} />
           <Route
             path="/login"
             element={
               <>
-                <PageMeta title="Login" path="/login" />
+                <PageMeta title="Sign in" path="/login" />
                 <LoginPage />
               </>
             }
@@ -120,15 +128,40 @@ function App() {
             path="/register"
             element={
               <>
-                <PageMeta title="Register" path="/register" />
+                <PageMeta title="Create account" path="/register" />
                 <RegisterPage />
+              </>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <>
+                <PageMeta title="Forgot password" path="/forgot-password" />
+                <ForgotPasswordPage />
+              </>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <>
+                <PageMeta title="Reset password" path="/reset-password" />
+                <ResetPasswordPage />
               </>
             }
           />
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-confirmation/:id" element={<OrderConfirmationPage />} />
-          <Route path="/orders" element={<OrdersPage />} />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <OrdersPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/profile"
             element={
