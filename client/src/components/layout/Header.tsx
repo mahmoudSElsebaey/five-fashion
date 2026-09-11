@@ -71,7 +71,7 @@ export function Header() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="group h-9 gap-2 rounded-lg border border-accent/45 bg-accent/10 px-3 text-accent shadow-sm transition-all duration-normal hover:-translate-y-0.5 hover:border-accent hover:bg-accent hover:text-accent-foreground hover:shadow-md"
+                  className="group h-9 gap-2 rounded-lg border border-accent/45 bg-accent/10 px-3 text-accent shadow-sm transition-all duration-normal hover:-translate-y-0.5 hover:border-accent/70 hover:bg-accent/10 hover:text-accent hover:shadow-md"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -139,7 +139,7 @@ export function Header() {
                 to="/admin"
                 end
                 onClick={() => setMobileOpen(false)}
-                className={({ isActive }) => `flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-sm font-semibold transition-all ${isActive ? 'border-accent bg-accent text-accent-foreground shadow-sm' : 'border-accent/40 bg-accent/10 text-accent hover:border-accent hover:bg-accent hover:text-accent-foreground'}`}
+                className={({ isActive }) => `flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-sm font-semibold transition-all ${isActive ? 'border-accent bg-accent text-accent-foreground shadow-sm' : 'border-accent/40 bg-accent/10 text-accent hover:border-accent/70 hover:bg-accent/10 hover:text-accent'}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <rect x="3" y="3" width="7" height="7" rx="1" />
