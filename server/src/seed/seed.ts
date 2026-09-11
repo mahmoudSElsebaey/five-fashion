@@ -1,4 +1,4 @@
-/** FIVE Fashion — professional demo seed: 120 products, 12 categories, 7 collections. */
+/** FIVE Fashion — professional demo seed with expanded catalog. */
 import mongoose from 'mongoose';
 import { config } from '../config/index.js';
 import { User } from '../models/User.js';
@@ -33,22 +33,23 @@ function slugifyName(en: string, n: number): string {
 
 function sizeSet(cat: string, coll: string): string[] {
   if (cat === 'footwear') return SIZES.footwear;
-  if (cat === 'accessories' || cat === 'bags') return SIZES.accessories;
-  if (cat === 'kids-clothing') return SIZES.kids;
-  if (coll === 'active') return SIZES.active;
+  if (cat === 'accessories' || cat === 'bags' || cat === 'socks' || cat === 'caps-hats') return SIZES.accessories;
+  if (cat === 'kids-clothing' || cat === 'kids-sportswear') return SIZES.kids;
+  if (coll === 'active' || cat === 'football-wear') return SIZES.active;
   return SIZES.clothing;
 }
 
 function colorSet(cat: string, coll: string, gender: 'men' | 'women' | 'unisex'): string[] {
-  if (cat === 'kids-clothing') return COLORS.kids;
-  if (coll === 'active') return COLORS.active;
-  if (cat === 'accessories' || cat === 'bags') return COLORS.accessories;
+  if (cat === 'kids-clothing' || cat === 'kids-sportswear') return COLORS.kids;
+  if (coll === 'active' || cat === 'football-wear' || cat === 'men-sportswear') return COLORS.active;
+  if (cat === 'accessories' || cat === 'bags' || cat === 'socks' || cat === 'caps-hats') return COLORS.accessories;
   if (cat === 'footwear') return COLORS.footwear;
   return gender === 'women' ? COLORS.women : COLORS.men;
 }
 
 async function main() {
-  console.log('—— FIVE Fashion Seed — 120 products / 12 categories ——');
+  const expectedProducts = CATALOG.reduce((total, group) => total + group.items.length, 0);
+  console.log(`—— FIVE Fashion Seed — ${expectedProducts} products / ${CATALOG.length} categories ——`);
   await mongoose.connect(config.mongodbUri);
 
   try {
@@ -62,11 +63,12 @@ async function main() {
 
     const cats = await Category.insertMany(Object.entries(CAT_META).map(([slug, meta]) => {
       const group = CATALOG.find((entry) => entry.cat === slug);
+      const allGenderCategories = ['kids-clothing', 'sportswear', 'men-sportswear', 'kids-sportswear', 'football-wear', 'accessories', 'footwear', 'bags', 'socks', 'caps-hats', 'complete-sets', 'suits', 'wedding-dresses'];
       return {
         name: { en: meta.en, ar: meta.ar },
         slug,
         description: { en: `${meta.en} curated by FIVE Fashion.`, ar: `${meta.ar} المختارة بعناية من FIVE Fashion.` },
-        gender: ['kids-clothing', 'sportswear', 'accessories', 'footwear', 'bags'].includes(slug) ? 'all' : group?.gender === 'women' ? 'women' : 'men',
+        gender: allGenderCategories.includes(slug) ? 'all' : group?.gender === 'women' ? 'women' : 'men',
         displayOrder: meta.order,
         isActive: true,
         image: group ? IMG[group.imageKeys[0]] : IMG.dress1,
@@ -125,7 +127,7 @@ async function main() {
             sku: `${sku}-${size}-${color}`.slice(0, 32),
             stock: Math.max(1, Math.floor(stock / (sizes.length * colors.length))),
           }))),
-          images: productImages(group.cat, primary, n),
+          images: productImages(group.cat, primary, n, en),
           featured: n % 9 === 0,
           newArrival: n % 4 === 0,
           bestseller: n % 7 === 0,
@@ -139,7 +141,7 @@ async function main() {
       }
     }
 
-    if (docs.length !== 120) throw new Error(`Expected 120 products, generated ${docs.length}`);
+    if (docs.length !== expectedProducts) throw new Error(`Expected ${expectedProducts} products, generated ${docs.length}`);
     const inserted = await Product.insertMany(docs);
 
     const now = new Date();
