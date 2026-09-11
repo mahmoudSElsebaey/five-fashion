@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { productsApi, ordersApi, usersApi } from '@/services/apiClient';
 
 type Stats = {
@@ -14,51 +15,72 @@ type Stats = {
   lowStock: number;
 };
 
+type RecentOrder = {
+  _id: string;
+  orderNumber?: string;
+  total?: number;
+  status?: string;
+  customerEmail?: string;
+  user?: { email?: string };
+};
+
+/** SECTION 09 — Admin dashboard with real meta totals + ErrorState */
 export function DashboardPage() {
   const { t } = useTranslation();
   const [stats, setStats] = useState<Stats | null>(null);
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const [prod, orders, users, low] = await Promise.all([
-          productsApi.list({ limit: 1, status: 'all' }),
-          ordersApi.adminList({ limit: 8 }),
-          usersApi.list({ limit: 1 }),
-          productsApi.list({ limit: 50, status: 'active' }),
-        ]);
-        if (cancelled) return;
-        const orderItems = (orders.data as any[]) || [];
-        const products = (low.data as any[]) || [];
-        const revenue = orderItems.reduce((s, o) => s + (Number(o.total) || 0), 0);
-        const pending = orderItems.filter((o) => o.status === 'pending').length;
-        const lowStock = products.filter((p) => (p.stock ?? 0) < 10).length;
-        setStats({
-          products: prod.meta?.total ?? 0,
-          orders: orders.meta?.total ?? orderItems.length,
-          customers: users.meta?.total ?? 0,
-          revenue,
-          pending,
-          lowStock,
-        });
-        setRecentOrders(orderItems.slice(0, 6));
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load dashboard');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [prod, orders, users, low, pendingRes] = await Promise.all([
+        productsApi.list({ limit: 1, status: 'all' }),
+        ordersApi.adminList({ limit: 8 }),
+        usersApi.list({ limit: 1 }),
+        productsApi.list({ limit: 50, status: 'active' }),
+        ordersApi.adminList({ limit: 1, status: 'pending' }),
+      ]);
+      const orderItems = (orders.data as RecentOrder[]) || [];
+      const products = (low.data as { stock?: number }[]) || [];
+      const revenue = orderItems.reduce((s, o) => s + (Number(o.total) || 0), 0);
+      const pending =
+        pendingRes.meta?.total ?? orderItems.filter((o) => o.status === 'pending').length;
+      const lowStock = products.filter((p) => (p.stock ?? 0) < 10).length;
+      setStats({
+        products: prod.meta?.total ?? 0,
+        orders: orders.meta?.total ?? orderItems.length,
+        customers: users.meta?.total ?? 0,
+        revenue,
+        pending,
+        lowStock,
+      });
+      setRecentOrders(orderItems.slice(0, 6));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load dashboard');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) return <div className="flex justify-center py-20"><Spinner /></div>;
-  if (error) return <p className="text-sm text-error">{error}</p>;
+  useEffect(() => {
+    void load();
+  }, [load, reloadKey]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20" role="status">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error && !stats) {
+    return <ErrorState message={error} onRetry={() => setReloadKey((k) => k + 1)} />;
+  }
 
   const cards = [
     { key: 'products', value: stats?.products ?? 0, to: '/admin/products' },
@@ -71,14 +93,19 @@ export function DashboardPage() {
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-semibold tracking-tight">{t('admin.dashboard.title')}</h2>
+      <h2 className="font-display text-2xl font-semibold tracking-tight">
+        {t('admin.dashboard.title')}
+      </h2>
       <p className="mt-1 text-sm text-muted-foreground">{t('admin.dashboard.subtitle')}</p>
+
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((s) => (
           <Link key={s.key} to={s.to}>
             <Card className="transition-colors hover:border-foreground/30">
               <CardHeader className="pb-2">
-                <p className="text-sm text-muted-foreground">{t(`admin.dashboard.${s.key}`, { defaultValue: s.key })}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t(`admin.dashboard.${s.key}`, { defaultValue: s.key })}
+                </p>
               </CardHeader>
               <CardContent>
                 <p className="font-display text-3xl font-semibold">{s.value}</p>
@@ -87,10 +114,15 @@ export function DashboardPage() {
           </Link>
         ))}
       </div>
+
       <div className="mt-10">
-        <h3 className="text-sm font-semibold tracking-wide text-muted-foreground">{t('admin.dashboard.recentOrders', { defaultValue: 'Recent orders' })}</h3>
+        <h3 className="text-sm font-semibold tracking-wide text-muted-foreground">
+          {t('admin.dashboard.recentOrders', { defaultValue: 'Recent orders' })}
+        </h3>
         {recentOrders.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">{t('admin.dashboard.noOrders', { defaultValue: 'No orders yet' })}</p>
+          <p className="mt-4 text-sm text-muted-foreground">
+            {t('admin.dashboard.noOrders', { defaultValue: 'No orders yet' })}
+          </p>
         ) : (
           <div className="mt-4 overflow-x-auto rounded-xl border border-border">
             <table className="w-full min-w-[520px] text-start text-sm">
@@ -105,8 +137,14 @@ export function DashboardPage() {
               <tbody>
                 {recentOrders.map((o) => (
                   <tr key={o._id} className="border-b border-border last:border-0">
-                    <td className="px-4 py-3"><Link className="hover:underline" to={`/admin/orders?id=${o._id}`}>{o.orderNumber || o._id?.slice(-6)}</Link></td>
-                    <td className="px-4 py-3 text-muted-foreground">{o.user?.email || o.customerEmail || '—'}</td>
+                    <td className="px-4 py-3">
+                      <Link className="hover:underline" to={`/admin/orders?id=${o._id}`}>
+                        {o.orderNumber || o._id?.slice(-6)}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {o.user?.email || o.customerEmail || '—'}
+                    </td>
                     <td className="px-4 py-3">${Number(o.total || 0).toFixed(2)}</td>
                     <td className="px-4 py-3 capitalize">{o.status}</td>
                   </tr>
