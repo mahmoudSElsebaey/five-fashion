@@ -35,6 +35,20 @@ export function Header() {
     return () => document.removeEventListener('keydown', onKey);
   }, [mobileOpen]);
 
+  const navClass = ({ isActive }: { isActive: boolean }) =>
+    `relative rounded-md px-3 py-2 text-sm font-medium transition-colors duration-normal ease-five after:absolute after:inset-x-3 after:-bottom-0.5 after:h-0.5 after:origin-center after:rounded-full after:bg-accent after:transition-transform after:duration-normal ${
+      isActive
+        ? 'text-foreground after:scale-x-100'
+        : 'text-muted-foreground hover:text-foreground after:scale-x-0 hover:after:scale-x-75'
+    }`;
+
+  const mobileNavClass = ({ isActive }: { isActive: boolean }) =>
+    `rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+      isActive
+        ? 'bg-muted text-foreground ring-1 ring-border'
+        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+    }`;
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -42,9 +56,9 @@ export function Header() {
           <img src="/logo.png" alt="FIVE Fashion" className="h-11 w-auto object-contain drop-shadow-[2px_3px_rgba(0,0,0,0.65)] dark:drop-shadow-none sm:h-12" />
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Main navigation">
           {navItems.map((item) => (
-            <NavLink key={item.key} to={item.path} className={({ isActive }) => `rounded-md px-3 py-2 text-sm font-medium transition-colors duration-normal ease-five ${isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+            <NavLink key={item.key} to={item.path} end={item.path === '/'} className={navClass}>
               {t(`nav.${item.key}`)}
             </NavLink>
           ))}
@@ -102,19 +116,19 @@ export function Header() {
       </div>
       {mobileOpen && (
         <div className="border-t border-border bg-background md:hidden">
-          <nav className="flex flex-col gap-1 px-4 py-4">
+          <nav className="flex flex-col gap-1 px-4 py-4" aria-label="Mobile navigation">
             {navItems.map((item) => (
-              <NavLink key={item.key} to={item.path} onClick={() => setMobileOpen(false)} className={({ isActive }) => `rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${isActive ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
+              <NavLink key={item.key} to={item.path} end={item.path === '/'} onClick={() => setMobileOpen(false)} className={mobileNavClass}>
                 {t(`nav.${item.key}`)}
               </NavLink>
             ))}
             {isAdmin && (
-              <NavLink to="/admin" onClick={() => setMobileOpen(false)} className={({ isActive }) => `rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${isActive ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
+              <NavLink to="/admin" end onClick={() => setMobileOpen(false)} className={mobileNavClass}>
                 {t('admin.nav.dashboard', { defaultValue: 'Admin' })}
               </NavLink>
             )}
             {!isAuthenticated && (
-              <NavLink to="/login" onClick={() => setMobileOpen(false)} className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
+              <NavLink to="/login" end onClick={() => setMobileOpen(false)} className={mobileNavClass}>
                 {t('auth.login')}
               </NavLink>
             )}
