@@ -21,9 +21,9 @@ export function AdminLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       <div
-        className={`fixed inset-y-0 start-0 z-40 w-56 transform transition-transform duration-normal ease-five lg:static lg:!translate-x-0 ${
+        className={`fixed inset-y-0 start-0 z-40 w-56 transform transition-transform duration-normal ease-five lg:translate-x-0 ${
           mobileOpen
             ? 'translate-x-0'
             : '-translate-x-full rtl:translate-x-full'
@@ -39,8 +39,8 @@ export function AdminLayout() {
           onClick={() => setMobileOpen(false)}
         />
       )}
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between gap-3 border-b border-border px-4 sm:px-6">
+      <div className="flex min-h-screen min-w-0 flex-col lg:ms-56">
+        <header className="flex h-14 items-center justify-between gap-3 border-b border-border bg-background/95 px-4 backdrop-blur sm:px-6">
           <button
             type="button"
             className="rounded-md border border-border px-2 py-1 text-sm lg:hidden"
