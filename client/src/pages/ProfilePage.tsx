@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import type { RootState } from '@/store';
 import { logout } from '@/features/auth/authSlice';
 import { authApi } from '@/features/auth/authApi';
@@ -52,7 +52,15 @@ export function ProfilePage() {
         </CardContent>
       </Card>
 
-      <Button variant="outline" className="mt-6" fullWidth onClick={handleLogout}>
+      {String(user.role || '').toLowerCase() === 'admin' && (
+        <Link to="/admin" className="mt-6 block">
+          <Button className="w-full" fullWidth>
+            {t('admin.nav.dashboard', { defaultValue: 'Admin Dashboard' })}
+          </Button>
+        </Link>
+      )}
+
+      <Button variant="outline" className="mt-4" fullWidth onClick={handleLogout}>
         {t('auth.logout')}
       </Button>
     </div>

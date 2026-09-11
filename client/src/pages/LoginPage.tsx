@@ -46,7 +46,12 @@ export function LoginPage() {
             refreshToken: res.data.refreshToken,
           })
         );
-        navigate(from, { replace: true });
+        const role = String(res.data.user.role || '').toLowerCase();
+        const dest =
+          role === 'admin' && (from === '/' || from === '/login' || !from)
+            ? '/admin'
+            : from;
+        navigate(dest, { replace: true });
       }
     } catch (err: any) {
       setError(err.message || t('auth.loginError'));
