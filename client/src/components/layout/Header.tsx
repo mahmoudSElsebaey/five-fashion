@@ -18,6 +18,8 @@ export function Header() {
   const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
+  const user = useSelector((s: RootState) => s.auth.user);
+  const isAdmin = user?.role === 'admin';
   const dispatch = useDispatch();
   const cartCount = useSelector(selectCartCount);
   const wishlistCount = useSelector(selectWishlistCount);
@@ -42,6 +44,11 @@ export function Header() {
           <NavLink to="/shop?new=1" className={navLinkClass}>
             {t('nav.collections')}
           </NavLink>
+          {isAdmin && (
+            <NavLink to="/admin" className={navLinkClass}>
+              {t('admin.nav.dashboard', { defaultValue: 'Admin' })}
+            </NavLink>
+          )}
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-2">
@@ -134,6 +141,11 @@ export function Header() {
             <NavLink to="/shop" className={navLinkClass} onClick={() => setMobileOpen(false)}>
               {t('nav.shop')}
             </NavLink>
+            {isAdmin && (
+              <NavLink to="/admin" className={navLinkClass} onClick={() => setMobileOpen(false)}>
+                {t('admin.nav.dashboard', { defaultValue: 'Admin' })}
+              </NavLink>
+            )}
             {!isAuthenticated && (
               <NavLink to="/login" className={navLinkClass} onClick={() => setMobileOpen(false)}>
                 {t('nav.login')}
