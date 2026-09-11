@@ -2,10 +2,7 @@
 
 **Luxury 3D Fashion E-Commerce Platform**
 
-FIVE is a premium, bilingual (Arabic / English), dark & light themed fashion e-commerce experience that combines modern MERN-style architecture with immersive 3D interactions.
-
-> Not a generic store template.  
-> Built as a high-end digital fashion brand experience.
+Bilingual (Arabic / English), dark & light themed fashion commerce with a MERN-style stack and optional 3D product previews.
 
 **Repository:** https://github.com/mahmoudSElsebaey/five-fashion
 
@@ -13,89 +10,101 @@ FIVE is a premium, bilingual (Arabic / English), dark & light themed fashion e-c
 
 ## Brand
 
-**FIVE Fashion** — luxurious, minimal, futuristic.
+**FIVE Fashion** — minimal luxury, immersive where it earns its place.
 
-- Modern & minimal
-- Luxury without excess
-- Immersive yet performant
-- Fully bilingual (RTL + LTR)
-- Dark & Light themes via centralized Design Tokens
-- Signature metallic “5” logo
-
-**Primary brand name:** FIVE
+- AR / EN with full RTL / LTR
+- Dark & light via design tokens
+- Signature metallic identity
 
 ---
 
-## Features (Phases 1–15)
+## Implementation status (Sections 01–15)
 
-| Area | Status |
-|------|--------|
-| Design system (tokens, themes) | ✅ |
-| Bilingual AR/EN + RTL/LTR | ✅ |
-| Homepage + 3D hero | ✅ |
-| Product catalog, filters, search, sort | ✅ |
-| Product detail (variants, 3D viewer) | ✅ |
-| Cart drawer + Wishlist | ✅ |
-| Checkout + coupons + orders (local) | ✅ |
-| Auth API (JWT register/login/refresh) | ✅ |
-| Admin CMS (dashboard, products, orders) | ✅ |
-| GSAP reveals + reduced-motion | ✅ |
-| SEO basics + skip link + lazy routes | ✅ |
-| Unit tests (cart, wishlist, coupons) | ✅ |
-| Launch documentation | ✅ |
+| Section | Focus | Status |
+|---------|--------|--------|
+| 01 | Design tokens, UI primitives, a11y basics | ✅ |
+| 02 | API hardening (rate limit, JWT, CORS, health, errors) | ✅ |
+| 03 | Auth + customer account | ✅ |
+| 04 | Catalog seed, images, product fallbacks | ✅ |
+| 05 | Shop URL filters + empty/error states | ✅ |
+| 06 | Product detail (slug/id, related, stock) | ✅ |
+| 07 | Cart, wishlist, checkout (auth-required) | ✅ |
+| 08 | Customer orders from API | ✅ |
+| 09 | Admin dashboard + orders moderation UX | ✅ |
+| 10 | Admin catalog CRUD without `alert()` | ✅ |
+| 11 | About, Collections, Privacy, Terms, 404 | ✅ |
+| 12 | Product reviews + robots/sitemap | ✅ |
+| 13 | ErrorBoundary, ScrollToTop, 3D isolation | ✅ |
+| 14 | Support pages, Footer, Product JSON-LD | ✅ |
+| 15 | Production docs, Organization JSON-LD, launch checklist | ✅ |
 
-**Demo coupons:** `FIVE10` (10%), `WELCOME15` (15%), `EVENING20` (20%)
+**Demo coupons (when seeded):** `FIVE10`, `WELCOME15`, `EVENING20`
 
 ---
 
-## Tech Stack
+## Tech stack
 
 ### Frontend (`client/`)
 - React 18 + TypeScript + Vite
-- Tailwind CSS + Design Tokens
-- React Three Fiber + Drei + Three.js
-- GSAP
+- Tailwind CSS + design tokens
+- React Three Fiber / Drei / Three.js
 - Redux Toolkit
-- React Hook Form + Zod
 - i18next
 - React Router
-- Vitest
+- Zod (forms where used)
 
 ### Backend (`server/`)
 - Node.js + Express + TypeScript
 - MongoDB + Mongoose
-- JWT (Access + Refresh)
+- JWT access + refresh
 - Zod validation
-- bcryptjs, helmet, cors, morgan, express-rate-limit
+- helmet, cors, morgan, rate limiting
 
 ---
 
 ## Quick start
 
 ```bash
-# Server
-cd server && cp .env.example .env && npm install && npm run seed && npm run dev
+# API
+cd server
+cp .env.example .env   # set MONGODB_URI + JWT secrets
+npm ci
+npm run dev
 
 # Client (new terminal)
-cd client && cp .env.example .env && npm install && npm run dev
+cd client
+cp .env.example .env.local   # VITE_API_URL=http://localhost:5000/api/v1
+npm ci
+npm run dev
 ```
 
-See [docs/SEED.md](./docs/SEED.md) for seed details and demo accounts.
+Seed (development): see [docs/SEED.md](./docs/SEED.md).
 
 ---
 
-## Project Structure
+## Documentation
+
+| Doc | Purpose |
+|-----|---------|
+| [docs/DEPLOY.md](./docs/DEPLOY.md) | Deploy client + API |
+| [docs/PRODUCTION_CHECKLIST.md](./docs/PRODUCTION_CHECKLIST.md) | Launch gate |
+| [docs/QA_CHECKLIST.md](./docs/QA_CHECKLIST.md) | Regression smoke |
+| [docs/SEED.md](./docs/SEED.md) | Database seed |
+
+---
+
+## Project layout
 
 ```
 five-fashion/
-├── client/                 # Vite + React frontend
-│   ├── public/             # logo, robots.txt, sitemap.xml
-│   └── src/
-│       ├── components/     # ui, layout, shop, product, 3d, cart, admin, seo, a11y, motion
-│       ├── features/       # auth, cart, orders, wishlist
-│       ├── pages/          # storefront + admin
-│       └── styles/         # design tokens
-├── server/                 # Express + Mongo API
-│   └── src/seed/           # re-runnable catalog seed
-└── docs/                   # SEED, DEPLOY, QA_CHECKLIST
+├── client/          # Vite React SPA
+├── server/          # Express API
+├── docs/            # Deploy, QA, seed, production
+└── vercel.json      # SPA rewrites for client
 ```
+
+---
+
+## License
+
+Private / project-specific unless stated otherwise by the repository owner.
