@@ -69,10 +69,14 @@ const cartSlice = createSlice({
     },
     updateQuantity: (state, action: PayloadAction<{ id: string; quantity: number }>) => {
       const item = state.items.find((i) => i.id === action.payload.id);
-      if (item) {
-        item.quantity = Math.max(1, action.payload.quantity);
-        if (!state.serverSynced) save(state.items);
+      if (!item) return;
+      // SECTION 07 — quantity < 1 removes the line item
+      if (action.payload.quantity < 1) {
+        state.items = state.items.filter((i) => i.id !== action.payload.id);
+      } else {
+        item.quantity = action.payload.quantity;
       }
+      if (!state.serverSynced) save(state.items);
     },
     clearCart: (state) => {
       state.items = [];
@@ -122,8 +126,7 @@ export const selectCartCount = (state: { cart: CartState }) =>
   state.cart.items.reduce((sum, i) => sum + i.quantity, 0);
 export const selectCartSubtotal = (state: { cart: CartState }) =>
   state.cart.items.reduce((sum, i) => sum + (i.salePrice ?? i.price) * i.quantity, 0);
-export const selectCartIsOpen = (state: { cart: CartState }) => state.cart.isOpen;
-export const selectIsCartOpen = selectCartIsOpen;
+export const selectIsCartOpen = (state: { cart: CartState }) => state.cart.isOpen;
 export const selectCartServerSynced = (state: { cart: CartState }) => state.cart.serverSynced;
 
 export default cartSlice.reducer;
