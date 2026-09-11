@@ -27,7 +27,8 @@ export function FaqPage() {
     {
       q: t('support.faq.q4', { defaultValue: 'Is the 3D preview the exact product?' }),
       a: t('support.faq.a4', {
-        defaultValue: '3D models are illustrative. Fabric and color can vary slightly between batches.',
+        defaultValue:
+          '3D models are illustrative. Fabric and color can vary slightly between batches.',
       }),
     },
   ];
