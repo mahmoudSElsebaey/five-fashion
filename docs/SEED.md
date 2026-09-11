@@ -1,8 +1,8 @@
-# FIVE Fashion — Database Seed (SECTION 04)
+# FIVE Fashion — Database Seed
 
 Re-runnable catalog seed for local and staging environments.
 
-> **SECTION 15:** Do not run seed against a live production database that already has real orders unless you intend to wipe catalog collections. Always rotate default admin passwords after first login in any shared environment.
+> Do not run seed against a live production database that already has real orders unless you intend to wipe catalog collections. Always rotate default admin passwords after first login in any shared environment.
 
 ## Requirements
 
@@ -19,17 +19,26 @@ npm run seed
 
 The script **clears** products, categories, collections, coupons, and reviews, then inserts a fresh catalog. Demo users are upserted (passwords reset to the values below).
 
+The seed **validates before insert**: unique SKUs/slugs, 3–5 images per product, no shared image URLs across products, bilingual copy, category/collection refs, and sale-price consistency.
+
 ## Catalog summary
 
-| Entity | Count (approx.) |
-|--------|-----------------|
-| Categories | 8 |
+| Entity | Count |
+|--------|--------|
+| Categories | 11 |
 | Collections | 5 (Essentials, Evening, Street, Atelier, Resort) |
-| Products | 41 (all `status: active`) |
+| Products | 47 (all `status: active`) |
+| Product images | 188 (exactly 4 unique URLs per product) |
 | Coupons | 3 |
-| Sample reviews | 8 |
+| Sample reviews | up to 12 |
 
-Each product gets **2–3** category-coherent image URLs from the Unsplash-based library in `src/seed/images.ts`.
+### Categories
+
+Women Dresses, Women Tops, Women Bottoms, Women Outerwear, Men Shirts, Men Knitwear, Men Trousers, Men Outerwear, Bags, Accessories, Footwear.
+
+### Images
+
+Each product has its own 4-image gallery (Unsplash + Pexels). URLs are unique catalog-wide. Collection covers reuse a product hero (intentional).
 
 ## Demo accounts
 
@@ -49,5 +58,5 @@ Each product gets **2–3** category-coherent image URLs from the Unsplash-based
 ## Notes
 
 - Do **not** rely on `client/src/data/mockProducts.ts` — it is deprecated; the shop reads the API only.
-- Image URLs are remote (Unsplash). The client `ProductImage` component falls back to a gradient if a URL fails.
-- Production: prefer your own CDN / Cloudinary assets and update `images.ts` or admin product images accordingly.
+- Image URLs are remote. The client `ProductImage` component falls back to a gradient if a URL fails.
+- Production: prefer your own CDN / Cloudinary assets and update `src/seed/images.ts` or admin product images accordingly.
