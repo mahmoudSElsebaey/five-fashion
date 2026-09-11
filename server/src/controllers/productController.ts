@@ -61,6 +61,11 @@ export const getProducts = asyncHandler(async (req: Request, res: Response) => {
   if (req.query.featured === 'true') filter.featured = true;
   if (req.query.newArrival === 'true') filter.newArrival = true;
   if (req.query.bestseller === 'true') filter.bestseller = true;
+  // SECTION 05 — products with compareAtPrice greater than current price
+  if (req.query.onSale === 'true') {
+    filter.compareAtPrice = { $exists: true, $ne: null };
+    filter.$expr = { $gt: ['$compareAtPrice', '$price'] };
+  }
   if (req.query.brand) filter.brand = req.query.brand;
   if (req.query.size) filter.sizes = req.query.size;
   if (req.query.color) filter.colors = req.query.color;
