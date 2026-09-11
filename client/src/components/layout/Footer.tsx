@@ -12,7 +12,7 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4 md:col-span-1">
             <Link to="/" className="inline-flex items-center" aria-label="FIVE Fashion home">
-              <img src="/logo.png" alt="FIVE Fashion" className="h-21 w-auto max-w-[210px] object-contain sm:h-24 sm:max-w-[240px]" />
+              <img src="/logo.png" alt="FIVE Fashion" className="h-21 w-auto max-w-[210px] object-contain drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)] dark:drop-shadow-none sm:h-24 sm:max-w-[240px]" />
             </Link>
             <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
               {t('footer.tagline')}
