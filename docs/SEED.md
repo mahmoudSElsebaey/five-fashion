@@ -2,6 +2,8 @@
 
 Re-runnable catalog seed for local and staging environments.
 
+> **SECTION 15:** Do not run seed against a live production database that already has real orders unless you intend to wipe catalog collections. Always rotate default admin passwords after first login in any shared environment.
+
 ## Requirements
 
 - MongoDB reachable via `MONGODB_URI` in `server/.env`
