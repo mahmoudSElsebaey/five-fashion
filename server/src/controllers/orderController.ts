@@ -20,7 +20,8 @@ function generateOrderNumber() {
 }
 
 function transactionsSupported() {
-  const topologyType = mongoose.connection.getClient().topology?.description?.type;
+  const client = mongoose.connection.getClient() as any;
+  const topologyType = client?.topology?.description?.type;
   return topologyType === 'ReplicaSetWithPrimary' || topologyType === 'Sharded';
 }
 
