@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { usersApi } from '@/services/apiClient';
 
+/** SECTION 10 — Customers admin without alert() */
 export function AdminCustomersPage() {
   const [rows, setRows] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
@@ -10,6 +13,7 @@ export function AdminCustomersPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -25,15 +29,16 @@ export function AdminCustomersPage() {
     }
   };
   useEffect(() => {
-    load();
+    void load();
   }, [page, q]);
 
   const toggleActive = async (u: any) => {
+    setActionError(null);
     try {
       await usersApi.update(u._id, { isActive: !u.isActive });
       await load();
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Failed');
+      setActionError(e instanceof Error ? e.message : 'Failed');
     }
   };
 
@@ -41,7 +46,7 @@ export function AdminCustomersPage() {
     <div>
       <h2 className="font-display text-2xl font-semibold">Customers</h2>
       <input
-        className="mt-4 w-full max-w-sm rounded-lg border border-border px-3 py-2 text-sm"
+        className="mt-4 w-full max-w-sm rounded-lg border border-border bg-background px-3 py-2 text-sm"
         placeholder="Search name or email"
         value={q}
         onChange={(e) => {
@@ -49,12 +54,19 @@ export function AdminCustomersPage() {
           setQ(e.target.value);
         }}
       />
+      {actionError && (
+        <p className="mt-3 text-sm text-error" role="alert">
+          {actionError}
+        </p>
+      )}
       {loading ? (
-        <div className="flex justify-center py-16">
+        <div className="flex justify-center py-16" role="status">
           <Spinner />
         </div>
       ) : error ? (
-        <p className="mt-4 text-sm text-error">{error}</p>
+        <ErrorState className="mt-4" message={error} onRetry={() => void load()} />
+      ) : rows.length === 0 ? (
+        <EmptyState className="mt-8" title="No customers" description="Registered users will appear here." />
       ) : (
         <div className="mt-6 overflow-x-auto rounded-xl border border-border">
           <table className="w-full min-w-[560px] text-sm">
@@ -75,7 +87,7 @@ export function AdminCustomersPage() {
                   <td className="px-4 py-3 capitalize">{u.role}</td>
                   <td className="px-4 py-3">{u.isActive ? 'Active' : 'Inactive'}</td>
                   <td className="px-4 py-3 text-end">
-                    <Button size="sm" variant="ghost" onClick={() => toggleActive(u)}>
+                    <Button size="sm" variant="ghost" onClick={() => void toggleActive(u)}>
                       {u.isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                   </td>

@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { reviewsApi } from '@/services/apiClient';
 
+/** SECTION 10 — Reviews moderation without silent failures */
 export function AdminReviewsPage() {
   const [rows, setRows] = useState<any[]>([]);
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -22,35 +26,61 @@ export function AdminReviewsPage() {
     }
   };
   useEffect(() => {
-    load();
+    void load();
   }, [status]);
 
   const moderate = async (id: string, next: string) => {
-    await reviewsApi.moderate(id, next);
-    await load();
+    setActionError(null);
+    try {
+      await reviewsApi.moderate(id, next);
+      await load();
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Moderate failed');
+    }
+  };
+
+  const onDelete = async (id: string) => {
+    if (!confirm('Delete?')) return;
+    setActionError(null);
+    try {
+      await reviewsApi.adminDelete(id);
+      await load();
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : 'Delete failed');
+    }
   };
 
   return (
     <div>
       <h2 className="font-display text-2xl font-semibold">Reviews</h2>
       <select
-        className="mt-4 rounded-lg border border-border px-3 py-2 text-sm"
+        className="mt-4 rounded-lg border border-border bg-background px-3 py-2 text-sm"
         value={status}
         onChange={(e) => setStatus(e.target.value)}
+        aria-label="Filter reviews"
       >
         <option value="">All</option>
         <option value="pending">pending</option>
         <option value="approved">approved</option>
         <option value="rejected">rejected</option>
       </select>
+      {actionError && (
+        <p className="mt-3 text-sm text-error" role="alert">
+          {actionError}
+        </p>
+      )}
       {loading ? (
-        <div className="flex justify-center py-16">
+        <div className="flex justify-center py-16" role="status">
           <Spinner />
         </div>
       ) : error ? (
-        <p className="mt-4 text-sm text-error">{error}</p>
+        <ErrorState className="mt-4" message={error} onRetry={() => void load()} />
       ) : rows.length === 0 ? (
-        <p className="mt-8 text-sm text-muted-foreground">No reviews</p>
+        <EmptyState
+          className="mt-8"
+          title="No reviews"
+          description="Customer reviews will appear for moderation."
+        />
       ) : (
         <div className="mt-6 space-y-3">
           {rows.map((r) => (
@@ -65,22 +95,13 @@ export function AdminReviewsPage() {
                   <p className="mt-1 text-xs capitalize text-muted-foreground">Status: {r.status}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" onClick={() => moderate(r._id, 'approved')}>
+                  <Button size="sm" variant="outline" onClick={() => void moderate(r._id, 'approved')}>
                     Approve
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => moderate(r._id, 'rejected')}>
+                  <Button size="sm" variant="outline" onClick={() => void moderate(r._id, 'rejected')}>
                     Reject
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={async () => {
-                      if (confirm('Delete?')) {
-                        await reviewsApi.adminDelete(r._id);
-                        await load();
-                      }
-                    }}
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => void onDelete(r._id)}>
                     Delete
                   </Button>
                 </div>
