@@ -48,8 +48,9 @@ export function Header() {
               key={item.key}
               to={item.path}
               className={({ isActive }) =>
-                `rounded-md px-3 py-2 text-sm font-medium transition-colors duration-normal ease-five
-                ${isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`
+                `rounded-md px-3 py-2 text-sm font-medium transition-colors duration-normal ease-five ${
+                  isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`
               }
             >
               {t(`nav.${item.key}`)}
@@ -58,83 +59,85 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-1">
-          <LanguageToggle />
-          <ThemeToggle />
+          <div className="hidden items-center gap-1 md:flex">
+            <LanguageToggle />
+            <ThemeToggle />
 
-          {isAdmin && (
-            <Link to="/admin">
-              <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
-                {t('admin.nav.dashboard', { defaultValue: 'Admin' })}
-              </Button>
-            </Link>
-          )}
-          {isAuthenticated ? (
-            <Link to="/profile">
-              <Button variant="ghost" size="sm" className="h-9 w-9 p-0" aria-label="Profile">
+            {isAdmin && (
+              <Link to="/admin">
+                <Button variant="ghost" size="sm">
+                  {t('admin.nav.dashboard', { defaultValue: 'Admin' })}
+                </Button>
+              </Link>
+            )}
+            {isAuthenticated ? (
+              <Link to="/profile">
+                <Button variant="ghost" size="sm" className="h-9 w-9 p-0" aria-label="Profile">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                  </svg>
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/login">
+                <Button variant="ghost" size="sm">
+                  {t('auth.login')}
+                </Button>
+              </Link>
+            )}
+
+            <Link to="/wishlist">
+              <Button variant="ghost" size="sm" className="relative h-9 w-9 p-0" aria-label="Wishlist">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
                 </svg>
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-0.5 -end-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-medium text-accent-foreground">
+                    {wishlistCount}
+                  </span>
+                )}
               </Button>
             </Link>
-          ) : (
-            <Link to="/login">
-              <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
-                {t('auth.login')}
-              </Button>
-            </Link>
-          )}
 
-          <Link to="/wishlist">
-            <Button variant="ghost" size="sm" className="relative h-9 w-9 p-0" aria-label="Wishlist">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative h-9 w-9 p-0"
+              aria-label="Cart"
+              onClick={() => dispatch(openCart())}
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                <circle cx="8" cy="21" r="1" />
+                <circle cx="19" cy="21" r="1" />
+                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
               </svg>
-              {wishlistCount > 0 && (
+              {cartCount > 0 && (
                 <span className="absolute -top-0.5 -end-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-medium text-accent-foreground">
-                  {wishlistCount}
+                  {cartCount}
                 </span>
               )}
             </Button>
-          </Link>
+          </div>
 
           <Button
             variant="ghost"
             size="sm"
-            className="relative h-9 w-9 p-0"
-            aria-label="Cart"
-            onClick={() => dispatch(openCart())}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="8" cy="21" r="1" />
-              <circle cx="19" cy="21" r="1" />
-              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-            </svg>
-            {cartCount > 0 && (
-              <span className="absolute -top-0.5 -end-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-medium text-accent-foreground">
-                {cartCount}
-              </span>
-            )}
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-9 w-9 p-0 md:hidden"
+            className="h-10 w-10 p-0 md:hidden"
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileOpen}
           >
             {mobileOpen ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M18 6 6 18" />
                 <path d="m6 6 12 12" />
               </svg>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="4" x2="20" y1="12" y2="12" />
-                <line x1="4" x2="20" y1="6" y2="6" />
-                <line x1="4" x2="20" y1="18" y2="18" />
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M4 6h16" />
+                <path d="M4 12h16" />
+                <path d="M4 18h16" />
               </svg>
             )}
           </Button>
@@ -150,8 +153,9 @@ export function Header() {
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
                 className={({ isActive }) =>
-                  `rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
-                  ${isActive ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`
+                  `rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                    isActive ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`
                 }
               >
                 {t(`nav.${item.key}`)}
@@ -162,8 +166,9 @@ export function Header() {
                 to="/admin"
                 onClick={() => setMobileOpen(false)}
                 className={({ isActive }) =>
-                  `rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
-                  ${isActive ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`
+                  `rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                    isActive ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`
                 }
               >
                 {t('admin.nav.dashboard', { defaultValue: 'Admin' })}
