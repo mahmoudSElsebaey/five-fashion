@@ -7,6 +7,7 @@ export type ApiProduct = {
   description?: LocalizedName;
   category?: { _id?: string; name?: LocalizedName; slug?: string } | string;
   collection?: { _id?: string; name?: LocalizedName; slug?: string } | string;
+  collectionRef?: { _id?: string; name?: LocalizedName; slug?: string } | string;
   brand: string;
   gender: 'men' | 'women' | 'unisex';
   price: number;
@@ -23,6 +24,7 @@ export type ApiProduct = {
   status?: string;
   ratings?: number;
   reviewCount?: number;
+  modelUrl?: string | null;
 };
 
 /** UI-friendly product shape used by existing components */
@@ -30,6 +32,8 @@ export type UiProduct = {
   id: string;
   nameEn: string;
   nameAr: string;
+  descriptionEn?: string;
+  descriptionAr?: string;
   price: number;
   salePrice?: number;
   category: string;
@@ -40,10 +44,12 @@ export type UiProduct = {
   isNew: boolean;
   isSale: boolean;
   rating: number;
+  reviewCount?: number;
   slug?: string;
   stock?: number;
   images?: string[];
   sku?: string;
+  modelUrl?: string | null;
 };
 
 export function mapApiProduct(p: ApiProduct): UiProduct {
@@ -54,6 +60,8 @@ export function mapApiProduct(p: ApiProduct): UiProduct {
     id: p._id,
     nameEn: p.name?.en || '',
     nameAr: p.name?.ar || '',
+    descriptionEn: p.description?.en || '',
+    descriptionAr: p.description?.ar || '',
     price: sale ? price : p.price,
     salePrice: sale,
     category:
@@ -69,9 +77,11 @@ export function mapApiProduct(p: ApiProduct): UiProduct {
     isNew: Boolean(p.newArrival),
     isSale: Boolean(sale),
     rating: p.ratings || 0,
+    reviewCount: p.reviewCount || 0,
     slug: p.slug,
     stock: p.stock,
     images: p.images,
     sku: p.sku,
+    modelUrl: p.modelUrl || null,
   };
 }

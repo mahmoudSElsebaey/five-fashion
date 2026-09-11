@@ -17,7 +17,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const image = product.images?.[0];
 
   return (
-    <Link to={`/product/${product.id}`} className="group block">
+    <Link to={`/product/${product.slug || product.id}`} className="group block">
       <Card hoverable className="overflow-hidden border-0 bg-transparent shadow-none">
         <div className="relative">
           <ProductImage
