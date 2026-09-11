@@ -27,6 +27,21 @@ const SIZES: Record<string, string[]> = {
   accessories: ['OS'],
 };
 
+const DEMO_ACCOUNTS = [
+  {
+    name: 'FIVE Demo Customer',
+    email: 'demo.customer@fivefashion.com',
+    password: 'FiveDemo2026!',
+    role: 'user' as const,
+  },
+  {
+    name: 'FIVE Demo Admin',
+    email: 'demo.admin@fivefashion.com',
+    password: 'FiveAdmin2026!',
+    role: 'admin' as const,
+  },
+];
+
 function slugifyName(en: string, n: number): string {
   return `${en.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-')}-${String(n).padStart(3, '0')}`;
 }
@@ -47,6 +62,22 @@ function colorSet(cat: string, coll: string, gender: 'men' | 'women' | 'unisex')
   return gender === 'women' ? COLORS.women : COLORS.men;
 }
 
+async function ensureDemoAccounts() {
+  for (const account of DEMO_ACCOUNTS) {
+    let user = await User.findOne({ email: account.email }).select('+password');
+    if (!user) {
+      user = new User(account);
+    } else {
+      user.name = account.name;
+      user.role = account.role;
+      user.isActive = true;
+      user.password = account.password;
+    }
+    await user.save();
+  }
+  console.log('—— Demo accounts ready ——', DEMO_ACCOUNTS.map(({ email, role }) => ({ email, role })));
+}
+
 async function main() {
   const expectedProducts = CATALOG.reduce((total, group) => total + group.items.length, 0);
   console.log(`—— FIVE Fashion Seed — ${expectedProducts} products / ${CATALOG.length} categories ——`);
@@ -60,6 +91,8 @@ async function main() {
       Coupon.deleteMany({}),
       Review.deleteMany({}),
     ]);
+
+    await ensureDemoAccounts();
 
     const cats = await Category.insertMany(Object.entries(CAT_META).map(([slug, meta]) => {
       const group = CATALOG.find((entry) => entry.cat === slug);
