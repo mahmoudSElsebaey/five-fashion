@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Seo } from '@/components/seo/Seo';
+import { ProductJsonLd } from '@/components/seo/ProductJsonLd';
 import { productsApi } from '@/services/apiClient';
 import { mapApiProduct, type ApiProduct, type UiProduct } from '@/types/product';
 import { useDispatch } from 'react-redux';
@@ -23,7 +24,7 @@ import { store } from '@/store';
 
 const OBJECT_ID_RE = /^[a-f\d]{24}$/i;
 
-/** SECTION 06 + 12 — PDP with ProductReviews */
+/** SECTION 06 + 12 + 14 — PDP with reviews and Product JSON-LD */
 export function ProductDetailPage() {
   const { id: param } = useParams<{ id: string }>();
   const { t, i18n } = useTranslation();
@@ -198,6 +199,15 @@ export function ProductDetailPage() {
         description={`${name} — ${product.brand} | FIVE Fashion luxury`}
         image={product.images?.[0]}
         type="product"
+      />
+      <ProductJsonLd
+        name={name}
+        description={description}
+        image={product.images}
+        sku={product.sku}
+        brand={product.brand}
+        price={displayPrice}
+        availability={outOfStock ? 'OutOfStock' : 'InStock'}
       />
 
       <nav className="mb-8 text-sm text-muted-foreground" aria-label="Breadcrumb">
