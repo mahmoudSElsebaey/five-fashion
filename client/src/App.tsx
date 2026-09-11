@@ -48,6 +48,16 @@ const TermsPage = lazy(() => import('@/pages/TermsPage').then((m) => ({ default:
 const NotFoundPage = lazy(() =>
   import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage }))
 );
+const ContactPage = lazy(() =>
+  import('@/pages/ContactPage').then((m) => ({ default: m.ContactPage }))
+);
+const ShippingPage = lazy(() =>
+  import('@/pages/ShippingPage').then((m) => ({ default: m.ShippingPage }))
+);
+const ReturnsPage = lazy(() =>
+  import('@/pages/ReturnsPage').then((m) => ({ default: m.ReturnsPage }))
+);
+const FaqPage = lazy(() => import('@/pages/FaqPage').then((m) => ({ default: m.FaqPage })));
 const DashboardPage = lazy(() =>
   import('@/pages/admin/DashboardPage').then((m) => ({ default: m.DashboardPage }))
 );
@@ -129,6 +139,42 @@ export default function App() {
                 <>
                   <PageMeta title="About" path="/about" />
                   <AboutPage />
+                </>
+              }
+            />
+            <Route
+              path="/contact"
+              element={
+                <>
+                  <PageMeta title="Contact" path="/contact" />
+                  <ContactPage />
+                </>
+              }
+            />
+            <Route
+              path="/shipping"
+              element={
+                <>
+                  <PageMeta title="Shipping" path="/shipping" />
+                  <ShippingPage />
+                </>
+              }
+            />
+            <Route
+              path="/returns"
+              element={
+                <>
+                  <PageMeta title="Returns" path="/returns" />
+                  <ReturnsPage />
+                </>
+              }
+            />
+            <Route
+              path="/faq"
+              element={
+                <>
+                  <PageMeta title="FAQ" path="/faq" />
+                  <FaqPage />
                 </>
               }
             />
