@@ -46,26 +46,28 @@ export function ImageStreamHero() {
         .five-image-stream {
           position: absolute;
           inset: 0;
-          z-index: -9;
+          z-index: 1;
           overflow: hidden;
           container-type: inline-size;
           perspective: 900px;
           pointer-events: none;
-          opacity: .78;
+          opacity: .9;
         }
 
         .five-image-stream__wash {
           position: absolute;
           inset: 0;
-          z-index: 4;
+          z-index: 3;
+          pointer-events: none;
           background:
-            radial-gradient(circle at 50% 50%, transparent 0%, color-mix(in srgb, var(--background) 8%, transparent) 28%, var(--background) 88%),
-            linear-gradient(180deg, color-mix(in srgb, var(--background) 22%, transparent), color-mix(in srgb, var(--background) 72%, transparent));
+            radial-gradient(circle at 50% 50%, transparent 0%, color-mix(in srgb, var(--background) 5%, transparent) 28%, color-mix(in srgb, var(--background) 72%, transparent) 88%),
+            linear-gradient(180deg, color-mix(in srgb, var(--background) 18%, transparent), color-mix(in srgb, var(--background) 58%, transparent));
         }
 
         .five-image-stream__rail {
           position: absolute;
           inset: 0;
+          z-index: 1;
           transform-style: preserve-3d;
         }
 
@@ -84,14 +86,15 @@ export function ImageStreamHero() {
           width: clamp(84px, 12cqw, 190px);
           aspect-ratio: 3 / 4;
           overflow: hidden;
-          border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+          border: 1px solid color-mix(in srgb, var(--accent) 36%, transparent);
           border-radius: clamp(10px, 1.1cqw, 18px);
           background: var(--surface);
-          box-shadow: 0 20px 60px color-mix(in srgb, #000 24%, transparent);
+          box-shadow: 0 20px 60px color-mix(in srgb, #000 34%, transparent);
           transform-origin: center center;
           animation: five-stream-card 18s linear infinite;
           animation-delay: var(--delay);
           will-change: transform;
+          backface-visibility: hidden;
         }
 
         .five-image-stream__card img {
@@ -99,31 +102,24 @@ export function ImageStreamHero() {
           height: 100%;
           display: block;
           object-fit: cover;
-          filter: saturate(.88) contrast(1.02);
+          filter: saturate(.92) contrast(1.03);
         }
 
-        .five-image-stream__rail--left .five-image-stream__card {
-          --direction: -1;
-        }
-
-        .five-image-stream__rail--right .five-image-stream__card {
-          --direction: 1;
-        }
+        .five-image-stream__rail--left .five-image-stream__card { --direction: -1; }
+        .five-image-stream__rail--right .five-image-stream__card { --direction: 1; }
 
         @keyframes five-stream-card {
           0% {
             opacity: 0;
             transform: translate3d(-50%, -50%, -850px) translateX(calc(var(--direction) * -1cqw)) scale(.16) rotateY(calc(var(--direction) * -5deg));
           }
-          16% {
-            opacity: .38;
-          }
+          16% { opacity: .46; }
           42% {
-            opacity: .68;
+            opacity: .76;
             transform: translate3d(-50%, -50%, -260px) translateX(calc(var(--direction) * 7cqw)) scale(.48) rotateY(calc(var(--direction) * -12deg));
           }
           68% {
-            opacity: .82;
+            opacity: .9;
             transform: translate3d(-50%, -50%, 30px) translateX(calc(var(--direction) * 25cqw)) scale(.92) rotateY(calc(var(--direction) * -20deg));
           }
           100% {
@@ -143,24 +139,16 @@ export function ImageStreamHero() {
         }
 
         @media (max-width: 767px) {
-          .five-image-stream {
-            opacity: .42;
-          }
-          .five-image-stream__card {
-            width: clamp(72px, 24cqw, 120px);
-          }
-          .five-image-stream__card:nth-child(n+7) {
-            display: none;
-          }
+          .five-image-stream { opacity: .5; }
+          .five-image-stream__card { width: clamp(72px, 24cqw, 120px); }
+          .five-image-stream__card:nth-child(n+7) { display: none; }
         }
 
         @media (prefers-reduced-motion: reduce) {
           .five-image-stream__rail,
+          .five-image-stream__card { animation-play-state: paused; }
           .five-image-stream__card {
-            animation-play-state: paused;
-          }
-          .five-image-stream__card {
-            opacity: .28;
+            opacity: .34;
             transform: translate3d(-50%, -50%, -260px) translateX(calc(var(--direction) * 10cqw)) scale(.5) rotateY(calc(var(--direction) * -10deg));
           }
         }
