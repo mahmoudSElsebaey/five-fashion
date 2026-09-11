@@ -12,7 +12,7 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4 md:col-span-1">
             <Link to="/" className="inline-flex items-center" aria-label="FIVE Fashion home">
-              <img src="/logo.png" alt="FIVE Fashion" className="h-21 w-auto max-w-[210px] object-contain drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)] dark:drop-shadow-none sm:h-24 sm:max-w-[240px]" />
+              <img src="/logo.png" alt="FIVE Fashion" className="h-21 w-auto max-w-[210px] object-contain drop-shadow-[0_1px_3px_rgba(0,0,0,0.65)] dark:drop-shadow-none sm:h-24 sm:max-w-[240px]" />
             </Link>
             <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
               {t('footer.tagline')}
@@ -54,25 +54,14 @@ export function Footer() {
               {t('footer.newsletterDesc')}
             </p>
             <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="email"
-                placeholder={t('footer.emailPlaceholder')}
-                className="h-10 flex-1 rounded-lg border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              />
-              <button
-                type="submit"
-                className="h-10 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-              >
-                {t('footer.subscribe')}
-              </button>
+              <input type="email" placeholder={t('footer.emailPlaceholder')} className="h-10 flex-1 rounded-lg border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+              <button type="submit" className="h-10 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">{t('footer.subscribe')}</button>
             </form>
           </div>
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
-          <p className="text-xs text-muted-foreground">
-            © {year} FIVE Fashion. {t('footer.rights')}
-          </p>
+          <p className="text-xs text-muted-foreground">© {year} FIVE Fashion. {t('footer.rights')}</p>
           <div className="flex gap-6 text-xs text-muted-foreground">
             <Link to="/privacy" className="transition-colors hover:text-foreground">{t('footer.privacy')}</Link>
             <Link to="/terms" className="transition-colors hover:text-foreground">{t('footer.terms')}</Link>
