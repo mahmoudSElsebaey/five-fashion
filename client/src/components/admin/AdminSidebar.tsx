@@ -15,9 +15,32 @@ const links = [
   { to: '/admin/coupons', key: 'coupons' },
 ];
 
+const arabicLabels: Record<string, string> = {
+  dashboard: 'لوحة التحكم',
+  products: 'المنتجات',
+  categories: 'الفئات',
+  collections: 'المجموعات',
+  orders: 'الطلبات',
+  customers: 'العملاء',
+  reviews: 'التقييمات',
+  coupons: 'كوبونات الخصم',
+};
+
+const englishLabels: Record<string, string> = {
+  dashboard: 'Dashboard',
+  products: 'Products',
+  categories: 'Categories',
+  collections: 'Collections',
+  orders: 'Orders',
+  customers: 'Customers',
+  reviews: 'Reviews',
+  coupons: 'Coupons',
+};
+
 export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const user = useSelector((s: RootState) => s.auth.user);
+  const isArabic = i18n.language === 'ar';
 
   return (
     <aside className="flex h-full w-56 shrink-0 flex-col border-e border-border bg-surface">
@@ -40,7 +63,9 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
               }`
             }
           >
-            {t(`admin.nav.${link.key}`, { defaultValue: link.key })}
+            {t(`admin.nav.${link.key}`, {
+              defaultValue: (isArabic ? arabicLabels : englishLabels)[link.key],
+            })}
           </NavLink>
         ))}
       </nav>
@@ -51,7 +76,7 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
         </div>
         <div className="mb-2 rounded-lg bg-muted/40 px-3 py-2">
           <p className="truncate text-sm font-medium text-foreground">
-            {user?.name || user?.email?.split('@')[0] || 'Admin'}
+            {user?.name || user?.email?.split('@')[0] || (isArabic ? 'المشرف' : 'Admin')}
           </p>
           {user?.email && (
             <p className="truncate text-xs text-muted-foreground">{user.email}</p>
