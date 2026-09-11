@@ -40,7 +40,7 @@ export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
   auth = false
-): Promise<ApiResponse<T>> {
+): Promise<ApiResponse<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> | undefined),
@@ -159,6 +159,8 @@ export const ordersApi = {
     return apiRequest<unknown[]>(`/orders${qs ? `?${qs}` : ''}`, {}, true);
   },
   getById: (id: string) => apiRequest<unknown>(`/orders/${id}`, {}, true),
+  getByNumber: (orderNumber: string) =>
+    apiRequest<unknown>(`/orders/number/${encodeURIComponent(orderNumber)}`, {}, true),
   create: (body: unknown) =>
     apiRequest<unknown>('/orders', { method: 'POST', body: JSON.stringify(body) }, true),
   cancel: (id: string) =>
