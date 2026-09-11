@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { RootState } from '@/store';
 import { logout } from '@/features/auth/authSlice';
 import { LanguageToggle } from '@/components/layout/LanguageToggle';
+import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { Button } from '@/components/ui/Button';
 
 const links = [
@@ -18,25 +19,13 @@ const links = [
 ];
 
 const arabicLabels: Record<string, string> = {
-  dashboard: 'لوحة التحكم',
-  products: 'المنتجات',
-  categories: 'الفئات',
-  collections: 'المجموعات',
-  orders: 'الطلبات',
-  customers: 'العملاء',
-  reviews: 'التقييمات',
-  coupons: 'كوبونات الخصم',
+  dashboard: 'لوحة التحكم', products: 'المنتجات', categories: 'الفئات', collections: 'المجموعات',
+  orders: 'الطلبات', customers: 'العملاء', reviews: 'التقييمات', coupons: 'كوبونات الخصم',
 };
 
 const englishLabels: Record<string, string> = {
-  dashboard: 'Dashboard',
-  products: 'Products',
-  categories: 'Categories',
-  collections: 'Collections',
-  orders: 'Orders',
-  customers: 'Customers',
-  reviews: 'Reviews',
-  coupons: 'Coupons',
+  dashboard: 'Dashboard', products: 'Products', categories: 'Categories', collections: 'Collections',
+  orders: 'Orders', customers: 'Customers', reviews: 'Reviews', coupons: 'Coupons',
 };
 
 export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
@@ -60,22 +49,9 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <nav className="flex flex-col gap-0.5 overflow-y-auto p-2">
         {links.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            end={link.end}
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-muted text-foreground'
-                  : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-              }`
-            }
-          >
-            {t(`admin.nav.${link.key}`, {
-              defaultValue: (isArabic ? arabicLabels : englishLabels)[link.key],
-            })}
+          <NavLink key={link.to} to={link.to} end={link.end} onClick={onNavigate}
+            className={({ isActive }) => `rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'}`}>
+            {t(`admin.nav.${link.key}`, { defaultValue: (isArabic ? arabicLabels : englishLabels)[link.key] })}
           </NavLink>
         ))}
       </nav>
@@ -83,47 +59,29 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="mt-auto border-t border-border p-3">
         <div className="mb-2 flex items-center gap-2">
           <LanguageToggle />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            className="flex-1 justify-center gap-2 text-muted-foreground hover:text-destructive"
-            aria-label={isArabic ? 'تسجيل الخروج' : 'Logout'}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <path d="m16 17 5-5-5-5" />
-              <path d="M21 12H9" />
-            </svg>
-            <span>{isArabic ? 'تسجيل الخروج' : 'Logout'}</span>
-          </Button>
+          <ThemeToggle />
         </div>
 
-        <div className="mb-2 rounded-lg bg-muted/40 px-3 py-2">
-          <p className="truncate text-sm font-medium text-foreground">
-            {user?.name || user?.email?.split('@')[0] || (isArabic ? 'المشرف' : 'Admin')}
-          </p>
-          {user?.email && (
-            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-          )}
-        </div>
-        <NavLink
-          to="/"
-          onClick={onNavigate}
-          className="block rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleLogout}
+          className="mb-2 w-full justify-center gap-2 rounded-lg border border-red-200/70 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50"
+          aria-label={isArabic ? 'تسجيل الخروج' : 'Logout'}
         >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <path d="m16 17 5-5-5-5" /><path d="M21 12H9" />
+          </svg>
+          <span>{isArabic ? 'تسجيل الخروج' : 'Logout'}</span>
+        </Button>
+
+        <div className="mb-2 rounded-lg bg-muted/40 px-3 py-2">
+          <p className="truncate text-sm font-medium text-foreground">{user?.name || user?.email?.split('@')[0] || (isArabic ? 'المشرف' : 'Admin')}</p>
+          {user?.email && <p className="truncate text-xs text-muted-foreground">{user.email}</p>}
+        </div>
+        <NavLink to="/" onClick={onNavigate} className="block rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
           ← {t('admin.backToStore')}
         </NavLink>
       </div>
