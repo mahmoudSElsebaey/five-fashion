@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { HeroScene } from '@/components/3d/HeroScene';
+import { ImageStreamHero } from './ImageStreamHero';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export function HeroSection() {
@@ -11,12 +12,15 @@ export function HeroSection() {
 
   return (
     <section className="relative flex min-h-[85vh] items-center overflow-hidden">
-      {/* 3D Background — isolated so WebGL failure does not blank the hero */}
+      {/* Existing WebGL hero object stays as the depth anchor. */}
       <ErrorBoundary fallback={null}>
         <HeroScene />
       </ErrorBoundary>
 
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/30 via-background/60 to-background" />
+      {/* Fashion image corridor inspired by the Image Stream interaction pattern. */}
+      <ImageStreamHero />
+
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/25 via-background/60 to-background" />
 
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
@@ -28,7 +32,7 @@ export function HeroSection() {
             {t('home.hero.title')}
           </h1>
 
-          <p className="mt-6 max-w-lg text-lg text-muted-foreground leading-relaxed">
+          <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted-foreground">
             {t('home.hero.subtitle')}
           </p>
 
