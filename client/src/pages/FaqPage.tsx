@@ -1,49 +1,43 @@
 import { useTranslation } from 'react-i18next';
 import { Seo } from '@/components/seo/Seo';
 
-/** SECTION 14 — FAQ */
 export function FaqPage() {
-  const { t } = useTranslation();
-  const items = [
-    {
-      q: t('support.faq.q1', { defaultValue: 'How do I track my order?' }),
-      a: t('support.faq.a1', {
-        defaultValue: 'Open My Orders from your profile or use the link in the confirmation email.',
-      }),
-    },
-    {
-      q: t('support.faq.q2', { defaultValue: 'Do you offer international shipping?' }),
-      a: t('support.faq.a2', {
-        defaultValue: 'Coverage depends on the active shipping zones configured for the store.',
-      }),
-    },
-    {
-      q: t('support.faq.q3', { defaultValue: 'How do coupons work?' }),
-      a: t('support.faq.a3', {
-        defaultValue:
-          'Enter a valid code at checkout. Discounts apply only when minimums and limits are met.',
-      }),
-    },
-    {
-      q: t('support.faq.q4', { defaultValue: 'Is the 3D preview the exact product?' }),
-      a: t('support.faq.a4', {
-        defaultValue:
-          '3D models are illustrative. Fabric and color can vary slightly between batches.',
-      }),
-    },
-  ];
+  const { i18n } = useTranslation();
+  const isArabic = i18n.language === 'ar';
+  const title = isArabic ? 'الأسئلة الشائعة' : 'Frequently asked questions';
+  const description = isArabic
+    ? 'إجابات سريعة عن الطلبات، الشحن، الكوبونات ومعاينة المنتجات.'
+    : 'Quick answers about orders, shipping, coupons, and product previews.';
+
+  const items = isArabic
+    ? [
+        ['كيف يمكنني تتبع طلبي؟', 'افتح قسم طلباتي من ملفك الشخصي لمتابعة حالة الطلب. وعند توفر رقم تتبع، يتم إرساله عبر البريد الإلكتروني.'],
+        ['كم تستغرق عملية الشحن؟', 'تظهر مدة التوصيل المتوقعة أثناء إتمام الطلب، وقد تختلف حسب المدينة وشركة الشحن.'],
+        ['هل يتوفر الشحن الدولي؟', 'يعتمد توفر الشحن الدولي على مناطق الشحن المفعلة للمتجر وقت إتمام الطلب.'],
+        ['كيف أستخدم كوبون الخصم؟', 'أدخل الكود الصحيح في صفحة إتمام الشراء. يطبق الخصم عند استيفاء الحد الأدنى وباقي شروط الكوبون.'],
+        ['هل يمكنني إرجاع المنتج؟', 'المنتجات غير المستخدمة يمكن إرجاعها خلال 14 يومًا من التسليم، مع الالتزام بشروط الإرجاع والفحص.'],
+        ['هل المعاينة ثلاثية الأبعاد مطابقة للمنتج تمامًا؟', 'المعاينات ثلاثية الأبعاد لأغراض توضيحية. قد توجد اختلافات بسيطة في الخامة أو اللون بين المنتج والمعاينة.'],
+      ]
+    : [
+        ['How can I track my order?', 'Open My Orders from your profile to follow the order status. When tracking is available, details are also sent by email.'],
+        ['How long does shipping take?', 'The estimated delivery time is shown during checkout and may vary by city and courier.'],
+        ['Do you offer international shipping?', 'International coverage depends on the shipping zones enabled for the store at checkout.'],
+        ['How do I use a coupon?', 'Enter a valid code at checkout. The discount applies when the minimum and other coupon conditions are met.'],
+        ['Can I return an item?', 'Unused items may be returned within 14 days of delivery, subject to the return conditions and inspection.'],
+        ['Is the 3D preview exactly the same as the product?', '3D previews are illustrative. Minor differences in fabric or color may occur between the preview and the physical item.'],
+      ];
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-      <Seo title={t('footer.faq', { defaultValue: 'FAQ' })} />
-      <h1 className="font-display text-3xl font-semibold tracking-tight">
-        {t('footer.faq', { defaultValue: 'FAQ' })}
-      </h1>
-      <dl className="mt-10 space-y-6">
-        {items.map((item) => (
-          <div key={item.q} className="border-b border-border pb-6">
-            <dt className="font-medium text-foreground">{item.q}</dt>
-            <dd className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.a}</dd>
+    <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8" dir={isArabic ? 'rtl' : 'ltr'}>
+      <Seo title={title} description={description} />
+      <p className="text-sm font-medium uppercase tracking-widest text-accent">{isArabic ? 'الدعم' : 'Support'}</p>
+      <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight sm:text-5xl">{title}</h1>
+      <p className="mt-5 max-w-2xl leading-relaxed text-muted-foreground">{description}</p>
+      <dl className="mt-12 divide-y divide-border rounded-2xl border border-border bg-surface px-6 sm:px-8">
+        {items.map(([question, answer]) => (
+          <div key={question} className="py-6">
+            <dt className="text-base font-semibold text-foreground">{question}</dt>
+            <dd className="mt-2 text-sm leading-relaxed text-muted-foreground">{answer}</dd>
           </div>
         ))}
       </dl>
