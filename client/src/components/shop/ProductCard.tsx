@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { ProductImage } from '@/components/ui/ProductImage';
 import type { UiProduct as Product } from '@/types/product';
 
 interface ProductCardProps {
@@ -18,19 +19,14 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Link to={`/product/${product.id}`} className="group block">
       <Card hoverable className="overflow-hidden border-0 bg-transparent shadow-none">
-        <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
-          {image ? (
-            <img
-              src={image}
-              alt={name}
-              loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-five group-hover:scale-105"
-            />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-surface via-muted to-accent/10 transition-transform duration-700 ease-five group-hover:scale-105" />
-          )}
-
-          <div className="absolute top-3 start-3 flex flex-col gap-1.5">
+        <div className="relative">
+          <ProductImage
+            src={image}
+            alt={name}
+            className="aspect-[3/4] rounded-xl"
+            imgClassName="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-five group-hover:scale-105"
+          />
+          <div className="absolute top-3 start-3 z-10 flex flex-col gap-1.5">
             {product.isNew && <Badge variant="accent">{t('shop.badges.new')}</Badge>}
             {product.isSale && <Badge variant="error">{t('shop.badges.sale')}</Badge>}
           </div>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { ProductImage } from '@/components/ui/ProductImage';
 
 interface ProductGalleryProps {
   images?: string[] | null;
@@ -20,23 +21,20 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
 
   return (
     <div className="space-y-4" aria-label={name}>
-      <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-muted">
-        {active ? (
-          <img
-            src={active}
-            alt={`${name} ${safeIndex + 1}`}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-surface via-muted to-accent/10" />
-        )}
+      <div className="relative">
+        <ProductImage
+          src={active}
+          alt={`${name} ${safeIndex + 1}`}
+          className="aspect-[3/4] rounded-2xl"
+          loading="eager"
+        />
         {slides.length > 0 && (
-          <div className="absolute bottom-4 start-4 rounded-full bg-background/80 px-3 py-1 text-xs font-medium backdrop-blur-sm">
+          <div className="absolute bottom-4 start-4 z-10 rounded-full bg-background/80 px-3 py-1 text-xs font-medium backdrop-blur-sm">
             {safeIndex + 1} / {slides.length}
           </div>
         )}
       </div>
-      {slides.length >= 1 && (
+      {slides.length > 1 && (
         <div className="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:overflow-visible">
           {slides.map((src, i) => (
             <button
@@ -47,7 +45,12 @@ export function ProductGallery({ images, name }: ProductGalleryProps) {
                 safeIndex === i ? 'border-primary' : 'border-transparent'
               }`}
             >
-              <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" />
+              <ProductImage
+                src={src}
+                alt=""
+                className="h-full w-full"
+                imgClassName="h-full w-full object-cover"
+              />
             </button>
           ))}
         </div>
