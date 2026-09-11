@@ -19,6 +19,7 @@ type ReviewRow = {
 /** SECTION 12 — Approved reviews list + create form when authenticated */
 export function ProductReviews({ productId }: { productId: string }) {
   const { t, i18n } = useTranslation();
+  const isAr = i18n.language === 'ar';
   const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +31,8 @@ export function ProductReviews({ productId }: { productId: string }) {
   const [formError, setFormError] = useState<string | null>(null);
   const [formOk, setFormOk] = useState<string | null>(null);
 
+  const text = (en: string, ar: string) => (isAr ? ar : en);
+
   const load = useCallback(async () => {
     if (!productId) return;
     setLoading(true);
@@ -38,12 +41,12 @@ export function ProductReviews({ productId }: { productId: string }) {
       const res = await reviewsApi.listForProduct(productId, 1);
       setRows((res.data as ReviewRow[]) || []);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed');
+      setError(e instanceof Error ? e.message : text('Failed to load reviews', 'تعذر تحميل التقييمات'));
       setRows([]);
     } finally {
       setLoading(false);
     }
-  }, [productId]);
+  }, [productId, isAr]);
 
   useEffect(() => {
     void load();
@@ -63,7 +66,7 @@ export function ProductReviews({ productId }: { productId: string }) {
       });
       setFormOk(
         t('product.reviewPending', {
-          defaultValue: 'Thanks — your review will appear after moderation.',
+          defaultValue: text('Thanks — your review will appear after moderation.', 'شكرًا لك — سيظهر تقييمك بعد مراجعته.')
         })
       );
       setTitle('');
@@ -71,7 +74,7 @@ export function ProductReviews({ productId }: { productId: string }) {
       setRating(5);
       await load();
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Could not submit review');
+      setFormError(err instanceof Error ? err.message : text('Could not submit review', 'تعذر إرسال التقييم'));
     } finally {
       setSubmitting(false);
     }
@@ -80,7 +83,7 @@ export function ProductReviews({ productId }: { productId: string }) {
   return (
     <section className="mt-16 border-t border-border pt-12" aria-labelledby="reviews-heading">
       <h2 id="reviews-heading" className="font-display text-2xl font-semibold tracking-tight">
-        {t('admin.nav.reviews', { defaultValue: 'Reviews' })}
+        {t('admin.nav.reviews', { defaultValue: text('Reviews', 'التقييمات') })}
       </h2>
 
       {loading ? (
@@ -93,7 +96,7 @@ export function ProductReviews({ productId }: { productId: string }) {
         </p>
       ) : rows.length === 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">
-          {t('product.noReviews', { defaultValue: 'No reviews yet. Be the first.' })}
+          {t('product.noReviews', { defaultValue: text('No reviews yet. Be the first.', 'لا توجد تقييمات حتى الآن. كن أول من يقيّم المنتج.') })}
         </p>
       ) : (
         <ul className="mt-6 space-y-4">
@@ -101,9 +104,9 @@ export function ProductReviews({ productId }: { productId: string }) {
             <li key={r._id} className="rounded-xl border border-border bg-card p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-medium">
-                  {r.user?.name || t('product.anonymous', { defaultValue: 'Customer' })}
+                  {r.user?.name || t('product.anonymous', { defaultValue: text('Customer', 'عميل') })}
                 </p>
-                <p className="text-sm text-accent" aria-label={`${r.rating} stars`}>
+                <p className="text-sm text-accent" aria-label={`${r.rating} ${text('stars', 'نجوم')}`}>
                   {'★'.repeat(Math.min(5, Math.max(0, r.rating || 0)))}
                   <span className="text-muted-foreground">
                     {'☆'.repeat(5 - Math.min(5, Math.max(0, r.rating || 0)))}
@@ -128,20 +131,20 @@ export function ProductReviews({ productId }: { productId: string }) {
 
       <div className="mt-10">
         <h3 className="text-sm font-semibold tracking-wide">
-          {t('product.writeReview', { defaultValue: 'Write a review' })}
+          {t('product.writeReview', { defaultValue: text('Write a review', 'اكتب تقييمًا') })}
         </h3>
         {!isAuthenticated ? (
           <p className="mt-3 text-sm text-muted-foreground">
             <Link to="/login" className="underline hover:text-foreground">
-              {t('auth.login')}
+              {t('auth.login', { defaultValue: text('Log in', 'تسجيل الدخول') })}
             </Link>{' '}
-            {t('product.reviewLoginHint', { defaultValue: 'to leave a review.' })}
+            {t('product.reviewLoginHint', { defaultValue: text('to leave a review.', 'لإضافة تقييم.') })}
           </p>
         ) : (
           <form onSubmit={submit} className="mt-4 max-w-lg space-y-3">
             <label className="block text-sm">
               <span className="text-muted-foreground">
-                {t('product.rating', { defaultValue: 'Rating' })}
+                {t('product.rating', { defaultValue: text('Rating', 'التقييم') })}
               </span>
               <select
                 className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
@@ -157,7 +160,7 @@ export function ProductReviews({ productId }: { productId: string }) {
             </label>
             <label className="block text-sm">
               <span className="text-muted-foreground">
-                {t('product.reviewTitle', { defaultValue: 'Title (optional)' })}
+                {t('product.reviewTitle', { defaultValue: text('Title (optional)', 'العنوان (اختياري)') })}
               </span>
               <input
                 className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
@@ -168,7 +171,7 @@ export function ProductReviews({ productId }: { productId: string }) {
             </label>
             <label className="block text-sm">
               <span className="text-muted-foreground">
-                {t('product.reviewComment', { defaultValue: 'Comment (optional)' })}
+                {t('product.reviewComment', { defaultValue: text('Comment (optional)', 'التعليق (اختياري)') })}
               </span>
               <textarea
                 className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
@@ -189,7 +192,7 @@ export function ProductReviews({ productId }: { productId: string }) {
               </p>
             )}
             <Button type="submit" disabled={submitting} isLoading={submitting}>
-              {t('product.submitReview', { defaultValue: 'Submit review' })}
+              {t('product.submitReview', { defaultValue: text('Submit review', 'إرسال التقييم') })}
             </Button>
           </form>
         )}
