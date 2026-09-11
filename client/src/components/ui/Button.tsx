@@ -38,15 +38,21 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       isLoading = false,
       fullWidth = false,
       disabled,
+      type = 'button',
       children,
       ...props
     },
     ref
   ) => {
+    const isDisabled = Boolean(disabled || isLoading);
+
     return (
       <button
         ref={ref}
-        disabled={disabled || isLoading}
+        type={type}
+        disabled={isDisabled}
+        aria-busy={isLoading || undefined}
+        aria-disabled={isDisabled || undefined}
         className={`
           inline-flex items-center justify-center gap-2 font-medium
           transition-all duration-normal ease-five
@@ -60,7 +66,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading && (
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          <span
+            className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent"
+            aria-hidden="true"
+          />
         )}
         {children}
       </button>

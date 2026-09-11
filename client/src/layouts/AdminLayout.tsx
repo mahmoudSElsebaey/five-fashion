@@ -18,9 +18,13 @@ export function AdminLayout() {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <div className={`fixed inset-y-0 z-40 w-56 transform transition-transform lg:static lg:translate-x-0 ${
-        mobileOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full'
-      }`}>
+      <div
+        className={`fixed inset-y-0 start-0 z-40 w-56 transform transition-transform duration-normal ease-five lg:static lg:translate-x-0 ${
+          mobileOpen
+            ? 'translate-x-0'
+            : '-translate-x-full rtl:translate-x-full'
+        }`}
+      >
         <AdminSidebar onNavigate={() => setMobileOpen(false)} />
       </div>
       {mobileOpen && (
@@ -37,6 +41,8 @@ export function AdminLayout() {
             type="button"
             className="rounded-md border border-border px-2 py-1 text-sm lg:hidden"
             onClick={() => setMobileOpen(true)}
+            aria-expanded={mobileOpen}
+            aria-label="Open admin menu"
           >
             Menu
           </button>

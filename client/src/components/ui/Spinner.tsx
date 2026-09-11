@@ -1,6 +1,7 @@
 interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  label?: string;
 }
 
 const sizeMap = {
@@ -9,7 +10,7 @@ const sizeMap = {
   lg: 'h-10 w-10 border-[3px]',
 };
 
-export function Spinner({ size = 'md', className = '' }: SpinnerProps) {
+export function Spinner({ size = 'md', className = '', label = 'Loading' }: SpinnerProps) {
   return (
     <div
       className={`
@@ -18,7 +19,7 @@ export function Spinner({ size = 'md', className = '' }: SpinnerProps) {
         ${className}
       `}
       role="status"
-      aria-label="Loading"
+      aria-label={label}
     />
   );
 }
