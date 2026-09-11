@@ -1,6 +1,5 @@
 /** FIVE Fashion seed — re-runnable catalog (41 products) */
 import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
 import { config } from '../config/index.js';
 import { User } from '../models/User.js';
 import { Category } from '../models/Category.js';
@@ -102,18 +101,37 @@ async function main() {
       Coupon.deleteMany({}), Review.deleteMany({}),
     ]);
 
-    if (!(await User.findOne({ email: 'admin@fivefashion.com' }))) {
-      await User.create({
-        name: 'FIVE Admin', email: 'admin@fivefashion.com',
-        password: await bcrypt.hash('Admin123!', 12), role: 'admin', isActive: true,
+    // Pass PLAIN passwords — User model pre-save hook hashes once.
+    // Always re-apply demo passwords so a previous double-hash seed is fixed on re-run.
+    let admin = await User.findOne({ email: 'admin@fivefashion.com' }).select('+password');
+    if (!admin) {
+      admin = await User.create({
+        name: 'FIVE Admin',
+        email: 'admin@fivefashion.com',
+        password: 'Admin123!',
+        role: 'admin',
+        isActive: true,
       });
+    } else {
+      admin.password = 'Admin123!';
+      admin.role = 'admin';
+      admin.isActive = true;
+      await admin.save();
     }
-    let customer = await User.findOne({ email: 'customer@fivefashion.com' });
+
+    let customer = await User.findOne({ email: 'customer@fivefashion.com' }).select('+password');
     if (!customer) {
       customer = await User.create({
-        name: 'Sara Ahmed', email: 'customer@fivefashion.com',
-        password: await bcrypt.hash('Customer123!', 12), role: 'user', isActive: true,
+        name: 'Sara Ahmed',
+        email: 'customer@fivefashion.com',
+        password: 'Customer123!',
+        role: 'user',
+        isActive: true,
       });
+    } else {
+      customer.password = 'Customer123!';
+      customer.isActive = true;
+      await customer.save();
     }
 
     const cats = await Category.insertMany(
@@ -215,6 +233,10 @@ async function main() {
       products: await Product.countDocuments({ status: 'active' }),
       coupons: await Coupon.countDocuments(),
       reviews: await Review.countDocuments(),
+      demoAccounts: {
+        admin: 'admin@fivefashion.com / Admin123!',
+        customer: 'customer@fivefashion.com / Customer123!',
+      },
     });
   } finally {
     await mongoose.disconnect();
