@@ -16,14 +16,7 @@ function requireSecret(name: string, value: string | undefined, fallbackDev: str
       );
       process.exit(1);
     }
-    const weak = [
-      'change_me',
-      'dev_access',
-      'dev_refresh',
-      'your_super_secure',
-      'secret',
-      'password',
-    ];
+    const weak = ['change_me', 'dev_access', 'dev_refresh', 'your_super_secure', 'secret', 'password'];
     if (weak.some((w) => raw.toLowerCase().includes(w))) {
       console.error(`[config] FATAL: ${name} appears to be a placeholder — refuse to start in production`);
       process.exit(1);
@@ -35,9 +28,7 @@ function requireSecret(name: string, value: string | undefined, fallbackDev: str
 
 function parseClientOrigins(raw: string | undefined): string | string[] {
   const value = (raw || 'http://localhost:5173').trim();
-  if (value.includes(',')) {
-    return value.split(',').map((s) => s.trim()).filter(Boolean);
-  }
+  if (value.includes(',')) return value.split(',').map((s) => s.trim()).filter(Boolean);
   return value;
 }
 
@@ -46,13 +37,29 @@ if (isProduction && !process.env.MONGODB_URI) {
   process.exit(1);
 }
 
+const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim() || '';
+const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY?.trim() || '';
+const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET?.trim() || '';
+
+if (isProduction && (!cloudinaryCloudName || !cloudinaryApiKey || !cloudinaryApiSecret)) {
+  console.error(
+    '[config] FATAL: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET are required in production'
+  );
+  process.exit(1);
+}
+
 export const config = {
   nodeEnv,
   isProduction,
   port: Number(process.env.PORT) || 5000,
-  /** Single origin string or array for CORS */
   clientUrl: parseClientOrigins(process.env.CLIENT_URL),
   mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/five-fashion',
+  cloudinary: {
+    cloudName: cloudinaryCloudName,
+    apiKey: cloudinaryApiKey,
+    apiSecret: cloudinaryApiSecret,
+    folder: process.env.CLOUDINARY_FOLDER?.trim() || 'five-fashion/products',
+  },
   jwt: {
     accessSecret: requireSecret(
       'JWT_ACCESS_SECRET',
@@ -67,6 +74,5 @@ export const config = {
     accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
-  /** Semantic API version exposed on /health */
-  apiVersion: process.env.API_VERSION || '0.3.0',
+  apiVersion: process.env.API_VERSION || '0.4.0',
 };
