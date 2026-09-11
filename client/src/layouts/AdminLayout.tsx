@@ -12,7 +12,7 @@ export function AdminLayout() {
     return <Navigate to="/login" replace />;
   }
 
-  if (user?.role !== 'admin') {
+  if (String(user?.role || '').toLowerCase() !== 'admin') {
     return <Navigate to="/" replace />;
   }
 
