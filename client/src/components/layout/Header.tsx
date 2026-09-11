@@ -61,6 +61,15 @@ export function Header() {
         <div className="flex items-center gap-1">
           <div className="hidden items-center gap-1 md:flex">
             <LanguageToggle />
+
+            {!isAuthenticated && (
+              <Link to="/login">
+                <Button variant="ghost" size="sm">
+                  {t('auth.login')}
+                </Button>
+              </Link>
+            )}
+
             <ThemeToggle />
 
             {isAdmin && (
@@ -70,19 +79,13 @@ export function Header() {
                 </Button>
               </Link>
             )}
-            {isAuthenticated ? (
+            {isAuthenticated && (
               <Link to="/profile">
                 <Button variant="ghost" size="sm" className="h-9 w-9 p-0" aria-label="Profile">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="8" r="4" />
                     <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
                   </svg>
-                </Button>
-              </Link>
-            ) : (
-              <Link to="/login">
-                <Button variant="ghost" size="sm">
-                  {t('auth.login')}
                 </Button>
               </Link>
             )}
