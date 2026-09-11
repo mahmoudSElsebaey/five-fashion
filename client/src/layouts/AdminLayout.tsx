@@ -1,4 +1,4 @@
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
@@ -6,10 +6,11 @@ import { useState } from 'react';
 
 export function AdminLayout() {
   const { isAuthenticated, user } = useSelector((s: RootState) => s.auth);
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   if (String(user?.role || '').toLowerCase() !== 'admin') {
