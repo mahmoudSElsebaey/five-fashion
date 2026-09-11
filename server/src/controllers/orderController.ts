@@ -19,6 +19,11 @@ function generateOrderNumber() {
   return `FF-${ts}-${rnd}`;
 }
 
+function transactionsSupported() {
+  const topologyType = mongoose.connection.getClient().topology?.description?.type;
+  return topologyType === 'ReplicaSetWithPrimary' || topologyType === 'Sharded';
+}
+
 export const getMyOrders = asyncHandler(async (req: AuthRequest, res: Response) => {
   if (!req.user) throw new AppError('Not authorized', 401);
   const { page, limit } = paginationSchema.parse(req.query);
@@ -55,22 +60,29 @@ export const createOrder = asyncHandler(async (req: AuthRequest, res: Response) 
   if (!req.user) throw new AppError('Not authorized', 401);
   const body = createOrderSchema.parse(req.body);
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  // MongoDB transactions require a replica set or mongos. Atlas supports this,
+  // but a local standalone MongoDB does not. Keep transactions when available
+  // and gracefully fall back to the existing atomic stock updates otherwise.
+  const useTransaction = transactionsSupported();
+  const session = useTransaction ? await mongoose.startSession() : null;
+
   try {
+    if (session) session.startTransaction();
+
     const orderItems = [];
     let subtotal = 0;
 
     for (const line of body.items) {
-      const product = await Product.findOneAndUpdate(
+      const productQuery = Product.findOneAndUpdate(
         {
           _id: line.productId,
           status: 'active',
           stock: { $gte: line.quantity },
         },
         { $inc: { stock: -line.quantity } },
-        { new: true, session }
+        { new: true, ...(session ? { session } : {}) }
       );
+      const product = await productQuery;
       if (!product) {
         throw new AppError(`Product unavailable or insufficient stock: ${line.productId}`, 400);
       }
@@ -99,7 +111,8 @@ export const createOrder = asyncHandler(async (req: AuthRequest, res: Response) 
     let couponCode: string | undefined;
     if (body.couponCode) {
       const code = body.couponCode.trim().toUpperCase();
-      const coupon = await Coupon.findOne({ code, isActive: true }).session(session);
+      const couponQuery = Coupon.findOne({ code, isActive: true });
+      const coupon = await (session ? couponQuery.session(session) : couponQuery);
       if (!coupon) throw new AppError('Invalid coupon', 400);
       const now = new Date();
       if (coupon.startDate && coupon.startDate > now) throw new AppError('Coupon not active yet', 400);
@@ -118,45 +131,49 @@ export const createOrder = asyncHandler(async (req: AuthRequest, res: Response) 
       }
       discount = Math.min(discount, subtotal);
       coupon.usedCount += 1;
-      await coupon.save({ session });
+      await coupon.save(session ? { session } : undefined);
       couponCode = coupon.code;
     }
 
     const shippingCost = body.shippingCost ?? 0;
     const total = Math.max(0, subtotal - discount + shippingCost);
 
-    const [order] = await Order.create(
-      [
-        {
-          user: req.user._id,
-          orderNumber: generateOrderNumber(),
-          items: orderItems,
-          subtotal,
-          discount,
-          shippingCost,
-          total,
-          couponCode,
-          shippingAddress: body.shippingAddress,
-          paymentMethod: body.paymentMethod || 'cod',
-          paymentStatus: 'pending',
-          status: 'pending',
-          customerEmail: body.customerEmail || req.user.email,
-          customerPhone: body.customerPhone || body.shippingAddress.phone,
-          notes: body.notes,
-        },
-      ],
-      { session }
+    const orderPayload = {
+      user: req.user._id,
+      orderNumber: generateOrderNumber(),
+      items: orderItems,
+      subtotal,
+      discount,
+      shippingCost,
+      total,
+      couponCode,
+      shippingAddress: body.shippingAddress,
+      paymentMethod: body.paymentMethod || 'cod',
+      paymentStatus: 'pending',
+      status: 'pending',
+      customerEmail: body.customerEmail || req.user.email,
+      customerPhone: body.customerPhone || body.shippingAddress.phone,
+      notes: body.notes,
+    };
+
+    const orderDocs = session
+      ? await Order.create([orderPayload], { session })
+      : await Order.create([orderPayload]);
+    const [order] = orderDocs;
+
+    await Cart.findOneAndUpdate(
+      { user: req.user._id },
+      { items: [] },
+      session ? { session } : {}
     );
 
-    await Cart.findOneAndUpdate({ user: req.user._id }, { items: [] }, { session });
-
-    await session.commitTransaction();
+    if (session) await session.commitTransaction();
     res.status(201).json({ success: true, data: order });
   } catch (err) {
-    await session.abortTransaction();
+    if (session?.inTransaction()) await session.abortTransaction();
     throw err;
   } finally {
-    session.endSession();
+    session?.endSession();
   }
 });
 
@@ -169,21 +186,29 @@ export const cancelMyOrder = asyncHandler(async (req: AuthRequest, res: Response
     throw new AppError('Order cannot be cancelled', 400);
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  const useTransaction = transactionsSupported();
+  const session = useTransaction ? await mongoose.startSession() : null;
+
   try {
+    if (session) session.startTransaction();
+
     for (const item of order.items) {
-      await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity } }, { session });
+      await Product.findByIdAndUpdate(
+        item.product,
+        { $inc: { stock: item.quantity } },
+        session ? { session } : {}
+      );
     }
     order.status = 'cancelled';
-    await order.save({ session });
-    await session.commitTransaction();
+    await order.save(session ? { session } : undefined);
+
+    if (session) await session.commitTransaction();
     res.status(200).json({ success: true, data: order });
   } catch (err) {
-    await session.abortTransaction();
+    if (session?.inTransaction()) await session.abortTransaction();
     throw err;
   } finally {
-    session.endSession();
+    session?.endSession();
   }
 });
 
