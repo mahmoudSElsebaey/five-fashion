@@ -14,6 +14,7 @@ const router = Router();
 
 router.get('/', getProducts);
 router.get('/slug/:slug', getProductBySlug);
+router.get('/admin/all', protect, restrictTo('admin'), getProducts);
 router.get('/:id', getProductById);
 
 router.post('/', protect, restrictTo('admin'), createProduct);
