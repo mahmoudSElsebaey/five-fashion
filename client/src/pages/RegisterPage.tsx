@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { authApi } from '@/features/auth/authApi';
 import { setCredentials } from '@/features/auth/authSlice';
+import type { RootState } from '@/store';
 
 const schema = z
   .object({
@@ -28,6 +29,7 @@ export function RegisterPage() {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,6 +39,10 @@ export function RegisterPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+
+  useEffect(() => {
+    if (isAuthenticated) navigate('/', { replace: true });
+  }, [isAuthenticated, navigate]);
 
   const onSubmit = async (data: FormData) => {
     setError('');
@@ -50,15 +56,20 @@ export function RegisterPage() {
       if (res.data?.user && res.data.accessToken && res.data.refreshToken) {
         dispatch(
           setCredentials({
-            user: res.data.user,
+            user: {
+              ...res.data.user,
+              id: String(res.data.user.id),
+            },
             accessToken: res.data.accessToken,
             refreshToken: res.data.refreshToken,
           })
         );
         navigate('/', { replace: true });
+      } else {
+        setError(t('auth.registerError'));
       }
-    } catch (err: any) {
-      setError(err.message || t('auth.registerError'));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('auth.registerError'));
     } finally {
       setLoading(false);
     }
@@ -73,9 +84,9 @@ export function RegisterPage() {
         <p className="mt-2 text-sm text-muted-foreground">{t('auth.registerSubtitle')}</p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-5" noValidate>
         {error && (
-          <div className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">
+          <div className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error" role="alert">
             {error}
           </div>
         )}

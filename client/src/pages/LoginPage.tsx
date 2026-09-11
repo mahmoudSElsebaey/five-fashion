@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { authApi } from '@/features/auth/authApi';
 import { setCredentials } from '@/features/auth/authSlice';
+import type { RootState } from '@/store';
 
 const schema = z.object({
   email: z.string().email(),
@@ -22,7 +23,8 @@ export function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as any)?.from?.pathname || '/';
+  const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
+  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname || '/';
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,28 +35,38 @@ export function LoginPage() {
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from === '/login' ? '/' : from, { replace: true });
+    }
+  }, [isAuthenticated, from, navigate]);
+
   const onSubmit = async (data: FormData) => {
     setError('');
     setLoading(true);
     try {
       const res = await authApi.login(data);
       if (res.data?.user && res.data.accessToken && res.data.refreshToken) {
+        const user = {
+          ...res.data.user,
+          id: String(res.data.user.id),
+        };
         dispatch(
           setCredentials({
-            user: res.data.user,
+            user,
             accessToken: res.data.accessToken,
             refreshToken: res.data.refreshToken,
           })
         );
-        const role = String(res.data.user.role || '').toLowerCase();
+        const isAdmin = String(user.role || '').toLowerCase() === 'admin';
         const dest =
-          role === 'admin' && (from === '/' || from === '/login' || !from)
-            ? '/admin'
-            : from;
+          isAdmin && (from === '/' || from === '/login') ? '/admin' : from === '/login' ? '/' : from;
         navigate(dest, { replace: true });
+      } else {
+        setError(t('auth.loginError'));
       }
-    } catch (err: any) {
-      setError(err.message || t('auth.loginError'));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t('auth.loginError'));
     } finally {
       setLoading(false);
     }
@@ -69,9 +81,9 @@ export function LoginPage() {
         <p className="mt-2 text-sm text-muted-foreground">{t('auth.loginSubtitle')}</p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-5" noValidate>
         {error && (
-          <div className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">
+          <div className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error" role="alert">
             {error}
           </div>
         )}
