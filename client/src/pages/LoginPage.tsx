@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
@@ -23,8 +23,13 @@ export function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
-  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname || '/';
+  const redirectQuery = searchParams.get('redirect');
+  const from =
+    redirectQuery ||
+    (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ||
+    '/';
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
