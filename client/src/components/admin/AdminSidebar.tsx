@@ -43,8 +43,12 @@ export function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <aside className="flex h-full w-56 shrink-0 flex-col border-e border-border bg-surface">
-      <div className="flex h-14 items-center gap-2 border-b border-border px-4">
-        <img src="/logo.png" alt="FIVE Fashion" className="h-8 w-auto object-contain" />
+      <div className="flex h-16 items-center gap-2 border-b border-border px-4">
+        <img
+          src="/logo.png"
+          alt="FIVE Fashion"
+          className="h-11 w-auto object-contain drop-shadow-[2px_3px_rgba(0,0,0,0.65)] dark:drop-shadow-none sm:h-12"
+        />
       </div>
 
       <nav className="flex flex-col gap-0.5 overflow-y-auto p-2">
