@@ -50,7 +50,7 @@ Use this checklist before each release. Mark items as pass/fail.
 ## 8. Admin
 - [ ] Dashboard shows stats
 - [ ] Products table lists API/seed products
-- [ ] Orders table lists local orders
+- [ ] Orders table lists orders
 
 ## 9. Performance & a11y (smoke)
 - [ ] Initial load shows spinner for lazy routes
@@ -58,13 +58,19 @@ Use this checklist before each release. Mark items as pass/fail.
 - [ ] Focus outlines visible on interactive controls
 - [ ] `prefers-reduced-motion` stops float/auto-rotate when enabled
 
-## 10. SEO smoke
+## 10. Support pages
+- [ ] Footer links: Contact, Shipping, Returns, FAQ, Privacy, Terms
+- [ ] Newsletter form validates email and shows honest confirmation (no fake API)
+- [ ] FAQ answers render in AR and EN
+
+## 11. SEO smoke
+- [ ] Product pages inject Product JSON-LD
 - [ ] Document title changes per page (where PageMeta is used)
 - [ ] `/robots.txt` and `/sitemap.xml` are reachable in production build
 
 ---
 
 **Notes for testers**  
-- Client cart/wishlist/orders use `localStorage` in the current phase.  
+- Authenticated cart/wishlist sync with API when available; guest uses localStorage.  
 - Payment is not charged (demo readiness only).  
 - Replace example domain in sitemap/robots before production.
