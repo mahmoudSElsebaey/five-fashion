@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { LanguageToggle } from './LanguageToggle';
 import { ThemeToggle } from './ThemeToggle';
+import { LanguageToggle } from './LanguageToggle';
 import { Button } from '@/components/ui/Button';
+import { useDispatch, useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { openCart, selectCartCount } from '@/features/cart/cartSlice';
 import { selectWishlistCount } from '@/features/wishlist/wishlistSlice';
@@ -21,15 +21,19 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
   const user = useSelector((s: RootState) => s.auth.user);
-  const isAdmin = String(user?.role || '').toLowerCase() === 'admin';
+  const isAdmin = user?.role === 'admin';
   const dispatch = useDispatch();
   const cartCount = useSelector(selectCartCount);
   const wishlistCount = useSelector(selectWishlistCount);
 
-  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `rounded-md px-3 py-2 text-sm font-medium transition-colors duration-normal ease-five ${
-      isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
-    }`;
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [mobileOpen]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
@@ -43,21 +47,30 @@ export function Header() {
 
         <nav className="hidden items-center gap-1 md:flex">
           {navItems.map((item) => (
-            <NavLink key={item.key} to={item.path} className={navLinkClass}>
+            <NavLink
+              key={item.key}
+              to={item.path}
+              className={({ isActive }) =>
+                `rounded-md px-3 py-2 text-sm font-medium transition-colors duration-normal ease-five
+                ${isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`
+              }
+            >
               {t(`nav.${item.key}`)}
             </NavLink>
           ))}
-          {isAdmin && (
-            <NavLink to="/admin" className={navLinkClass}>
-              {t('admin.nav.dashboard', { defaultValue: 'Admin' })}
-            </NavLink>
-          )}
         </nav>
 
         <div className="flex items-center gap-1">
           <LanguageToggle />
           <ThemeToggle />
 
+          {isAdmin && (
+            <Link to="/admin">
+              <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+                {t('admin.nav.dashboard', { defaultValue: 'Admin' })}
+              </Button>
+            </Link>
+          )}
           {isAuthenticated ? (
             <Link to="/profile">
               <Button variant="ghost" size="sm" className="h-9 w-9 p-0" aria-label="Profile">
@@ -140,9 +153,8 @@ export function Header() {
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
                 className={({ isActive }) =>
-                  `rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                    isActive ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`
+                  `rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
+                  ${isActive ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`
                 }
               >
                 {t(`nav.${item.key}`)}
@@ -151,10 +163,22 @@ export function Header() {
             {isAdmin && (
               <NavLink
                 to="/admin"
-                className={navLinkClass}
                 onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  `rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
+                  ${isActive ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`
+                }
               >
                 {t('admin.nav.dashboard', { defaultValue: 'Admin' })}
+              </NavLink>
+            )}
+            {!isAuthenticated && (
+              <NavLink
+                to="/login"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                {t('auth.login')}
               </NavLink>
             )}
           </nav>
