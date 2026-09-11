@@ -21,7 +21,7 @@ export function AdminLayout() {
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <div
-        className={`fixed inset-y-0 start-0 z-40 w-56 transform transition-transform duration-normal ease-five lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 start-0 z-40 w-56 transform transition-transform duration-normal ease-five lg:static lg:!translate-x-0 ${
           mobileOpen
             ? 'translate-x-0'
             : '-translate-x-full rtl:translate-x-full'
