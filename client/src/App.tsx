@@ -40,6 +40,21 @@ const AdminProductsPage = lazy(() =>
 const AdminOrdersPage = lazy(() =>
   import('@/pages/admin/AdminOrdersPage').then((m) => ({ default: m.AdminOrdersPage }))
 );
+const AdminCategoriesPage = lazy(() =>
+  import('@/pages/admin/AdminCategoriesPage').then((m) => ({ default: m.AdminCategoriesPage }))
+);
+const AdminCollectionsPage = lazy(() =>
+  import('@/pages/admin/AdminCollectionsPage').then((m) => ({ default: m.AdminCollectionsPage }))
+);
+const AdminCustomersPage = lazy(() =>
+  import('@/pages/admin/AdminCustomersPage').then((m) => ({ default: m.AdminCustomersPage }))
+);
+const AdminReviewsPage = lazy(() =>
+  import('@/pages/admin/AdminReviewsPage').then((m) => ({ default: m.AdminReviewsPage }))
+);
+const AdminCouponsPage = lazy(() =>
+  import('@/pages/admin/AdminCouponsPage').then((m) => ({ default: m.AdminCouponsPage }))
+);
 
 function PageLoader() {
   return (
@@ -127,7 +142,12 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="products" element={<AdminProductsPage />} />
+          <Route path="categories" element={<AdminCategoriesPage />} />
+          <Route path="collections" element={<AdminCollectionsPage />} />
           <Route path="orders" element={<AdminOrdersPage />} />
+          <Route path="customers" element={<AdminCustomersPage />} />
+          <Route path="reviews" element={<AdminReviewsPage />} />
+          <Route path="coupons" element={<AdminCouponsPage />} />
         </Route>
       </Routes>
     </Suspense>
