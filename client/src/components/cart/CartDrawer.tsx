@@ -14,6 +14,7 @@ import {
 import type { AppDispatch } from '@/store';
 import { store } from '@/store';
 import { Button } from '@/components/ui/Button';
+import { ProductImage } from '@/components/ui/ProductImage';
 
 export function CartDrawer() {
   const { t, i18n } = useTranslation();
@@ -62,18 +63,12 @@ export function CartDrawer() {
               <ul className="space-y-5">
                 {items.map((item) => (
                   <li key={item.id} className="flex gap-4">
-                    <div className="h-24 w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
-                      {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={isAr ? item.nameAr : item.nameEn}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="h-full w-full bg-gradient-to-br from-surface via-muted to-accent/10" />
-                      )}
-                    </div>
+                    <ProductImage
+                      src={item.image}
+                      alt={isAr ? item.nameAr : item.nameEn}
+                      className="h-24 w-20 shrink-0 rounded-lg"
+                      imgClassName="h-full w-full object-cover"
+                    />
                     <div className="flex flex-1 flex-col">
                       <div className="flex justify-between gap-2">
                         <div>
