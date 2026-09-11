@@ -18,7 +18,7 @@ export type Order = {
   shipping: number;
   discount: number;
   total: number;
-  status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   customer: {
     name: string;
     email: string;

@@ -24,7 +24,7 @@ export function OffersSection() {
             className="mt-8"
             size="lg"
             variant="accent"
-            onClick={() => navigate('/shop?sale=true')}
+            onClick={() => navigate('/shop?sale=1')}
           >
             {t('home.offers.cta')}
           </Button>
