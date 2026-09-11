@@ -105,3 +105,26 @@ export const adminDeleteReview = asyncHandler(async (req: AuthRequest, res: Resp
   await recalculateProductRatings(review.product.toString());
   res.status(200).json({ success: true, message: 'Review deleted' });
 });
+
+export const adminListReviews = asyncHandler(async (req: Request, res: Response) => {
+  const { page, limit } = paginationSchema.parse(req.query);
+  const filter: Record<string, unknown> = {};
+  if (req.query.status) filter.status = req.query.status;
+  if (req.query.product) filter.product = req.query.product;
+  const skip = (page - 1) * limit;
+  const [items, total] = await Promise.all([
+    Review.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('user', 'name email')
+      .populate('product', 'name slug')
+      .lean(),
+    Review.countDocuments(filter),
+  ]);
+  res.status(200).json({
+    success: true,
+    data: items,
+    meta: { page, limit, total, pages: Math.ceil(total / limit) || 0 },
+  });
+});
