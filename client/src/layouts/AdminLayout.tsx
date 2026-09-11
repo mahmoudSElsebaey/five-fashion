@@ -2,6 +2,7 @@ import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useState } from 'react';
 
 export function AdminLayout() {
@@ -51,7 +52,9 @@ export function AdminLayout() {
           <span className="truncate text-sm text-muted-foreground">{user?.email}</span>
         </header>
         <main className="flex-1 overflow-auto p-4 sm:p-6">
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         </main>
       </div>
     </div>

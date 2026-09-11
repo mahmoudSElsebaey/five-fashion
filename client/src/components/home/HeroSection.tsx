@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { HeroScene } from '@/components/3d/HeroScene';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export function HeroSection() {
   const { t } = useTranslation();
@@ -10,10 +11,11 @@ export function HeroSection() {
 
   return (
     <section className="relative flex min-h-[85vh] items-center overflow-hidden">
-      {/* 3D Background */}
-      <HeroScene />
+      {/* 3D Background — isolated so WebGL failure does not blank the hero */}
+      <ErrorBoundary fallback={null}>
+        <HeroScene />
+      </ErrorBoundary>
 
-      {/* Soft gradient overlay for readability */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/30 via-background/60 to-background" />
 
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
