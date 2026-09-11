@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ProductCard } from '@/components/shop/ProductCard';
@@ -12,6 +12,8 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { Seo } from '@/components/seo/Seo';
 import { productsApi } from '@/services/apiClient';
 import { mapApiProduct, type ApiProduct, type UiProduct } from '@/types/product';
+
+const PAGE_SIZE = 12;
 
 const defaultFilters: FilterState = {
   category: 'all',
@@ -35,11 +37,9 @@ function parseSort(raw: string | null): SortOption {
   return 'newest';
 }
 
-/** SECTION 05 — Shop catalog with URL-synced filters + shared empty/error states */
 export function ShopPage() {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
-
   const [filters, setFilters] = useState<FilterState>(() => ({
     ...defaultFilters,
     category: searchParams.get('category') || 'all',
@@ -50,6 +50,7 @@ export function ShopPage() {
   }));
   const [sort, setSort] = useState<SortOption>(() => parseSort(searchParams.get('sort')));
   const [search, setSearch] = useState(() => searchParams.get('q') || '');
+  const [page, setPage] = useState(() => Math.max(1, Number(searchParams.get('page')) || 1));
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [products, setProducts] = useState<UiProduct[]>([]);
   const [total, setTotal] = useState(0);
@@ -66,21 +67,26 @@ export function ShopPage() {
     if (filters.onlySale) next.set('sale', '1');
     if (sort !== 'newest') next.set('sort', sort);
     if (search.trim()) next.set('q', search.trim());
+    if (page > 1) next.set('page', String(page));
     setSearchParams(next, { replace: true });
-  }, [filters, sort, search, setSearchParams]);
+  }, [filters, sort, search, page, setSearchParams]);
 
   const collectionParam = searchParams.get('collection') || 'all';
   useEffect(() => {
     setFilters((f) => (f.collection === collectionParam ? f : { ...f, collection: collectionParam }));
   }, [collectionParam]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [filters, sort, search]);
+
   const load = useCallback(async (signal?: { cancelled: boolean }) => {
     setLoading(true);
     setError(null);
     try {
       const params: Record<string, string | number | boolean | undefined> = {
-        page: 1,
-        limit: 48,
+        page,
+        limit: PAGE_SIZE,
         sort: sortToApi(sort),
       };
       if (search.trim()) params.q = search.trim();
@@ -106,7 +112,7 @@ export function ShopPage() {
     } finally {
       if (!signal?.cancelled) setLoading(false);
     }
-  }, [filters, sort, search]);
+  }, [filters, sort, search, page]);
 
   useEffect(() => {
     const flag = { cancelled: false };
@@ -121,9 +127,15 @@ export function ShopPage() {
     setFilters(defaultFilters);
     setSearch('');
     setSort('newest');
+    setPage(1);
   };
 
-  const filtered = useMemo(() => products, [products]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
   const subtitle =
     total > 0
       ? t('shop.subtitleCount', { count: total, defaultValue: `${total} pieces` })
@@ -197,7 +209,7 @@ export function ShopPage() {
                   setReloadKey((k) => k + 1);
                 }}
               />
-            ) : filtered.length === 0 ? (
+            ) : products.length === 0 ? (
               <EmptyState
                 title={t('shop.empty.title')}
                 description={t('shop.empty.subtitle')}
@@ -205,11 +217,37 @@ export function ShopPage() {
                 onAction={handleReset}
               />
             ) : (
-              <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 xl:grid-cols-3">
-                {filtered.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 xl:grid-cols-3">
+                  {products.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="mt-10 flex items-center justify-center gap-3" aria-label="Pagination">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page <= 1}
+                      onClick={() => setPage((current) => Math.max(1, current - 1))}
+                    >
+                      {t('common.previous', { defaultValue: 'Previous' })}
+                    </Button>
+                    <span className="min-w-20 text-center text-sm text-muted-foreground">
+                      {page} / {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={page >= totalPages}
+                      onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                    >
+                      {t('common.next', { defaultValue: 'Next' })}
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
