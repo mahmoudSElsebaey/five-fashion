@@ -1,5 +1,6 @@
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import type { RootState } from '@/store';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -8,6 +9,7 @@ import { useState } from 'react';
 export function AdminLayout() {
   const { isAuthenticated, user } = useSelector((s: RootState) => s.auth);
   const location = useLocation();
+  const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   if (!isAuthenticated) {
@@ -48,7 +50,9 @@ export function AdminLayout() {
           >
             Menu
           </button>
-          <h1 className="text-sm font-medium text-muted-foreground">FIVE Fashion · Admin</h1>
+          <h1 className="text-sm font-medium text-muted-foreground">
+            FIVE Fashion · {t('admin.dashboard.title', { defaultValue: 'Admin' })}
+          </h1>
           <span className="truncate text-sm text-muted-foreground">{user?.email}</span>
         </header>
         <main className="flex-1 overflow-auto p-4 sm:p-6">
