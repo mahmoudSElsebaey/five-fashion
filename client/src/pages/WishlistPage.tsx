@@ -1,18 +1,18 @@
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { selectWishlistItems } from '@/features/wishlist/wishlistSlice';
-import { removeFromWishlistSmart } from '@/features/wishlist/wishlistCommerce';
-import type { AppDispatch } from '@/store';
+import type { RootState } from '@/store';
 import { store } from '@/store';
+import { removeFromWishlistSmart } from '@/features/wishlist/wishlistCommerce';
 import { Button } from '@/components/ui/Button';
+import { ProductImage } from '@/components/ui/ProductImage';
 import { Card, CardContent } from '@/components/ui/Card';
 
 export function WishlistPage() {
   const { t, i18n } = useTranslation();
-  const dispatch = useDispatch<AppDispatch>();
-  const items = useSelector(selectWishlistItems);
   const isAr = i18n.language === 'ar';
+  const dispatch = useDispatch();
+  const items = useSelector((s: RootState) => s.wishlist.items);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -35,18 +35,11 @@ export function WishlistPage() {
           {items.map((item) => (
             <Card key={item.productId} className="overflow-hidden border-0 bg-transparent shadow-none">
               <Link to={`/product/${item.productId}`}>
-                <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
-                  {item.image ? (
-                    <img
-                      src={item.image}
-                      alt={isAr ? item.nameAr : item.nameEn}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-surface via-muted to-accent/10" />
-                  )}
-                </div>
+                <ProductImage
+                  src={item.image}
+                  alt={isAr ? item.nameAr : item.nameEn}
+                  className="aspect-[3/4] rounded-xl"
+                />
               </Link>
               <CardContent className="mt-3 space-y-1 px-0">
                 <p className="text-xs text-muted-foreground">{item.brand}</p>
