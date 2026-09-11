@@ -38,11 +38,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Link to="/" className="flex shrink-0 items-center gap-2.5" onClick={() => setMobileOpen(false)}>
-          <img src="/logo.png" alt="FIVE" className="h-8 w-auto object-contain" />
-          <span className="hidden font-display text-lg font-semibold tracking-tight sm:inline">
-            FIVE
-          </span>
+        <Link to="/" className="flex shrink-0 items-center" onClick={() => setMobileOpen(false)} aria-label="FIVE Fashion home">
+          <img src="/logo.png" alt="FIVE Fashion" className="h-11 w-auto object-contain sm:h-12" />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
