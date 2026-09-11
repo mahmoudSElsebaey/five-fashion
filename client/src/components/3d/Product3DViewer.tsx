@@ -1,35 +1,18 @@
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, Float, ContactShadows } from '@react-three/drei';
+import { OrbitControls, Environment, ContactShadows, useGLTF } from '@react-three/drei';
 import { Suspense } from 'react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useTranslation } from 'react-i18next';
 
-function ProductForm({ animate }: { animate: boolean }) {
-  const content = (
-    <mesh castShadow>
-      <torusKnotGeometry args={[0.55, 0.18, 128, 32]} />
-      <meshStandardMaterial
-        color="#C9A88A"
-        metalness={0.9}
-        roughness={0.18}
-        envMapIntensity={1.2}
-      />
-    </mesh>
-  );
-
-  if (!animate) return content;
-
-  return (
-    <Float speed={1.1} rotationIntensity={0.25} floatIntensity={0.35}>
-      {content}
-    </Float>
-  );
+function Model({ url }: { url: string }) {
+  const { scene } = useGLTF(url);
+  return <primitive object={scene} scale={1} />;
 }
 
 function Loader() {
   return (
     <mesh>
-      <boxGeometry args={[0.8, 0.8, 0.8]} />
+      <boxGeometry args={[0.6, 0.6, 0.6]} />
       <meshStandardMaterial color="#888" wireframe />
     </mesh>
   );
@@ -37,11 +20,35 @@ function Loader() {
 
 interface Product3DViewerProps {
   className?: string;
+  /** Optional product-specific GLB/GLTF URL from product data */
+  modelUrl?: string | null;
 }
 
-export function Product3DViewer({ className = '' }: Product3DViewerProps) {
+/**
+ * Renders a product 3D model only when a real model URL is provided.
+ * Does NOT show a generic torus/knot as if it were the product.
+ */
+export function Product3DViewer({ className = '', modelUrl }: Product3DViewerProps) {
   const reducedMotion = useReducedMotion();
   const { t } = useTranslation();
+  const hasModel = Boolean(modelUrl && modelUrl.trim());
+
+  if (!hasModel) {
+    return (
+      <div
+        className={`relative flex min-h-[240px] flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border border-dashed border-border bg-muted/50 p-6 text-center ${className}`}
+      >
+        <p className="text-sm font-medium text-foreground">
+          {t('product.view3dPlaceholder', { defaultValue: '3D model not available' })}
+        </p>
+        <p className="max-w-xs text-xs text-muted-foreground">
+          {t('product.view3dDesc', {
+            defaultValue: 'A product-specific 3D model will appear here when available.',
+          })}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className={`relative overflow-hidden rounded-xl bg-muted ${className}`}>
@@ -53,7 +60,7 @@ export function Product3DViewer({ className = '' }: Product3DViewerProps) {
         <ambientLight intensity={0.4} />
         <directionalLight position={[4, 5, 3]} intensity={1.1} castShadow />
         <Suspense fallback={<Loader />}>
-          <ProductForm animate={!reducedMotion} />
+          <Model url={modelUrl!} />
           <ContactShadows position={[0, -1.1, 0]} opacity={0.35} scale={6} blur={2.5} />
           <Environment preset="studio" />
         </Suspense>

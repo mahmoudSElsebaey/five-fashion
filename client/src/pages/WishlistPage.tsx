@@ -36,7 +36,16 @@ export function WishlistPage() {
             <Card key={item.productId} className="overflow-hidden border-0 bg-transparent shadow-none">
               <Link to={`/product/${item.productId}`}>
                 <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
-                  <div className="absolute inset-0 bg-gradient-to-br from-surface via-muted to-accent/10" />
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={isAr ? item.nameAr : item.nameEn}
+                      className="absolute inset-0 h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-surface via-muted to-accent/10" />
+                  )}
                 </div>
               </Link>
               <CardContent className="mt-3 space-y-1 px-0">
