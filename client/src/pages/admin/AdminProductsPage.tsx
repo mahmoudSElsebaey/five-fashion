@@ -27,6 +27,8 @@ type ProductRow = {
   brand?: string;
 };
 
+const PAGE_SIZE = 10;
+
 const emptyForm = {
   nameEn: '', nameAr: '', slug: '', sku: '', price: '', compareAtPrice: '', stock: '0',
   gender: 'unisex', category: '', collection: '', status: 'active', sizes: 'S,M,L',
@@ -52,11 +54,12 @@ export function AdminProductsPage() {
   const [actionError, setActionError] = useState<string | null>(null);
 
   const text = (en: string, ar: string) => (isAr ? ar : en);
+  const label = (key: string, en: string, ar: string) => t(key, { defaultValue: text(en, ar) });
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try {
-      const res = await productsApi.adminList({ limit: 20, page, status: 'all', q: q || undefined });
+      const res = await productsApi.adminList({ limit: PAGE_SIZE, page, status: 'all', q: q || undefined });
       setRows((res.data as ProductRow[]) || []);
       setTotal(res.meta?.total ?? 0);
     } catch (e) {
@@ -99,13 +102,10 @@ export function AdminProductsPage() {
     if (compareAtPrice !== undefined && (!Number.isFinite(compareAtPrice) || compareAtPrice < 0)) return setFormError(text('Enter a valid compare-at price', 'أدخل سعر المقارنة بشكل صحيح'));
 
     const body: Record<string, unknown> = {
-      name: { en: form.nameEn.trim(), ar: form.nameAr.trim() },
-      slug: form.slug.trim() || undefined, sku: form.sku.trim(), price, stock,
-      gender: form.gender, status: form.status, brand: form.brand || 'FIVE',
-      sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
-      colors: form.colors.split(',').map(s => s.trim()).filter(Boolean),
-      images: form.images.split('\n').map(s => s.trim()).filter(Boolean),
-      featured: form.featured, newArrival: form.newArrival,
+      name: { en: form.nameEn.trim(), ar: form.nameAr.trim() }, slug: form.slug.trim() || undefined,
+      sku: form.sku.trim(), price, stock, gender: form.gender, status: form.status, brand: form.brand || 'FIVE',
+      sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean), colors: form.colors.split(',').map(s => s.trim()).filter(Boolean),
+      images: form.images.split('\n').map(s => s.trim()).filter(Boolean), featured: form.featured, newArrival: form.newArrival,
     };
     if (compareAtPrice !== undefined) body.compareAtPrice = compareAtPrice;
     if (form.category) body.category = form.category;
@@ -127,7 +127,7 @@ export function AdminProductsPage() {
     catch (err) { setActionError(err instanceof Error ? err.message : text('Delete failed', 'فشل حذف المنتج')); }
   };
 
-  const label = (key: string, en: string, ar: string) => t(key, { defaultValue: text(en, ar) });
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div>
@@ -172,10 +172,10 @@ export function AdminProductsPage() {
         </div>
       )}
 
-      <div className="mt-4 flex items-center gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>{text('Prev', 'السابق')}</Button>
-        <span className="text-sm text-muted-foreground">{text('Page', 'صفحة')} {page}</span>
-        <Button variant="outline" size="sm" disabled={page * 20 >= total} onClick={() => setPage(p => p + 1)}>{text('Next', 'التالي')}</Button>
+        <span className="text-sm text-muted-foreground">{text('Page', 'صفحة')} {page} {text('of', 'من')} {pages}</span>
+        <Button variant="outline" size="sm" disabled={page >= pages} onClick={() => setPage(p => p + 1)}>{text('Next', 'التالي')}</Button>
       </div>
 
       {formOpen && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -187,14 +187,17 @@ export function AdminProductsPage() {
             <label className="block text-sm"><span className="text-muted-foreground">{text('Gender', 'الجنس')}</span><select className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })}><option value="women">{text('Women', 'نساء')}</option><option value="men">{text('Men', 'رجال')}</option><option value="unisex">{text('Unisex', 'للجميع')}</option></select></label>
             <label className="block text-sm"><span className="text-muted-foreground">{text('Status', 'الحالة')}</span><select className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option value="active">{text('Active', 'نشط')}</option><option value="draft">{text('Draft', 'مسودة')}</option><option value="archived">{text('Archived', 'مؤرشف')}</option></select></label>
             <label className="block text-sm"><span className="text-muted-foreground">{text('Category', 'الفئة')}</span><select className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}><option value="">—</option>{cats.map(c => <option key={c._id} value={c._id}>{c.name?.[isAr ? 'ar' : 'en'] || c.slug}</option>)}</select></label>
-            <label className="block text-sm"><span className="text-muted-foreground">{text('Collection', 'المجموعة')}</span><select className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"><option value="">—</option>{cols.map(c => <option key={c._id} value={c._id}>{c.name?.[isAr ? 'ar' : 'en'] || c.slug}</option>)}</select></label>
+            <label className="block text-sm"><span className="text-muted-foreground">{text('Collection', 'المجموعة')}</span><select className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" value={form.collection} onChange={e => setForm({ ...form, collection: e.target.value })}><option value="">—</option>{cols.map(c => <option key={c._id} value={c._id}>{c.name?.[isAr ? 'ar' : 'en'] || c.slug}</option>)}</select></label>
             <label className="block text-sm sm:col-span-2"><span className="text-muted-foreground">{text('Sizes (comma separated)', 'المقاسات (افصل بينها بفاصلة)')}</span><input className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" value={form.sizes} onChange={e => setForm({ ...form, sizes: e.target.value })} /></label>
             <label className="block text-sm sm:col-span-2"><span className="text-muted-foreground">{text('Colors (comma separated)', 'الألوان (افصل بينها بفاصلة)')}</span><input className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" value={form.colors} onChange={e => setForm({ ...form, colors: e.target.value })} /></label>
-            <label className="block text-sm sm:col-span-2"><span className="text-muted-foreground">{text('Image URLs (one per line)', 'روابط الصور (رابط لكل سطر)')}</span><textarea className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" rows={3} value={form.images} onChange={e => setForm({ ...form, images: e.target.value })} /></label>
-            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.featured} onChange={e => setForm({ ...form, featured: e.target.checked })} />{text('Featured', 'منتج مميز')}</label>
+            <label className="block text-sm sm:col-span-2"><span className="text-muted-foreground">{text('Image URLs (one per line)', 'روابط الصور (رابط لكل سطر)')}</span><textarea className="mt-1 min-h-24 w-full rounded-lg border border-border bg-background px-3 py-2" value={form.images} onChange={e => setForm({ ...form, images: e.target.value })} /></label>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.featured} onChange={e => setForm({ ...form, featured: e.target.checked })} />{text('Featured product', 'منتج مميز')}</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.newArrival} onChange={e => setForm({ ...form, newArrival: e.target.checked })} />{text('New arrival', 'وصل حديثًا')}</label>
           </div>
-          <div className="mt-6 flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setFormOpen(false)}>{text('Cancel', 'إلغاء')}</Button><Button type="submit" disabled={saving}>{saving ? text('Saving…', 'جارٍ الحفظ…') : text('Save product', 'حفظ المنتج')}</Button></div>
+          <div className="mt-6 flex justify-end gap-2 rtl:flex-row-reverse">
+            <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>{text('Cancel', 'إلغاء')}</Button>
+            <Button type="submit" disabled={saving}>{saving ? text('Saving...', 'جارٍ الحفظ...') : editingId ? text('Save changes', 'حفظ التعديلات') : text('Create product', 'إضافة المنتج')}</Button>
+          </div>
         </form>
       </div>}
     </div>
