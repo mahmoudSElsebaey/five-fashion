@@ -1,4 +1,4 @@
-/** Curated high-resolution fashion image library. URLs use Unsplash CDN transformations for consistent PDP quality. */
+/** Curated high-resolution fashion image library. */
 const IMG = {
   dress1: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1600&q=85&auto=format&fit=crop',
   dress2: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1600&q=85&auto=format&fit=crop',
@@ -45,6 +45,12 @@ const IMG = {
   detail3: 'https://images.unsplash.com/photo-1603252109303-2751441dd157?w=1600&q=85&auto=format&fit=crop',
   detail4: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&q=85&auto=format&fit=crop',
   detail5: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&q=85&auto=format&fit=crop',
+  suit1: 'https://images.unsplash.com/photo-1678366033925-b917160e101a?w=1600&q=85&auto=format&fit=crop',
+  tracksuit1: 'https://images.unsplash.com/photo-1779675789410-85a43261a172?w=1600&q=85&auto=format&fit=crop',
+  football1: 'https://images.unsplash.com/photo-1779659821294-7913ece88006?w=1600&q=85&auto=format&fit=crop',
+  sock1: 'https://images.unsplash.com/photo-1615486364462-ef6363adbc18?w=1600&q=85&auto=format&fit=crop',
+  sock2: 'https://images.unsplash.com/photo-1564379976409-79bd0786fff1?w=1600&q=85&auto=format&fit=crop',
+  wedding1: 'https://images.unsplash.com/photo-1785199366362-5a0ea5e933a0?w=1600&q=85&auto=format&fit=crop',
 } as const;
 
 export type ImgKey = keyof typeof IMG;
@@ -56,19 +62,43 @@ const SECONDARIES: Record<string, ImgKey[]> = {
   'women-outerwear': ['outer1','outer2','outer3','outer4','outer5','detail2','detail5'],
   'men-shirts': ['shirt1','shirt2','shirt3','shirt4','shirt5','detail3','detail4'],
   'men-bottoms': ['trouser1','trouser2','trouser3','trouser4','trouser5','detail5','detail1'],
-  'men-outerwear': ['menOuter1','menOuter2','menOuter3','menOuter4','menOuter5','detail5','outer4'],
+  'men-outerwear': ['menOuter1','menOuter2','menOuter3','menOuter4','menOuter5','suit1','outer4'],
   'kids-clothing': ['dress3','top1','top2','outer2','outer5','detail4','detail2'],
-  sportswear: ['shoe3','shoe4','trouser2','top2','menOuter2','detail1','detail3'],
+  sportswear: ['shoe3','shoe4','trouser2','top2','tracksuit1','detail1','detail3'],
+  'men-sportswear': ['tracksuit1','shoe3','top2','trouser2','menOuter2'],
+  'kids-sportswear': ['tracksuit1','shoe4','top1','trouser2','outer5'],
+  'football-wear': ['football1','shoe4','top2','trouser2','tracksuit1'],
+  socks: ['sock1','sock2','shoe3','shoe4','detail3'],
+  'caps-hats': ['acc2','acc5','top2','menOuter2','shoe3'],
+  'complete-sets': ['tracksuit1','top2','trouser2','dress3','outer2'],
+  suits: ['suit1','menOuter4','menOuter5','shirt1','trouser1'],
+  'wedding-dresses': ['wedding1','dress1','dress2','dress4','detail2'],
   accessories: ['acc1','acc2','acc3','acc4','acc5','detail4','detail2'],
   footwear: ['shoe1','shoe2','shoe3','shoe4','shoe5','detail1','detail3'],
   bags: ['acc1','acc4','acc5','detail2','detail4','acc2','detail5'],
 };
 
-/** Returns 4 gallery images with the primary image always first. */
-export function productImages(cat: string, primary: ImgKey, salt = 0): string[] {
+const PRODUCT_OVERRIDES: Record<string, ImgKey> = {
+  'Dinner Jacket': 'suit1',
+  'Relaxed Tailored Blazer': 'suit1',
+  'Classic Chino Pants': 'trouser1',
+  'Cargo Utility Pants': 'trouser3',
+  'Linen Resort Shirt': 'shirt3',
+  'Essential Polo Shirt': 'shirt1',
+  'Oxford Button Shirt': 'shirt2',
+  'Striped Cotton Shirt': 'shirt5',
+  'Cashmere Knit Top': 'top1',
+  'Pleated Blouse': 'top4',
+  'Field Utility Jacket': 'menOuter2',
+  'Technical Shell Jacket': 'menOuter3',
+};
+
+export function productImages(cat: string, primary: ImgKey, salt = 0, productName?: string): string[] {
+  const override = productName ? PRODUCT_OVERRIDES[productName] : undefined;
+  const actualPrimary = override || primary;
   const pool = SECONDARIES[cat] || (Object.keys(IMG) as ImgKey[]);
-  const urls: string[] = [IMG[primary]];
-  const candidates = pool.filter((key) => key !== primary);
+  const urls: string[] = [IMG[actualPrimary]];
+  const candidates = pool.filter((key) => key !== actualPrimary);
 
   for (let i = 0; i < candidates.length && urls.length < 4; i += 1) {
     const key = candidates[(i + salt) % candidates.length];
@@ -80,7 +110,6 @@ export function productImages(cat: string, primary: ImgKey, salt = 0): string[] 
     if (urls.length >= 4) break;
     if (!urls.includes(IMG[key])) urls.push(IMG[key]);
   }
-
   return urls;
 }
 
