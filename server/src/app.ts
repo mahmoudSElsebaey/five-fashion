@@ -15,6 +15,7 @@ import couponRoutes from './routes/couponRoutes.js';
 import addressRoutes from './routes/addressRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -37,7 +38,7 @@ app.get('/api/v1/health', (_req, res) => {
   res.status(200).json({
     success: true,
     message: 'FIVE Fashion API is running',
-    version: '0.3.0',
+    version: '0.4.0',
     timestamp: new Date().toISOString(),
   });
 });
@@ -52,6 +53,7 @@ app.use('/api/v1/coupons', couponRoutes);
 app.use('/api/v1/addresses', addressRoutes);
 app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/wishlist', wishlistRoutes);
+app.use('/api/v1/users', userRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
