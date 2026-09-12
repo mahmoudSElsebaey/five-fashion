@@ -101,7 +101,7 @@ export function Header() {
           </Link>
         </div>
 
-        <div className="flex w-full items-center justify-around gap-4 border">
+        <div className="flex w-full items-center justify-around gap-4 ">
           <nav
             className="inline-flex items-center gap-1 px-4 py-2 rounded-full border border-border/20 bg-surface/70 p-1.5 shadow-sm backdrop-blur-sm"
             aria-label="Main navigation"
