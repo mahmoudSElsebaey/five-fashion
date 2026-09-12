@@ -9,6 +9,7 @@ import { Coupon } from '../models/Coupon.js';
 import { Review } from '../models/Review.js';
 import { IMG, productImages } from './images.js';
 import { CATALOG, CAT_META, COL_META } from './catalog.js';
+import { FAMOUS_BRANDS, brandForIndex } from './brands.js';
 
 const COLORS: Record<string, string[]> = {
   women: ['Black', 'Ivory', 'Camel', 'Burgundy'],
@@ -80,7 +81,7 @@ async function ensureDemoAccounts() {
 
 async function main() {
   const expectedProducts = CATALOG.reduce((total, group) => total + group.items.length, 0);
-  console.log(`—— FIVE Fashion Seed — ${expectedProducts} products / ${CATALOG.length} categories ——`);
+  console.log(`—— FIVE Fashion Seed — ${expectedProducts} products / ${CATALOG.length} categories / ${FAMOUS_BRANDS.length} brands ——`);
   await mongoose.connect(config.mongodbUri);
 
   try {
@@ -138,14 +139,15 @@ async function main() {
         const stock = 12 + (n % 36);
         const sku = `FIVE-${String(n).padStart(4, '0')}`;
         const primary = group.imageKeys[(n - 1) % group.imageKeys.length];
+        const brand = brandForIndex(n);
 
         docs.push({
           name: { en, ar },
           slug: slugifyName(en, n),
-          description: { en: `${en} from FIVE Fashion. Designed with a refined silhouette, versatile styling, and premium everyday appeal.`, ar: `${ar} من FIVE Fashion بقصة أنيقة وتنسيق عملي وخامات مختارة بعناية.` },
+          description: { en: `${en} from ${brand}. Designed with a refined silhouette, versatile styling, and premium everyday appeal — curated by FIVE Fashion.`, ar: `${ar} من ${brand} بقصة أنيقة وتنسيق عملي وخامات مختارة بعناية — ضمن مجموعة FIVE Fashion.` },
           category: catMap[group.cat]?._id,
           collectionRef: colMap[group.coll]?._id,
-          brand: 'FIVE',
+          brand,
           gender: group.gender,
           price,
           compareAtPrice,
@@ -167,8 +169,8 @@ async function main() {
           status: 'active' as const,
           ratings: 0,
           reviewCount: 0,
-          seoTitle: `${en} | FIVE Fashion`,
-          seoDescription: `Shop ${en} by FIVE Fashion online.`,
+          seoTitle: `${en} | ${brand} | FIVE Fashion`,
+          seoDescription: `Shop ${en} by ${brand} at FIVE Fashion online.`,
         });
         n += 1;
       }
@@ -206,11 +208,19 @@ async function main() {
       }
     }
 
+    const brandCounts = await Product.aggregate([
+      { $match: { status: 'active' } },
+      { $group: { _id: '$brand', count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+    ]);
+
     const categoryCounts = await Promise.all(Object.keys(CAT_META).map(async (slug) => ({ slug, count: await Product.countDocuments({ category: catMap[slug]?._id, status: 'active' }) })));
     console.log('—— Seed complete ——', {
       categories: await Category.countDocuments(),
       collections: await Collection.countDocuments(),
       products: await Product.countDocuments({ status: 'active' }),
+      brands: FAMOUS_BRANDS.length,
+      productsPerBrand: brandCounts,
       productsPerCategory: categoryCounts,
       coupons: await Coupon.countDocuments(),
       reviews: await Review.countDocuments(),
