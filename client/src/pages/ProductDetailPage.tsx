@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ProductGallery } from '@/components/product/ProductGallery';
 import { SizeSelector } from '@/components/product/SizeSelector';
@@ -30,6 +30,9 @@ export function ProductDetailPage() {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
   const wishlistIds = useSelector((s: RootState) => s.wishlist.items.map((i) => i.productId));
 
   const [product, setProduct] = useState<UiProduct | null>(null);
@@ -183,6 +186,17 @@ export function ProductDetailPage() {
   };
 
   const handleToggleWishlist = () => {
+    if (!isAuthenticated) {
+      navigate('/login', {
+        state: {
+          from: location,
+          message: t('auth.loginRequiredWishlist', {
+            defaultValue: 'Please sign in first to save items to your wishlist.',
+          }),
+        },
+      });
+      return;
+    }
     void toggleWishlistSmart(dispatch, store.getState, {
       productId: product.id,
       nameEn: product.nameEn,
@@ -332,8 +346,13 @@ export function ProductDetailPage() {
             </div>
           </div>
 
-          <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:items-stretch">
-            <Button size="lg" className="w-full flex-1 sm:w-auto" onClick={handleAddToCart} disabled={outOfStock}>
+          <div className="mt-8 flex flex-row items-stretch gap-2.5 sm:mt-10 sm:gap-3">
+            <Button
+              size="lg"
+              className="min-h-14 flex-1 px-3 text-sm sm:px-6 sm:text-base"
+              onClick={handleAddToCart}
+              disabled={outOfStock}
+            >
               {outOfStock
                 ? t('product.outOfStock', { defaultValue: 'Out of stock' })
                 : addedToCart
@@ -342,11 +361,14 @@ export function ProductDetailPage() {
             </Button>
             <button
               type="button"
-              aria-label={t('product.wishlist', { defaultValue: 'Wishlist' })}
+              aria-label={
+                saved
+                  ? t('product.removeFromWishlist', { defaultValue: 'Remove from wishlist' })
+                  : t('product.addToWishlist', { defaultValue: 'Add to wishlist' })
+              }
               aria-pressed={saved}
               onClick={handleToggleWishlist}
-              className={`inline-flex h-14 min-h-[3.5rem] w-full shrink-0 items-center justify-center gap-2 rounded-xl border-2 px-4 text-base font-semibold transition-all duration-200 sm:h-14 sm:w-14 sm:min-w-[3.5rem] sm:px-0 ${
-                saved
+              className={`inline-flex h-14 min-h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 transition-all duration-200 ${\n                saved
                   ? 'border-accent bg-accent/15 text-accent shadow-sm'
                   : 'border-border bg-surface text-foreground hover:border-accent/60 hover:bg-accent/10 hover:text-accent'
               }`}
@@ -366,11 +388,6 @@ export function ProductDetailPage() {
               >
                 <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
               </svg>
-              <span className="sm:hidden">
-                {saved
-                  ? t('product.inWishlist', { defaultValue: 'Saved' })
-                  : t('product.wishlist', { defaultValue: 'Wishlist' })}
-              </span>
             </button>
           </div>
 
