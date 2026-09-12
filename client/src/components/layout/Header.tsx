@@ -116,46 +116,54 @@ export function Header() {
       {/* Desktop: three independent equal-width columns. */}
       <div className="mx-auto hidden h-[5.25rem] max-w-7xl grid-cols-3 items-center px-4 md:grid lg:px-8">
         <div className="flex min-w-0 w-full items-center justify-center">
+          {/* Expanded Tabs — same pattern as portfolio About page */}
           <nav
-            className="inline-flex max-w-full items-center gap-1 rounded-full border border-border/20 bg-surface/70 p-1.5 shadow-sm backdrop-blur-sm"
+            className="inline-flex max-w-full items-center gap-1 sm:gap-1.5 rounded-full border border-accent/20 bg-accent/5 p-1.5 shadow-sm backdrop-blur-sm"
             aria-label="Main navigation"
+            role="tablist"
           >
-            {navItems.map((item) => (
-              <NavLink
-                key={item.key}
-                to={item.path}
-                end={item.path === '/'}
-                className={({ isActive }) =>
-                  `relative flex shrink-0 items-center justify-center gap-2 rounded-full transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+            {navItems.map((item) => {
+              const isActive =
+                item.path === '/'
+                  ? location.pathname === '/'
+                  : location.pathname.startsWith(item.path);
+              return (
+                <NavLink
+                  key={item.key}
+                  to={item.path}
+                  end={item.path === '/'}
+                  role="tab"
+                  aria-selected={isActive}
+                  className={`relative flex cursor-pointer items-center justify-center gap-2 rounded-full transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
                     isActive
-                      ? 'bg-accent px-3.5 py-2.5 text-accent-foreground shadow-md shadow-accent/20 sm:px-4'
-                      : 'px-2.5 py-2.5 text-muted-foreground hover:bg-muted/80 hover:text-foreground'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <span className={`shrink-0 transition-transform duration-300 ${isActive ? 'scale-110' : ''}`}>
-                      {item.icon}
-                    </span>
-                    <AnimatePresence initial={false} mode="popLayout">
-                      {isActive && (
-                        <motion.span
-                          key={`${item.key}-label`}
-                          initial={{ width: 0, opacity: 0 }}
-                          animate={{ width: 'auto', opacity: 1 }}
-                          exit={{ width: 0, opacity: 0 }}
-                          transition={{ duration: 0.22, ease: 'easeOut' }}
-                          className="overflow-hidden whitespace-nowrap text-xs font-semibold sm:text-sm"
-                        >
-                          {t(`nav.${item.key}`)}
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
-                  </>
-                )}
-              </NavLink>
-            ))}
+                      ? 'bg-accent px-3.5 py-2.5 text-accent-foreground shadow-md shadow-accent/25 sm:px-5 sm:py-3'
+                      : 'px-2.5 py-2.5 text-accent/70 hover:bg-accent/10 hover:text-accent sm:px-3 sm:py-3'
+                  }`}
+                >
+                  <span
+                    className={`shrink-0 transition-transform duration-300 ${
+                      isActive ? 'scale-110 [&_svg]:h-5 [&_svg]:w-5' : '[&_svg]:h-[18px] [&_svg]:w-[18px]'
+                    }`}
+                  >
+                    {item.icon}
+                  </span>
+                  <AnimatePresence initial={false}>
+                    {isActive && (
+                      <motion.span
+                        key="label"
+                        initial={{ width: 0, opacity: 0 }}
+                        animate={{ width: 'auto', opacity: 1 }}
+                        exit={{ width: 0, opacity: 0 }}
+                        transition={{ duration: 0.28, ease: 'easeOut' }}
+                        className="overflow-hidden whitespace-nowrap text-xs font-semibold sm:text-sm md:text-base"
+                      >
+                        {t(`nav.${item.key}`)}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </NavLink>
+              );
+            })}
           </nav>
         </div>
 
