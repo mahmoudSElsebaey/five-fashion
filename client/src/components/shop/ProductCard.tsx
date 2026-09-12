@@ -71,12 +71,14 @@ export function ProductCard({ product }: ProductCardProps) {
     });
   };
 
+  const productHref = `/product/${product.slug || product.id}`;
+
   return (
     <CardContainer className="w-full" containerClassName="w-full">
       <CardBody className="group relative w-full">
         <div className="relative">
-          {/* Wishlist floats toward the viewer on hover */}
-          <CardItem translateZ={90} className="absolute top-3 end-3 z-20">
+          {/* Wishlist — outside overflow so translateZ is visible */}
+          <CardItem translateZ={90} className="absolute top-3 end-3 z-30">
             <button
               type="button"
               onClick={handleWishlist}
@@ -109,70 +111,75 @@ export function ProductCard({ product }: ProductCardProps) {
             </button>
           </CardItem>
 
-          <Link to={`/product/${product.slug || product.id}`} className="block outline-none">
-            <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-card via-card to-surface shadow-[0_12px_40px_-12px_rgba(0,0,0,0.35)] ring-1 ring-black/5 transition-shadow duration-500 group-hover:shadow-[0_20px_50px_-12px_color-mix(in_srgb,var(--accent)_35%,transparent)] group-hover:ring-accent/25 dark:ring-white/5">
-              <div
-                className="pointer-events-none absolute inset-0 z-[1] rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                style={{
-                  background:
-                    'linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, transparent), transparent 45%, transparent 55%, color-mix(in srgb, var(--accent) 10%, transparent))',
-                }}
-              />
-
-              <CardItem translateZ={50} className="relative w-full">
-                <ProductImage
-                  src={image}
-                  alt={name}
-                  className="aspect-[3/4] w-full"
-                  imgClassName="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+          {/* Media frame — overflow only on image, cart sits outside clip */}
+          <div className="relative">
+            <Link to={productHref} className="block outline-none">
+              <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-card via-card to-surface shadow-[0_12px_40px_-12px_rgba(0,0,0,0.35)] ring-1 ring-black/5 transition-shadow duration-500 group-hover:shadow-[0_20px_50px_-12px_color-mix(in_srgb,var(--accent)_35%,transparent)] group-hover:ring-accent/25 dark:ring-white/5">
+                <div
+                  className="pointer-events-none absolute inset-0 z-[1] rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, transparent), transparent 45%, transparent 55%, color-mix(in srgb, var(--accent) 10%, transparent))',
+                  }}
                 />
-              </CardItem>
 
-              <div className="absolute top-3 start-3 z-10 flex flex-col gap-1.5">
-                {product.isNew && (
-                  <CardItem translateZ={60}>
-                    <Badge variant="accent">{t('shop.badges.new')}</Badge>
-                  </CardItem>
-                )}
-                {product.isSale && (
-                  <CardItem translateZ={60}>
-                    <Badge variant="error">{t('shop.badges.sale')}</Badge>
-                  </CardItem>
-                )}
+                <CardItem translateZ={40} className="relative w-full">
+                  <ProductImage
+                    src={image}
+                    alt={name}
+                    className="aspect-[3/4] w-full"
+                    imgClassName="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+                  />
+                </CardItem>
+
+                <div className="absolute top-3 start-3 z-10 flex flex-col gap-1.5">
+                  {product.isNew && (
+                    <CardItem translateZ={60}>
+                      <Badge variant="accent">{t('shop.badges.new')}</Badge>
+                    </CardItem>
+                  )}
+                  {product.isSale && (
+                    <CardItem translateZ={60}>
+                      <Badge variant="error">{t('shop.badges.sale')}</Badge>
+                    </CardItem>
+                  )}
+                </div>
               </div>
+            </Link>
 
-              {/* Cart recedes opposite the heart (negative Z) for clearer 3D depth */}
-              <CardItem
-                translateZ={-70}
-                className="pointer-events-none absolute inset-x-3 bottom-3 z-20 -translate-x-4 opacity-0 transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 max-sm:pointer-events-auto max-sm:translate-x-0 max-sm:opacity-100"
+            {/* Same 3D float as heart (positive Z), opposite horizontal slide */}
+            <CardItem
+              translateZ={90}
+              className="pointer-events-none absolute inset-x-3 bottom-3 z-30 -translate-x-5 opacity-0 transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 max-sm:pointer-events-auto max-sm:translate-x-0 max-sm:opacity-100"
+            >
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-accent/40 bg-background/95 px-3 py-2.5 text-sm font-semibold text-foreground shadow-[0_12px_28px_-8px_rgba(0,0,0,0.45)] backdrop-blur-md transition-transform duration-300 hover:scale-[1.03] hover:border-accent hover:bg-accent hover:text-accent-foreground active:scale-[0.98]"
               >
-                <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-accent/40 bg-background/90 px-3 py-2.5 text-sm font-semibold !text-black shadow-lg shadow-black/20 backdrop-blur-md transition-transform duration-300 hover:scale-[1.03] hover:border-accent hover:bg-accent !hover:text-black active:scale-[0.98]"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                  className="shrink-0 drop-shadow-sm"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden
-                    className="shrink-0 drop-shadow-sm"
-                  >
-                    <circle cx="8" cy="21" r="1" />
-                    <circle cx="19" cy="21" r="1" />
-                    <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-                  </svg>
-                  <span className="!text-black">{t('product.addToCart', { defaultValue: 'Add to Cart' })}</span>
-                </button>
-              </CardItem>
-            </div>
+                  <circle cx="8" cy="21" r="1" />
+                  <circle cx="19" cy="21" r="1" />
+                  <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+                </svg>
+                <span>{t('product.addToCart', { defaultValue: 'Add to Cart' })}</span>
+              </button>
+            </CardItem>
+          </div>
 
+          <Link to={productHref} className="block outline-none">
             <CardItem translateZ={30} className="mt-3 space-y-1 px-0.5">
               <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-accent/90">
                 {product.brand}
