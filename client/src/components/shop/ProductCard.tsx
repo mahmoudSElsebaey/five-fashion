@@ -75,8 +75,8 @@ export function ProductCard({ product }: ProductCardProps) {
     <CardContainer className="w-full" containerClassName="w-full">
       <CardBody className="group relative w-full">
         <div className="relative">
-          {/* Wishlist — always visible, outside link hit-area for a11y */}
-          <CardItem translateZ={70} className="absolute top-3 end-3 z-20">
+          {/* Wishlist floats toward the viewer on hover */}
+          <CardItem translateZ={90} className="absolute top-3 end-3 z-20">
             <button
               type="button"
               onClick={handleWishlist}
@@ -86,11 +86,11 @@ export function ProductCard({ product }: ProductCardProps) {
                   : t('product.addToWishlist', { defaultValue: 'Add to wishlist' })
               }
               aria-pressed={saved}
-              className={`flex h-10 w-10 items-center justify-center rounded-full border shadow-md backdrop-blur-md transition-all duration-200 sm:h-11 sm:w-11 ${
+              className={
                 saved
-                  ? 'border-accent/50 bg-accent text-accent-foreground'
-                  : 'border-border/60 bg-background/90 text-foreground hover:border-accent/50 hover:bg-accent/15 hover:text-accent'
-              }`}
+                  ? 'flex h-10 w-10 items-center justify-center rounded-full border shadow-md backdrop-blur-md transition-all duration-200 sm:h-11 sm:w-11 border-accent/50 bg-accent text-accent-foreground'
+                  : 'flex h-10 w-10 items-center justify-center rounded-full border shadow-md backdrop-blur-md transition-all duration-200 sm:h-11 sm:w-11 border-border/60 bg-background/90 text-foreground hover:border-accent/50 hover:bg-accent/15 hover:text-accent'
+              }
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -141,9 +141,10 @@ export function ProductCard({ product }: ProductCardProps) {
                 )}
               </div>
 
+              {/* Cart recedes opposite the heart (negative Z) for clearer 3D depth */}
               <CardItem
-                translateZ={80}
-                className="pointer-events-none absolute inset-x-3 bottom-3 z-20 translate-x-4 opacity-0 transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 max-sm:pointer-events-auto max-sm:translate-x-0 max-sm:opacity-100"
+                translateZ={-70}
+                className="pointer-events-none absolute inset-x-3 bottom-3 z-20 -translate-x-4 opacity-0 transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 max-sm:pointer-events-auto max-sm:translate-x-0 max-sm:opacity-100"
               >
                 <button
                   type="button"
