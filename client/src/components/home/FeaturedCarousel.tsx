@@ -1,34 +1,22 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence, type PanInfo } from 'framer-motion';
+import { animate, motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { ProductImage } from '@/components/ui/ProductImage';
 import { Spinner } from '@/components/ui/Spinner';
 import { productsApi } from '@/services/apiClient';
 import { mapApiProduct, type ApiProduct, type UiProduct } from '@/types/product';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
-/** Relative index → fan layout (stacked card carousel / 21st carousel-07). */
-function fanStyle(offset: number, reduced: boolean) {
-  if (reduced) {
-    return {
-      x: offset * 28,
-      y: Math.abs(offset) * 6,
-      rotate: offset * 4,
-      scale: offset === 0 ? 1 : 0.9,
-      zIndex: 20 - Math.abs(offset),
-      opacity: Math.abs(offset) > 2 ? 0 : 1 - Math.abs(offset) * 0.18,
-    };
-  }
-  return {
-    x: offset * 72,
-    y: Math.abs(offset) * 14 + (offset === 0 ? 0 : 8),
-    rotate: offset * 11,
-    scale: offset === 0 ? 1 : Math.max(0.78, 1 - Math.abs(offset) * 0.08),
-    zIndex: 40 - Math.abs(offset),
-    opacity: Math.abs(offset) > 2 ? 0 : 1 - Math.abs(offset) * 0.12,
-  };
-}
+const RADIUS_DESKTOP = 300;
+const RADIUS_REDUCED = 160;
+const CARD_W = 210;
 
 export function FeaturedCarousel() {
   const { t, i18n } = useTranslation();
@@ -36,7 +24,15 @@ export function FeaturedCarousel() {
   const reduced = useReducedMotion();
   const [products, setProducts] = useState<UiProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [active, setActive] = useState(0);
+  const [displayIndex, setDisplayIndex] = useState(0);
+
+  const stageRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+  const lastX = useRef(0);
+  const velocity = useRef(0);
+
+  const rotation = useMotionValue(0);
+  const smooth = useSpring(rotation, { stiffness: 110, damping: 24, mass: 0.85 });
 
   useEffect(() => {
     let cancelled = false;
@@ -63,30 +59,89 @@ export function FeaturedCarousel() {
   }, []);
 
   const count = products.length;
+  const step = count > 0 ? 360 / count : 51.4;
+  const radius = reduced ? RADIUS_REDUCED : RADIUS_DESKTOP;
+
+  useEffect(() => {
+    return smooth.on('change', (v) => {
+      if (!count) return;
+      setDisplayIndex(((Math.round(v) % count) + count) % count);
+    });
+  }, [smooth, count]);
+
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    let lock = false;
+    const onWheel = (e: WheelEvent) => {
+      if (reduced || !count) return;
+      e.preventDefault();
+      if (lock) return;
+      lock = true;
+      const dir = Math.sign(e.deltaY || e.deltaX) || 1;
+      const current = Math.round(rotation.get());
+      animate(rotation, current + (isAr ? -dir : dir), {
+        type: 'spring',
+        stiffness: 140,
+        damping: 22,
+      });
+      window.setTimeout(() => {
+        lock = false;
+      }, 260);
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [count, isAr, reduced, rotation]);
+
+  const snapTo = useCallback(
+    (target: number) => {
+      animate(rotation, target, { type: 'spring', stiffness: 130, damping: 22, mass: 0.9 });
+    },
+    [rotation]
+  );
 
   const go = useCallback(
     (dir: number) => {
-      if (count === 0) return;
-      setActive((i) => (i + dir + count) % count);
+      if (!count) return;
+      snapTo(Math.round(rotation.get()) + dir);
     },
-    [count]
+    [count, rotation, snapTo]
   );
 
-  const onDragEnd = (_: unknown, info: PanInfo) => {
-    const threshold = 50;
-    if (info.offset.x < -threshold) go(isAr ? -1 : 1);
-    else if (info.offset.x > threshold) go(isAr ? 1 : -1);
+  const jumpToIndex = (i: number) => {
+    if (!count) return;
+    const base = Math.round(rotation.get());
+    const current = ((base % count) + count) % count;
+    let delta = i - current;
+    if (delta > count / 2) delta -= count;
+    if (delta < -count / 2) delta += count;
+    snapTo(base + delta);
   };
 
-  const visible = useMemo(() => {
-    if (!count) return [];
-    const out: { product: UiProduct; offset: number; index: number }[] = [];
-    for (let o = -2; o <= 2; o += 1) {
-      const index = (active + o + count * 10) % count;
-      out.push({ product: products[index], offset: o, index });
-    }
-    return out;
-  }, [active, count, products]);
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (reduced) return;
+    dragging.current = true;
+    lastX.current = e.clientX;
+    velocity.current = 0;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!dragging.current || reduced || !count) return;
+    const dx = e.clientX - lastX.current;
+    lastX.current = e.clientX;
+    const sens = isAr ? 0.016 : -0.016;
+    const delta = dx * sens;
+    velocity.current = delta;
+    rotation.set(rotation.get() + delta);
+  };
+
+  const onPointerUp = () => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    const boost = velocity.current * 10;
+    snapTo(Math.round(rotation.get() + boost));
+  };
 
   if (loading) {
     return (
@@ -100,7 +155,7 @@ export function FeaturedCarousel() {
 
   if (count === 0) return null;
 
-  const current = products[active];
+  const current = products[displayIndex];
   const currentName = isAr ? current.nameAr : current.nameEn;
 
   return (
@@ -109,7 +164,7 @@ export function FeaturedCarousel() {
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
           background:
-            'radial-gradient(ellipse 70% 55% at 50% 40%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 65%)',
+            'radial-gradient(ellipse 70% 55% at 50% 42%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 65%)',
         }}
       />
 
@@ -123,89 +178,36 @@ export function FeaturedCarousel() {
           </h2>
           <p className="mt-2 max-w-md text-sm text-muted-foreground">
             {t('home.featured.subtitle', {
-              defaultValue: 'Swipe or use the arrows to explore standout pieces.',
+              defaultValue: 'Drag the reel — cards orbit in 3D.',
             })}
           </p>
         </div>
 
-        <div className="relative mx-auto flex h-[min(520px,70vh)] max-w-4xl items-center justify-center">
-          <AnimatePresence initial={false} mode="popLayout">
-            {visible.map(({ product, offset, index }) => {
-              const name = isAr ? product.nameAr : product.nameEn;
-              const style = fanStyle(offset, reduced);
-              const isCenter = offset === 0;
-              const href = `/product/${product.slug || product.id}`;
-              const price = product.salePrice ?? product.price;
-
-              return (
-                <motion.div
-                  key={`${product.id}-${index}-${offset}`}
-                  className="absolute"
-                  style={{ zIndex: style.zIndex }}
-                  initial={false}
-                  animate={{
-                    x: style.x,
-                    y: style.y,
-                    rotate: style.rotate,
-                    scale: style.scale,
-                    opacity: style.opacity,
-                  }}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 260,
-                    damping: 28,
-                    mass: 0.85,
-                  }}
-                  drag={isCenter && !reduced ? 'x' : false}
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.18}
-                  onDragEnd={isCenter ? onDragEnd : undefined}
-                  onClick={() => {
-                    if (!isCenter) setActive(index);
-                  }}
-                >
-                  <Link
-                    to={href}
-                    className={`block w-[min(240px,68vw)] overflow-hidden rounded-2xl border border-border/70 bg-card shadow-lg sm:w-[260px] ${
-                      isCenter ? 'ring-1 ring-accent/30' : 'cursor-pointer'
-                    }`}
-                    onClick={(e) => {
-                      if (!isCenter) e.preventDefault();
-                    }}
-                    tabIndex={isCenter ? 0 : -1}
-                    aria-hidden={!isCenter}
-                  >
-                    <div className="relative aspect-[3/4] bg-muted">
-                      <ProductImage
-                        src={product.images?.[0]}
-                        alt={name}
-                        className="h-full w-full"
-                        imgClassName="h-full w-full object-cover"
-                      />
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/35 to-transparent p-4 pt-16">
-                        {product.isNew && (
-                          <span className="mb-2 inline-block rounded-full bg-background/90 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground">
-                            {t('shop.badges.new')}
-                          </span>
-                        )}
-                        <h3 className="font-display text-base font-semibold text-white line-clamp-1 sm:text-lg">
-                          {name}
-                        </h3>
-                        {isCenter && (
-                          <p className="mt-1 text-sm text-white/85">
-                            ${price}
-                            {product.salePrice != null && (
-                              <span className="ms-2 text-white/55 line-through">${product.price}</span>
-                            )}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+        <div
+          ref={stageRef}
+          className="relative mx-auto flex h-[min(460px,66vh)] max-w-5xl cursor-grab items-center justify-center active:cursor-grabbing select-none"
+          style={{ perspective: reduced ? '900px' : '1400px' }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          role="region"
+          aria-roledescription="carousel"
+          aria-label={t('home.featured.title', { defaultValue: "Editor's picks" })}
+        >
+          <div className="relative h-full w-full" style={{ transformStyle: 'preserve-3d' }}>
+            {products.map((product, i) => (
+              <ReelCard
+                key={product.id}
+                product={product}
+                index={i}
+                step={step}
+                radius={radius}
+                rotation={smooth}
+                isAr={isAr}
+              />
+            ))}
+          </div>
         </div>
 
         <div className="mt-6 flex items-center justify-center gap-4">
@@ -215,18 +217,20 @@ export function FeaturedCarousel() {
             className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-foreground transition-colors hover:bg-surface-hover"
             aria-label={t('common.previous', { defaultValue: 'Previous' })}
           >
-            <span aria-hidden className="rtl:rotate-180">←</span>
+            <span aria-hidden className="rtl:rotate-180">
+              ←
+            </span>
           </button>
-          <div className="flex items-center gap-1.5" role="tablist" aria-label="Featured slides">
+          <div className="flex items-center gap-1.5" role="tablist">
             {products.map((p, i) => (
               <button
                 key={p.id}
                 type="button"
                 role="tab"
-                aria-selected={i === active}
-                onClick={() => setActive(i)}
+                aria-selected={i === displayIndex}
+                onClick={() => jumpToIndex(i)}
                 className={`h-1.5 rounded-full transition-all duration-normal ${
-                  i === active ? 'w-6 bg-accent' : 'w-1.5 bg-border hover:bg-muted-foreground/40'
+                  i === displayIndex ? 'w-6 bg-accent' : 'w-1.5 bg-border hover:bg-muted-foreground/40'
                 }`}
               />
             ))}
@@ -237,7 +241,9 @@ export function FeaturedCarousel() {
             className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-foreground transition-colors hover:bg-surface-hover"
             aria-label={t('common.next', { defaultValue: 'Next' })}
           >
-            <span aria-hidden className="rtl:rotate-180">→</span>
+            <span aria-hidden className="rtl:rotate-180">
+              →
+            </span>
           </button>
         </div>
 
@@ -250,5 +256,112 @@ export function FeaturedCarousel() {
         </p>
       </div>
     </section>
+  );
+}
+
+function ReelCard({
+  product,
+  index,
+  step,
+  radius,
+  rotation,
+  isAr,
+}: {
+  product: UiProduct;
+  index: number;
+  step: number;
+  radius: number;
+  rotation: ReturnType<typeof useSpring>;
+  isAr: boolean;
+}) {
+  const { t } = useTranslation();
+  const name = isAr ? product.nameAr : product.nameEn;
+  const href = `/product/${product.slug || product.id}`;
+  const price = product.salePrice ?? product.price;
+
+  const transform = useTransform(rotation, (rot) => {
+    const angle = (index - rot) * step;
+    const rad = (angle * Math.PI) / 180;
+    const x = Math.sin(rad) * radius;
+    const z = Math.cos(rad) * radius - radius;
+    const front = Math.cos(rad);
+    const scale = 0.8 + Math.max(0, front) * 0.22;
+    return `translateX(${x}px) translateZ(${z}px) rotateY(${-angle}deg) scale(${scale})`;
+  });
+
+  const opacity = useTransform(rotation, (rot) => {
+    const angle = (index - rot) * step;
+    const rad = (angle * Math.PI) / 180;
+    const front = Math.cos(rad);
+    return Math.max(0.2, (front + 1) / 2);
+  });
+
+  const zIndex = useTransform(rotation, (rot) => {
+    const angle = (index - rot) * step;
+    const rad = (angle * Math.PI) / 180;
+    return Math.round(Math.cos(rad) * 100 + 100);
+  });
+
+  const isFront = useTransform(rotation, (rot) => {
+    const angle = ((index - rot) * step + 540) % 360 - 180;
+    return Math.abs(angle) < step * 0.55;
+  });
+
+  const [front, setFront] = useState(false);
+  useEffect(() => isFront.on('change', setFront), [isFront]);
+
+  return (
+    <motion.div
+      className="absolute left-1/2 top-1/2 will-change-transform"
+      style={{
+        width: CARD_W,
+        marginLeft: -CARD_W / 2,
+        marginTop: -CARD_W * 0.68,
+        transform,
+        opacity,
+        zIndex,
+        transformStyle: 'preserve-3d',
+        pointerEvents: front ? 'auto' : 'none',
+      }}
+    >
+      <Link
+        to={href}
+        draggable={false}
+        className={`block overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xl ${
+          front ? 'ring-1 ring-accent/40' : ''
+        }`}
+        tabIndex={front ? 0 : -1}
+        onClick={(e) => {
+          if (!front) e.preventDefault();
+        }}
+      >
+        <div className="relative aspect-[3/4] bg-muted">
+          <ProductImage
+            src={product.images?.[0]}
+            alt={name}
+            className="h-full w-full"
+            imgClassName="pointer-events-none h-full w-full object-cover"
+          />
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3.5 pt-14">
+            {product.isNew && (
+              <span className="mb-1.5 inline-block rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground">
+                {t('shop.badges.new')}
+              </span>
+            )}
+            <h3 className="font-display text-sm font-semibold text-white line-clamp-1 sm:text-base">
+              {name}
+            </h3>
+            {front && (
+              <p className="mt-0.5 text-xs text-white/85 sm:text-sm">
+                ${price}
+                {product.salePrice != null && (
+                  <span className="ms-2 text-white/50 line-through">${product.price}</span>
+                )}
+              </p>
+            )}
+          </div>
+        </div>
+      </Link>
+    </motion.div>
   );
 }
