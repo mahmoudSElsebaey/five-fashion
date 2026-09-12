@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { collectionsApi } from '@/services/apiClient';
 import { Seo } from '@/components/seo/Seo';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Card } from '@/components/ui/Card';
-import { ProductImage } from '@/components/ui/ProductImage';
+import { Collection3DCard } from '@/components/ui/Collection3DCard';
 
 type CollectionRow = {
   _id: string;
@@ -74,32 +72,21 @@ export function CollectionsPage() {
           actionTo="/shop"
         />
       ) : (
-        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => {
-            const title = isAr ? item.name?.ar : item.name?.en;
+            const title = (isAr ? item.name?.ar : item.name?.en) || 'Collection';
             return (
-              <Link key={item._id} to={`/shop?collection=${item.slug || item._id}`}>
-                <Card
-                  hoverable
-                  className="group relative aspect-[4/5] overflow-hidden border-0 bg-muted"
-                >
-                  <ProductImage
-                    src={item.image}
-                    alt={title || 'Collection'}
-                    className="absolute inset-0 h-full w-full"
-                    imgClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-5">
-                    <h2 className="font-display text-xl font-semibold text-white">{title}</h2>
-                    {item.featured && (
-                      <p className="mt-1 text-xs uppercase tracking-wider text-white/80">
-                        {t('home.collections.featured', { defaultValue: 'Featured' })}
-                      </p>
-                    )}
-                  </div>
-                </Card>
-              </Link>
+              <Collection3DCard
+                key={item._id}
+                aspectClassName="aspect-[4/5]"
+                item={{
+                  id: item._id,
+                  title,
+                  slug: item.slug || item._id,
+                  image: item.image,
+                  featured: item.featured,
+                }}
+              />
             );
           })}
         </div>

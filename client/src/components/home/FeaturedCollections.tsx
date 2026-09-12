@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
-import { ProductImage } from '@/components/ui/ProductImage';
+import { Collection3DCard } from '@/components/ui/Collection3DCard';
 import { collectionsApi } from '@/services/apiClient';
 
 type ApiCollection = {
@@ -56,7 +55,7 @@ export function FeaturedCollections() {
           </h2>
         </div>
         <Link
-          to="/shop"
+          to="/collections"
           className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
         >
           {t('home.collections.viewAll')} →
@@ -70,27 +69,20 @@ export function FeaturedCollections() {
       ) : items.length === 0 ? (
         <p className="py-12 text-center text-sm text-muted-foreground">{t('shop.empty.subtitle')}</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((item) => {
             const title = isAr ? item.name.ar : item.name.en;
             return (
-              <Link key={item._id} to={`/shop?collection=${item.slug}`}>
-                <Card
-                  hoverable
-                  className="group relative aspect-[3/4] overflow-hidden border-0 bg-muted"
-                >
-                  <ProductImage
-                    src={item.image}
-                    alt={title}
-                    className="absolute inset-0 h-full w-full"
-                    imgClassName="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-five group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-                  <div className="absolute bottom-0 start-0 end-0 p-5">
-                    <h3 className="font-display text-lg font-medium text-foreground">{title}</h3>
-                  </div>
-                </Card>
-              </Link>
+              <Collection3DCard
+                key={item._id}
+                item={{
+                  id: item._id,
+                  title,
+                  slug: item.slug,
+                  image: item.image,
+                  featured: item.featured,
+                }}
+              />
             );
           })}
         </div>
