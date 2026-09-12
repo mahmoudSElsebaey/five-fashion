@@ -190,10 +190,11 @@ export function LoginPage() {
                 key={account.key}
                 type="button"
                 onClick={() => useDemoAccount(account)}
-                className={`rounded-xl border px-3 py-3 text-start transition-all duration-normal ease-five hover:-translate-y-0.5 hover:border-accent/40 hover:bg-background ${\n                  isSelected
-                    ? 'border-accent/50 bg-background shadow-sm ring-1 ring-accent/20'
-                    : 'border-border/70 bg-background/50'
-                }`}
+                className={
+                  isSelected
+                    ? 'rounded-xl border px-3 py-3 text-start transition-all duration-normal ease-five hover:-translate-y-0.5 hover:border-accent/40 hover:bg-background border-accent/50 bg-background shadow-sm ring-1 ring-accent/20'
+                    : 'rounded-xl border px-3 py-3 text-start transition-all duration-normal ease-five hover:-translate-y-0.5 hover:border-accent/40 hover:bg-background border-border/70 bg-background/50'
+                }
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-medium">
