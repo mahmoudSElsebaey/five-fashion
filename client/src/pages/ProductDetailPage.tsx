@@ -368,10 +368,11 @@ export function ProductDetailPage() {
               }
               aria-pressed={saved}
               onClick={handleToggleWishlist}
-              className={`inline-flex h-14 min-h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 transition-all duration-200 ${\n                saved
-                  ? 'border-accent bg-accent/15 text-accent shadow-sm'
-                  : 'border-border bg-surface text-foreground hover:border-accent/60 hover:bg-accent/10 hover:text-accent'
-              }`}
+              className={
+                saved
+                  ? 'inline-flex h-14 min-h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 transition-all duration-200 border-accent bg-accent/15 text-accent shadow-sm'
+                  : 'inline-flex h-14 min-h-14 w-14 shrink-0 items-center justify-center rounded-xl border-2 transition-all duration-200 border-border bg-surface text-foreground hover:border-accent/60 hover:bg-accent/10 hover:text-accent'
+              }
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
