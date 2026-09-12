@@ -8,6 +8,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useTheme } from '@/hooks/useTheme';
 import { PageMeta } from '@/components/seo/PageMeta';
 import { AuthCommerceSync } from '@/components/auth/AuthCommerceSync';
+import { AuthSessionBootstrap } from '@/components/auth/AuthSessionBootstrap';
 
 const HomePage = lazy(() => import('@/pages/HomePage').then((m) => ({ default: m.HomePage })));
 const ShopPage = lazy(() => import('@/pages/ShopPage').then((m) => ({ default: m.ShopPage })));
@@ -85,8 +86,8 @@ const AdminCouponsPage = lazy(() =>
 
 function PageLoader() {
   return (
-    <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-label="Loading">
-      <Spinner size="lg" />
+    <div className="flex min-h-[50vh] items-center justify-center">
+      <Spinner />
     </div>
   );
 }
@@ -101,7 +102,7 @@ export default function App() {
   }, [i18n.language]);
 
   return (
-    <>
+    <AuthSessionBootstrap>
       <AuthCommerceSync />
       <Suspense fallback={<PageLoader />}>
         <Routes>
@@ -134,11 +135,119 @@ export default function App() {
               }
             />
             <Route
+              path="/product/:id"
+              element={
+                <>
+                  <PageMeta title="Product" path="/product" />
+                  <ProductDetailPage />
+                </>
+              }
+            />
+            <Route
               path="/about"
               element={
                 <>
                   <PageMeta title="About" path="/about" />
                   <AboutPage />
+                </>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <>
+                  <PageMeta title="Login" path="/login" />
+                  <LoginPage />
+                </>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <>
+                  <PageMeta title="Register" path="/register" />
+                  <RegisterPage />
+                </>
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                <>
+                  <PageMeta title="Forgot password" path="/forgot-password" />
+                  <ForgotPasswordPage />
+                </>
+              }
+            />
+            <Route
+              path="/reset-password"
+              element={
+                <>
+                  <PageMeta title="Reset password" path="/reset-password" />
+                  <ResetPasswordPage />
+                </>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <PageMeta title="Profile" path="/profile" />
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/wishlist"
+              element={
+                <>
+                  <PageMeta title="Wishlist" path="/wishlist" />
+                  <WishlistPage />
+                </>
+              }
+            />
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute>
+                  <PageMeta title="Checkout" path="/checkout" />
+                  <CheckoutPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/order-confirmation/:id"
+              element={
+                <ProtectedRoute>
+                  <PageMeta title="Order confirmed" path="/order-confirmation" />
+                  <OrderConfirmationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <ProtectedRoute>
+                  <PageMeta title="Orders" path="/orders" />
+                  <OrdersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/privacy"
+              element={
+                <>
+                  <PageMeta title="Privacy" path="/privacy" />
+                  <PrivacyPage />
+                </>
+              }
+            />
+            <Route
+              path="/terms"
+              element={
+                <>
+                  <PageMeta title="Terms" path="/terms" />
+                  <TermsPage />
                 </>
               }
             />
@@ -178,84 +287,17 @@ export default function App() {
                 </>
               }
             />
-            <Route
-              path="/privacy"
-              element={
-                <>
-                  <PageMeta title="Privacy" path="/privacy" />
-                  <PrivacyPage />
-                </>
-              }
-            />
-            <Route
-              path="/terms"
-              element={
-                <>
-                  <PageMeta title="Terms" path="/terms" />
-                  <TermsPage />
-                </>
-              }
-            />
-            <Route path="/product/:id" element={<ProductDetailPage />} />
-            <Route
-              path="/login"
-              element={
-                <>
-                  <PageMeta title="Sign in" path="/login" />
-                  <LoginPage />
-                </>
-              }
-            />
-            <Route
-              path="/register"
-              element={
-                <>
-                  <PageMeta title="Create account" path="/register" />
-                  <RegisterPage />
-                </>
-              }
-            />
-            <Route
-              path="/forgot-password"
-              element={
-                <>
-                  <PageMeta title="Forgot password" path="/forgot-password" />
-                  <ForgotPasswordPage />
-                </>
-              }
-            />
-            <Route
-              path="/reset-password"
-              element={
-                <>
-                  <PageMeta title="Reset password" path="/reset-password" />
-                  <ResetPasswordPage />
-                </>
-              }
-            />
-            <Route path="/wishlist" element={<WishlistPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/order-confirmation/:id" element={<OrderConfirmationPage />} />
-            <Route
-              path="/orders"
-              element={
-                <ProtectedRoute>
-                  <OrdersPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              }
-            />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
 
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute roles={['admin']}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<DashboardPage />} />
             <Route path="products" element={<AdminProductsPage />} />
             <Route path="categories" element={<AdminCategoriesPage />} />
@@ -267,6 +309,6 @@ export default function App() {
           </Route>
         </Routes>
       </Suspense>
-    </>
+    </AuthSessionBootstrap>
   );
 }
