@@ -6,6 +6,7 @@ import { FeaturedCarousel } from '@/components/home/FeaturedCarousel';
 import { NewArrivals } from '@/components/home/NewArrivals';
 import { EditorialSection } from '@/components/home/EditorialSection';
 import { OffersSection } from '@/components/home/OffersSection';
+import { BrandsStrip } from '@/components/home/BrandsStrip';
 import { Reveal } from '@/components/motion/Reveal';
 
 export function HomePage() {
@@ -31,6 +32,9 @@ export function HomePage() {
       </Reveal>
       <Reveal>
         <OffersSection />
+      </Reveal>
+      <Reveal delay={0.05}>
+        <BrandsStrip />
       </Reveal>
     </>
   );
