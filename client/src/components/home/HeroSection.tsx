@@ -23,7 +23,7 @@ const HERO_IMAGES: StreamImage[] = [
     alt: 'Editorial fashion portrait',
   },
   {
-    src: 'https://images.unsplash.com/photo-1485463611174-f302f50a2e87?w=900&q=80&auto=format&fit=crop',
+    src: 'https://images.unsplash.com/photo-1520975954732-35dd22299614?w=1600&q=85&auto=format&fit=crop',
     alt: 'Model in outerwear',
   },
   {
