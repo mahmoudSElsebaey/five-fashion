@@ -5,7 +5,7 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { animate, motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { ProductImage } from '@/components/ui/ProductImage';
@@ -17,21 +17,22 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 const RADIUS_DESKTOP = 300;
 const RADIUS_REDUCED = 160;
 const CARD_W = 210;
+const DRAG_THRESHOLD = 12;
 
 export function FeaturedCarousel() {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
-  const navigate = useNavigate();
   const reduced = useReducedMotion();
   const [products, setProducts] = useState<UiProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [displayIndex, setDisplayIndex] = useState(0);
 
   const stageRef = useRef<HTMLDivElement>(null);
+  const pointerActive = useRef(false);
   const dragging = useRef(false);
+  const startX = useRef(0);
   const lastX = useRef(0);
   const velocity = useRef(0);
-  const moved = useRef(false);
 
   const rotation = useMotionValue(0);
   const smooth = useSpring(rotation, { stiffness: 110, damping: 24, mass: 0.85 });
@@ -82,11 +83,7 @@ export function FeaturedCarousel() {
       lock = true;
       const dir = Math.sign(e.deltaY || e.deltaX) || 1;
       const current = Math.round(rotation.get());
-      animate(rotation, current + dir, {
-        type: 'spring',
-        stiffness: 140,
-        damping: 22,
-      });
+      animate(rotation, current + dir, { type: 'spring', stiffness: 140, damping: 22 });
       window.setTimeout(() => {
         lock = false;
       }, 260);
@@ -122,30 +119,36 @@ export function FeaturedCarousel() {
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (reduced) return;
-    dragging.current = true;
-    moved.current = false;
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('a, button')) return;
+    pointerActive.current = true;
+    dragging.current = false;
+    startX.current = e.clientX;
     lastX.current = e.clientX;
     velocity.current = 0;
-    e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!dragging.current || reduced || !count) return;
+    if (!pointerActive.current || reduced || !count) return;
+    const total = e.clientX - startX.current;
+    if (!dragging.current && Math.abs(total) > DRAG_THRESHOLD) {
+      dragging.current = true;
+    }
+    if (!dragging.current) return;
     const dx = e.clientX - lastX.current;
-    if (Math.abs(dx) > 4) moved.current = true;
     lastX.current = e.clientX;
-    const sens = -0.016;
-    const delta = dx * sens;
+    const delta = dx * -0.016;
     velocity.current = delta;
     rotation.set(rotation.get() + delta);
   };
 
   const onPointerUp = () => {
-    if (!dragging.current) return;
+    if (!pointerActive.current) return;
+    const wasDragging = dragging.current;
+    pointerActive.current = false;
     dragging.current = false;
-    if (moved.current) {
-      const boost = velocity.current * 10;
-      snapTo(Math.round(rotation.get() + boost));
+    if (wasDragging) {
+      snapTo(Math.round(rotation.get() + velocity.current * 10));
     }
   };
 
@@ -163,6 +166,7 @@ export function FeaturedCarousel() {
 
   const current = products[displayIndex];
   const currentName = isAr ? current.nameAr : current.nameEn;
+  const productHref = `/product/${current.slug || current.id}`;
 
   return (
     <section className="relative overflow-hidden py-16 sm:py-20">
@@ -211,8 +215,6 @@ export function FeaturedCarousel() {
                 radius={radius}
                 rotation={smooth}
                 isAr={isAr}
-                wasDragged={() => moved.current}
-                onOpen={(href) => navigate(href)}
               />
             ))}
           </div>
@@ -255,18 +257,17 @@ export function FeaturedCarousel() {
           </button>
         </div>
 
-        <p className="mt-4 text-center text-sm text-muted-foreground">
+        <div className="relative z-20 mt-5 flex flex-col items-center gap-1 text-center">
           <Link
-            to={`/product/${current.slug || current.id}`}
-            className="font-medium text-foreground underline-offset-4 transition-colors hover:text-accent hover:underline"
+            to={productHref}
+            className="text-base font-semibold text-foreground underline-offset-4 transition-colors hover:text-accent hover:underline sm:text-lg"
           >
             {currentName}
           </Link>
-          {' · '}
-          <Link to="/shop?featured=1" className="text-accent underline-offset-4 hover:underline">
+          <Link to="/shop?featured=1" className="text-sm text-accent underline-offset-4 hover:underline">
             {t('home.featured.viewAll', { defaultValue: 'View all featured' })}
           </Link>
-        </p>
+        </div>
       </div>
     </section>
   );
@@ -279,8 +280,6 @@ function ReelCard({
   radius,
   rotation,
   isAr,
-  wasDragged,
-  onOpen,
 }: {
   product: UiProduct;
   index: number;
@@ -288,8 +287,6 @@ function ReelCard({
   radius: number;
   rotation: ReturnType<typeof useSpring>;
   isAr: boolean;
-  wasDragged: () => boolean;
-  onOpen: (href: string) => void;
 }) {
   const { t } = useTranslation();
   const name = isAr ? product.nameAr : product.nameEn;
@@ -341,17 +338,15 @@ function ReelCard({
         pointerEvents: front ? 'auto' : 'none',
       }}
     >
-      <button
-        type="button"
+      <Link
+        to={href}
         draggable={false}
         className={`block w-full overflow-hidden rounded-2xl border border-border/70 bg-card text-start shadow-xl ${
-          front ? 'ring-1 ring-accent/40 cursor-pointer' : 'cursor-default'
+          front ? 'ring-1 ring-accent/40' : ''
         }`}
         tabIndex={front ? 0 : -1}
         onClick={(e) => {
           e.stopPropagation();
-          if (!front || wasDragged()) return;
-          onOpen(href);
         }}
       >
         <div className="relative aspect-[3/4] bg-muted">
@@ -380,7 +375,7 @@ function ReelCard({
             )}
           </div>
         </div>
-      </button>
+      </Link>
     </motion.div>
   );
 }
