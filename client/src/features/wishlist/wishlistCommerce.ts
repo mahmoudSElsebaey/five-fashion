@@ -15,6 +15,8 @@ type ApiProduct = {
   price?: number;
   compareAtPrice?: number;
   brand?: string;
+  images?: string[];
+  image?: string;
 };
 
 type ApiWishlist = {
@@ -30,6 +32,7 @@ function mapServerWishlist(data: unknown): WishlistItem[] {
       const price = p.price ?? 0;
       const sale =
         p.compareAtPrice && p.compareAtPrice > price ? price : undefined;
+      const image = p.images?.find((value) => typeof value === 'string' && value.trim()) || p.image;
       return {
         productId: String(p._id),
         nameEn: p.name?.en || '',
@@ -37,6 +40,7 @@ function mapServerWishlist(data: unknown): WishlistItem[] {
         price: sale ? p.compareAtPrice! : price,
         salePrice: sale,
         brand: p.brand || 'FIVE',
+        image,
       };
     });
 }
