@@ -334,18 +334,18 @@ export function ProductDetailPage() {
             <Button
               size="lg"
               variant="outline"
-              className="sm:w-14"
+              className="h-12 w-12 shrink-0 p-0 sm:h-14 sm:w-14"
               aria-label={t('product.wishlist', { defaultValue: 'Wishlist' })}
               onClick={handleToggleWishlist}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
+                width="27"
+                height="27"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="1.5"
+                strokeWidth="1.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 aria-hidden
