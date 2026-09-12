@@ -248,7 +248,12 @@ export function FeaturedCarousel() {
         </div>
 
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">{currentName}</span>
+          <Link
+            to={`/product/${current.slug || current.id}`}
+            className="font-medium text-foreground underline-offset-4 transition-colors hover:text-accent hover:underline"
+          >
+            {currentName}
+          </Link>
           {' · '}
           <Link to="/shop?featured=1" className="text-accent underline-offset-4 hover:underline">
             {t('home.featured.viewAll', { defaultValue: 'View all featured' })}
