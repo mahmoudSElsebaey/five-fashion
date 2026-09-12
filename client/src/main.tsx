@@ -8,6 +8,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import './styles/tokens.css';
 import './styles/index.css';
 import './i18n';
+import './i18n/translationPatches';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
