@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -61,6 +61,8 @@ export function Header() {
   const { t } = useTranslation();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
   const user = useSelector((s: RootState) => s.auth.user);
   const isAdmin = user?.role === 'admin';
@@ -70,16 +72,37 @@ export function Header() {
 
   useEffect(() => {
     setMobileOpen(false);
+    setProfileOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
-    if (!mobileOpen) return;
+    if (!mobileOpen && !profileOpen) return;
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMobileOpen(false);
+      if (e.key === 'Escape') {
+        setMobileOpen(false);
+        setProfileOpen(false);
+      }
     };
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (
+        profileOpen &&
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(e.target as Node)
+      ) {
+        setProfileOpen(false);
+      }
+    };
+
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [mobileOpen]);
+    document.addEventListener('pointerdown', onPointerDown);
+
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onPointerDown);
+    };
+  }, [mobileOpen, profileOpen]);
 
   const mobileNavClass = ({ isActive }: { isActive: boolean }) =>
     `rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
@@ -90,9 +113,54 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-md">
-      <div className="relative mx-auto hidden h-[5.25rem] max-w-7xl items-center px-4 md:flex lg:px-8">
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <Link to="/" className="pointer-events-auto flex items-center" aria-label="FIVE Fashion home">
+      {/* Desktop: three independent equal-width columns. */}
+      <div className="mx-auto hidden h-[5.25rem] max-w-7xl grid-cols-3 items-center px-4 md:grid lg:px-8">
+        <div className="flex min-w-0 w-full items-center justify-center">
+          <nav
+            className="inline-flex max-w-full items-center gap-1 rounded-full border border-border/20 bg-surface/70 p-1.5 shadow-sm backdrop-blur-sm"
+            aria-label="Main navigation"
+          >
+            {navItems.map((item) => (
+              <NavLink
+                key={item.key}
+                to={item.path}
+                end={item.path === '/'}
+                className={({ isActive }) =>
+                  `relative flex shrink-0 items-center justify-center gap-2 rounded-full transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+                    isActive
+                      ? 'bg-accent px-3.5 py-2.5 text-accent-foreground shadow-md shadow-accent/20 sm:px-4'
+                      : 'px-2.5 py-2.5 text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span className={`shrink-0 transition-transform duration-300 ${isActive ? 'scale-110' : ''}`}>
+                      {item.icon}
+                    </span>
+                    <AnimatePresence initial={false} mode="popLayout">
+                      {isActive && (
+                        <motion.span
+                          key={`${item.key}-label`}
+                          initial={{ width: 0, opacity: 0 }}
+                          animate={{ width: 'auto', opacity: 1 }}
+                          exit={{ width: 0, opacity: 0 }}
+                          transition={{ duration: 0.22, ease: 'easeOut' }}
+                          className="overflow-hidden whitespace-nowrap text-xs font-semibold sm:text-sm"
+                        >
+                          {t(`nav.${item.key}`)}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+
+        <div className="flex min-w-0 w-full items-center justify-center">
+          <Link to="/" className="flex items-center justify-center" aria-label="FIVE Fashion home">
             <img
               src="/logo.png"
               alt="FIVE Fashion"
@@ -101,61 +169,14 @@ export function Header() {
           </Link>
         </div>
 
-        <div className="flex w-full items-center justify-around gap-4 ">
-          <nav
-            className="inline-flex items-center gap-1 px-4 py-2 rounded-full border border-border/20 bg-surface/70 p-1.5 shadow-sm backdrop-blur-sm"
-            aria-label="Main navigation"
-            role="tablist"
-          >
-            {navItems.map((item) => {
-              const isActive =
-                item.path === '/'
-                  ? location.pathname === '/'
-                  : location.pathname.startsWith(item.path);
-              return (
-                <NavLink
-                  key={item.key}
-                  to={item.path}
-                  end={item.path === '/'}
-                  role="tab"
-                  aria-selected={isActive}
-                  className={`relative flex items-center justify-center gap-2 rounded-full transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
-                    isActive
-                      ? 'bg-accent px-3.5 py-2.5 text-accent-foreground shadow-md shadow-accent/20 sm:px-4'
-                      : 'px-2.5 py-2.5 text-muted-foreground hover:bg-muted/80 hover:text-foreground'
-                  }`}
-                >
-                  <span className={`shrink-0 transition-transform duration-300 ${isActive ? 'scale-110' : ''}`}>
-                    {item.icon}
-                  </span>
-                  <AnimatePresence initial={false}>
-                    {isActive && (
-                      <motion.span
-                        key="label"
-                        initial={{ width: 0, opacity: 0 }}
-                        animate={{ width: 'auto', opacity: 1 }}
-                        exit={{ width: 0, opacity: 0 }}
-                        transition={{ duration: 0.28, ease: 'easeOut' }}
-                        className="overflow-hidden whitespace-nowrap text-xs font-semibold sm:text-sm"
-                      >
-                        {t(`nav.${item.key}`)}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </NavLink>
-              );
-            })}
-            {isAdmin && (
-              <AdminDashTab label={t('admin.nav.dashboard', { defaultValue: 'Dashboard' })} />
-            )}
-          </nav>
-
+        <div className="flex min-w-0 w-full items-center justify-center">
           <div
-            className="inline-flex items-center gap-0.5 px-4 py-2 rounded-full border border-border/70 bg-surface/70 shadow-sm backdrop-blur-sm"
+            className="inline-flex max-w-full items-center gap-0.5 rounded-full border border-border/70 bg-surface/70 px-4 py-2 shadow-sm backdrop-blur-sm"
             role="toolbar"
             aria-label="Utilities"
           >
             <LanguageToggle />
+
             {!isAuthenticated && (
               <IconBtn to="/login" label={t('auth.login')}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -165,25 +186,85 @@ export function Header() {
                 </svg>
               </IconBtn>
             )}
+
             <ThemeToggle />
+
             {isAuthenticated && (
-              <IconBtn to="/profile" label={t('nav.profile', { defaultValue: 'Profile' })}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-                </svg>
-              </IconBtn>
+              <div ref={profileMenuRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setProfileOpen((open) => !open)}
+                  className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+                    profileOpen
+                      ? 'bg-accent text-accent-foreground'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+                  aria-label={t('nav.profile', { defaultValue: 'Profile' })}
+                  aria-haspopup="menu"
+                  aria-expanded={profileOpen}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                  </svg>
+                </button>
+
+                <AnimatePresence>
+                  {profileOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                      transition={{ duration: 0.16, ease: 'easeOut' }}
+                      className="absolute end-0 top-full mt-2 w-48 origin-top-right rounded-2xl border border-border/70 bg-surface/95 p-1.5 shadow-xl shadow-black/10 backdrop-blur-xl"
+                      role="menu"
+                    >
+                      <Link
+                        to="/profile"
+                        role="menuitem"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <circle cx="12" cy="8" r="4" />
+                          <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                        </svg>
+                        <span>{t('nav.profile', { defaultValue: 'Profile' })}</span>
+                      </Link>
+
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          role="menuitem"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                            <rect x="3" y="3" width="7" height="7" rx="1" />
+                            <rect x="14" y="3" width="7" height="7" rx="1" />
+                            <rect x="3" y="14" width="7" height="7" rx="1" />
+                            <rect x="14" y="14" width="7" height="7" rx="1" />
+                          </svg>
+                          <span>{t('admin.nav.dashboard', { defaultValue: 'Dashboard' })}</span>
+                        </Link>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             )}
-            <IconBtn to="/wishlist" label="Wishlist" badge={wishlistCount}>
+
+            <IconBtn to="/wishlist" label={t('nav.wishlist', { defaultValue: 'Wishlist' })} badge={wishlistCount}>
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
               </svg>
             </IconBtn>
+
             <button
               type="button"
               onClick={() => dispatch(openCart())}
               className="relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              aria-label="Cart"
+              aria-label={t('nav.cart', { defaultValue: 'Cart' })}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <circle cx="8" cy="21" r="1" />
@@ -200,6 +281,7 @@ export function Header() {
         </div>
       </div>
 
+      {/* Mobile/tablet header remains separate from the desktop three-column layout. */}
       <div className="mx-auto flex h-[4.25rem] max-w-7xl items-center justify-between gap-3 px-4 md:hidden">
         <Link to="/" className="flex shrink-0 items-center" onClick={() => setMobileOpen(false)} aria-label="FIVE Fashion home">
           <img
@@ -248,34 +330,24 @@ export function Header() {
                 </span>
               </NavLink>
             ))}
-            {isAdmin && (
-              <NavLink
-                to="/admin"
-                end
-                onClick={() => setMobileOpen(false)}
-                className={({ isActive }) =>
-                  `rounded-xl border px-3 py-2.5 text-sm font-semibold ${
-                    isActive ? 'border-accent bg-accent text-accent-foreground' : 'border-accent/40 bg-accent/10 text-accent'
-                  }`
-                }
-              >
-                {t('admin.nav.dashboard', { defaultValue: 'Dashboard' })}
-              </NavLink>
-            )}
+
             {!isAuthenticated && (
               <NavLink to="/login" end onClick={() => setMobileOpen(false)} className={mobileNavClass}>
                 {t('auth.login')}
               </NavLink>
             )}
+
             {isAuthenticated && (
               <NavLink to="/profile" end onClick={() => setMobileOpen(false)} className={mobileNavClass}>
                 {t('nav.profile', { defaultValue: 'Profile' })}
               </NavLink>
             )}
+
             <NavLink to="/wishlist" end onClick={() => setMobileOpen(false)} className={mobileNavClass}>
               {t('nav.wishlist', { defaultValue: 'Wishlist' })}
               {wishlistCount > 0 ? ` (${wishlistCount})` : ''}
             </NavLink>
+
             <button
               type="button"
               onClick={() => {
@@ -287,6 +359,7 @@ export function Header() {
               {t('nav.cart', { defaultValue: 'Cart' })}
               {cartCount > 0 ? ` (${cartCount})` : ''}
             </button>
+
             <div className="mt-2 flex items-center justify-between gap-2 border-t border-border/40 pt-3">
               <LanguageToggle />
               <ThemeToggle />
@@ -295,45 +368,6 @@ export function Header() {
         </div>
       )}
     </header>
-  );
-}
-
-function AdminDashTab({ label }: { label: string }) {
-  const location = useLocation();
-  const isActive = location.pathname.startsWith('/admin');
-  return (
-    <NavLink
-      to="/admin"
-      end
-      role="tab"
-      aria-selected={isActive}
-      className={`relative flex items-center justify-center gap-2 rounded-full transition-all duration-300 ease-out ${
-        isActive
-          ? 'bg-accent px-3.5 py-2.5 text-accent-foreground shadow-md shadow-accent/20'
-          : 'border border-accent/40 bg-accent/10 px-2.5 py-2.5 text-accent hover:bg-accent/20'
-      }`}
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden className={isActive ? 'scale-110' : ''}>
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
-      </svg>
-      <AnimatePresence initial={false}>
-        {isActive && (
-          <motion.span
-            key="dash"
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 'auto', opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.28, ease: 'easeOut' }}
-            className="overflow-hidden whitespace-nowrap text-xs font-semibold sm:text-sm"
-          >
-            {label}
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </NavLink>
   );
 }
 
@@ -352,7 +386,7 @@ function IconBtn({
     <Link
       to={to}
       aria-label={label}
-      className="relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
     >
       {children}
       {badge != null && badge > 0 && (
