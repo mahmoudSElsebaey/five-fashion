@@ -89,7 +89,7 @@ export function Header() {
     }`;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/30 bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full backdrop-blur-md">
       <div className="relative mx-auto hidden h-[5.25rem] max-w-7xl items-center px-4 md:flex lg:px-8">
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <Link to="/" className="pointer-events-auto flex items-center" aria-label="FIVE Fashion home">
@@ -101,9 +101,9 @@ export function Header() {
           </Link>
         </div>
 
-        <div className="flex w-full items-center justify-between gap-4">
+        <div className="flex w-full items-center justify-around gap-4 border">
           <nav
-            className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-surface/70 p-1.5 shadow-sm backdrop-blur-sm"
+            className="inline-flex items-center gap-1 px-4 py-2 rounded-full border border-border/20 bg-surface/70 p-1.5 shadow-sm backdrop-blur-sm"
             aria-label="Main navigation"
             role="tablist"
           >
@@ -151,7 +151,7 @@ export function Header() {
           </nav>
 
           <div
-            className="inline-flex items-center gap-0.5 rounded-full border border-border/70 bg-surface/70 px-1.5 py-1 shadow-sm backdrop-blur-sm"
+            className="inline-flex items-center gap-0.5 px-4 py-2 rounded-full border border-border/70 bg-surface/70 shadow-sm backdrop-blur-sm"
             role="toolbar"
             aria-label="Utilities"
           >
