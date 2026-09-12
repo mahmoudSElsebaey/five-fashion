@@ -9,14 +9,25 @@ export function EditorialSection() {
   return (
     <section className="relative overflow-hidden bg-surface">
       <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 py-24 sm:px-6 lg:grid-cols-2 lg:px-8">
-        {/* Visual side */}
-        <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted lg:aspect-square">
-          <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-accent/10 to-transparent" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-display text-8xl font-semibold text-foreground/5 select-none">
-              FIVE
-            </span>
-          </div>
+        {/* Visual side — large 3D logo */}
+        <div className="relative flex aspect-[4/5] items-center justify-center overflow-visible rounded-2xl bg-gradient-to-br from-muted/80 via-background to-muted/60 lg:aspect-square">
+          <div
+            className="pointer-events-none absolute inset-8 rounded-full opacity-40 blur-3xl"
+            style={{
+              background:
+                'radial-gradient(circle, color-mix(in srgb, var(--accent) 45%, transparent), transparent 70%)',
+            }}
+          />
+          <img
+            src="/logo.png"
+            alt="FIVE Fashion"
+            className="relative z-10 h-40 w-auto object-contain sm:h-52 lg:h-64"
+            style={{
+              filter:
+                'drop-shadow(0 28px 40px rgba(0,0,0,0.45)) drop-shadow(0 12px 20px color-mix(in srgb, var(--accent) 40%, transparent)) drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+              transform: 'translateZ(40px)',
+            }}
+          />
         </div>
 
         {/* Content side */}
