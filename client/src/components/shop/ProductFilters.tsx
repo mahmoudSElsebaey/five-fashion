@@ -57,6 +57,12 @@ export function ProductFilters({ filters, onChange, onClose, isMobile = false }:
 
   const update = (partial: Partial<FilterState>) => onChange({ ...filters, ...partial });
 
+  const getCollectionLabel = (collection: string) => {
+    const normalized = collection.toLowerCase().replace(/-/g, ' ');
+    if (isAr && normalized === 'accessories') return 'الإكسسوارات';
+    return normalized;
+  };
+
   return (
     <aside className={`space-y-8 ${isMobile ? 'p-4' : 'sticky top-24'}`}>
       {isMobile && (
@@ -68,10 +74,12 @@ export function ProductFilters({ filters, onChange, onClose, isMobile = false }:
 
       {filters.collection && filters.collection !== 'all' && (
         <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm">
-          <p className="text-xs text-muted-foreground">{t('shop.filters.collection', { defaultValue: 'Collection' })}</p>
-          <p className="font-medium capitalize">{filters.collection.replace(/-/g, ' ')}</p>
+          <p className="text-xs text-muted-foreground">
+            {isAr ? 'المجموعة' : t('shop.filters.collection', { defaultValue: 'Collection' })}
+          </p>
+          <p className="font-medium capitalize">{getCollectionLabel(filters.collection)}</p>
           <button type="button" className="mt-1 text-xs text-muted-foreground underline hover:text-foreground" onClick={() => update({ collection: 'all' })}>
-            {t('shop.filters.clearCollection', { defaultValue: 'Clear collection' })}
+            {isAr ? 'إلغاء اختيار المجموعة' : t('shop.filters.clearCollection', { defaultValue: 'Clear collection' })}
           </button>
         </div>
       )}
@@ -82,12 +90,7 @@ export function ProductFilters({ filters, onChange, onClose, isMobile = false }:
           {categoryOptions.map((cat) => {
             const label = categoryLabels[cat] || { en: cat, ar: cat };
             return (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => update({ category: cat })}
-                className={`rounded-md px-3 py-1.5 text-start text-sm transition-colors ${filters.category === cat ? 'bg-muted font-medium text-foreground ring-1 ring-border' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'}`}
-              >
+              <button key={cat} type="button" onClick={() => update({ category: cat })} className={`rounded-md px-3 py-1.5 text-start text-sm transition-colors ${filters.category === cat ? 'bg-muted font-medium text-foreground ring-1 ring-border' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'}`}>
                 {isAr ? label.ar : label.en}
               </button>
             );
