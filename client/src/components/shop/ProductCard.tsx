@@ -149,7 +149,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-accent/40 bg-background/90 px-3 py-2.5 text-sm font-semibold text-foreground shadow-lg shadow-black/20 backdrop-blur-md transition-transform duration-300 hover:scale-[1.03] hover:border-accent hover:bg-accent hover:text-accent-foreground active:scale-[0.98]"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-accent/40 bg-background/90 px-3 py-2.5 text-sm font-semibold !text-black shadow-lg shadow-black/20 backdrop-blur-md transition-transform duration-300 hover:scale-[1.03] hover:border-accent hover:bg-accent !hover:text-black active:scale-[0.98]"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -168,7 +168,7 @@ export function ProductCard({ product }: ProductCardProps) {
                     <circle cx="19" cy="21" r="1" />
                     <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
                   </svg>
-                  <span>{t('product.addToCart', { defaultValue: 'Add to Cart' })}</span>
+                  <span className="!text-black">{t('product.addToCart', { defaultValue: 'Add to Cart' })}</span>
                 </button>
               </CardItem>
             </div>
