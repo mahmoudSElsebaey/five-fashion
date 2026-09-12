@@ -36,10 +36,10 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiRequest<T>(
+async function executeJsonRequest<T>(
   path: string,
-  options: RequestInit = {},
-  auth = false
+  options: RequestInit,
+  auth: boolean
 ): Promise<ApiResponse<T>> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -52,21 +52,64 @@ export async function apiRequest<T>(
 
   const res = await fetch(`${API_URL}${path}`, { ...options, headers });
   let data: ApiResponse<T> = { success: false };
-  try { data = await res.json(); } catch { /* empty */ }
+  try {
+    data = await res.json();
+  } catch {
+    /* empty */
+  }
   if (!res.ok) throw new ApiError(data.message || 'Request failed', res.status, data);
   return data;
 }
 
-async function uploadRequest<T>(path: string, body: FormData): Promise<ApiResponse<T>> {
-  const headers: Record<string, string> = {};
-  const token = getToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
+export async function apiRequest<T>(
+  path: string,
+  options: RequestInit = {},
+  auth = false
+): Promise<ApiResponse<T>> {
+  try {
+    return await executeJsonRequest<T>(path, options, auth);
+  } catch (err) {
+    if (
+      auth &&
+      err instanceof ApiError &&
+      err.status === 401 &&
+      !path.startsWith('/auth/')
+    ) {
+      const { refreshSession } = await import('@/features/auth/session');
+      const ok = await refreshSession();
+      if (ok) return executeJsonRequest<T>(path, options, auth);
+    }
+    throw err;
+  }
+}
 
-  const res = await fetch(`${API_URL}${path}`, { method: 'POST', headers, body });
-  let data: ApiResponse<T> = { success: false };
-  try { data = await res.json(); } catch { /* empty */ }
-  if (!res.ok) throw new ApiError(data.message || 'Upload failed', res.status, data);
-  return data;
+async function uploadRequest<T>(path: string, body: FormData): Promise<ApiResponse<T>> {
+  const doUpload = async () => {
+    const headers: Record<string, string> = {};
+    const token = getToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const res = await fetch(`${API_URL}${path}`, { method: 'POST', headers, body });
+    let data: ApiResponse<T> = { success: false };
+    try {
+      data = await res.json();
+    } catch {
+      /* empty */
+    }
+    if (!res.ok) throw new ApiError(data.message || 'Upload failed', res.status, data);
+    return data;
+  };
+
+  try {
+    return await doUpload();
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 401) {
+      const { refreshSession } = await import('@/features/auth/session');
+      const ok = await refreshSession();
+      if (ok) return doUpload();
+    }
+    throw err;
+  }
 }
 
 export const productsApi = {
