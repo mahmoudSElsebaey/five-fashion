@@ -16,10 +16,10 @@ import { Seo } from '@/components/seo/Seo';
 import { ProductJsonLd } from '@/components/seo/ProductJsonLd';
 import { productsApi } from '@/services/apiClient';
 import { mapApiProduct, type ApiProduct, type UiProduct } from '@/types/product';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCartSmart } from '@/features/cart/cartCommerce';
 import { toggleWishlistSmart } from '@/features/wishlist/wishlistCommerce';
-import type { AppDispatch } from '@/store';
+import type { AppDispatch, RootState } from '@/store';
 import { store } from '@/store';
 
 const OBJECT_ID_RE = /^[a-f\d]{24}$/i;
@@ -30,6 +30,7 @@ export function ProductDetailPage() {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const dispatch = useDispatch<AppDispatch>();
+  const wishlistIds = useSelector((s: RootState) => s.wishlist.items.map((i) => i.productId));
 
   const [product, setProduct] = useState<UiProduct | null>(null);
   const [loading, setLoading] = useState(true);
@@ -126,7 +127,7 @@ export function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-3 py-6 sm:px-6 sm:py-10 lg:px-8">
         {loadError ? (
           <ErrorState
             title={t('product.notFound')}
@@ -156,6 +157,7 @@ export function ProductDetailPage() {
   const maxQty = Math.max(1, product.stock ?? 99);
   const outOfStock = typeof product.stock === 'number' && product.stock <= 0;
   const reviewCount = product.reviewCount ?? 0;
+  const saved = wishlistIds.includes(product.id);
 
   const handleAddToCart = () => {
     if (outOfStock) return;
@@ -193,7 +195,7 @@ export function ProductDetailPage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-3 py-6 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
       <Seo
         title={name}
         description={`${name} — ${product.brand} | FIVE Fashion luxury`}
@@ -210,17 +212,20 @@ export function ProductDetailPage() {
         availability={outOfStock ? 'OutOfStock' : 'InStock'}
       />
 
-      <nav className="mb-8 text-sm text-muted-foreground" aria-label="Breadcrumb">
+      <nav
+        className="mb-5 flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-muted-foreground sm:mb-8 sm:text-sm"
+        aria-label="Breadcrumb"
+      >
         <Link to="/" className="hover:text-foreground">
           {t('nav.home')}
         </Link>
-        <span className="mx-2">/</span>
+        <span className="mx-1 sm:mx-2">/</span>
         <Link to="/shop" className="hover:text-foreground">
           {t('nav.shop')}
         </Link>
         {product.category && (
           <>
-            <span className="mx-2">/</span>
+            <span className="mx-1 sm:mx-2">/</span>
             <Link
               to={`/shop?category=${encodeURIComponent(product.category)}`}
               className="hover:text-foreground capitalize"
@@ -229,11 +234,11 @@ export function ProductDetailPage() {
             </Link>
           </>
         )}
-        <span className="mx-2">/</span>
-        <span className="text-foreground">{name}</span>
+        <span className="mx-1 sm:mx-2">/</span>
+        <span className="line-clamp-1 text-foreground">{name}</span>
       </nav>
 
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
+      <div className="grid grid-cols-1 gap-6 sm:gap-10 lg:grid-cols-2 lg:gap-16">
         <ProductGallery images={product.images} name={name} />
 
         <div className="flex flex-col">
@@ -246,12 +251,14 @@ export function ProductDetailPage() {
           </div>
 
           <p className="text-sm text-muted-foreground">{product.brand}</p>
-          <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight sm:text-4xl">{name}</h1>
+          <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">
+            {name}
+          </h1>
 
-          <div className="mt-4 flex items-baseline gap-3">
-            <span className="text-2xl font-semibold">${displayPrice}</span>
+          <div className="mt-3 flex items-baseline gap-3 sm:mt-4">
+            <span className="text-xl font-semibold sm:text-2xl">${displayPrice}</span>
             {product.salePrice && (
-              <span className="text-lg text-muted-foreground line-through">${product.price}</span>
+              <span className="text-base text-muted-foreground line-through sm:text-lg">${product.price}</span>
             )}
           </div>
 
@@ -270,9 +277,11 @@ export function ProductDetailPage() {
             </div>
           )}
 
-          <p className="mt-6 text-muted-foreground leading-relaxed whitespace-pre-line">{description}</p>
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground whitespace-pre-line sm:mt-6 sm:text-base">
+            {description}
+          </p>
 
-          <div className="mt-8 space-y-6">
+          <div className="mt-6 space-y-5 sm:mt-8 sm:space-y-6">
             {product.colors.length > 0 && (
               <ColorSelector colors={product.colors} selected={selectedColor} onChange={setSelectedColor} />
             )}
@@ -301,7 +310,7 @@ export function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-lg hover:bg-surface-hover"
+                  className="flex h-11 w-11 items-center justify-center rounded-lg border border-border text-lg hover:bg-surface-hover sm:h-10 sm:w-10"
                   aria-label="Decrease quantity"
                   disabled={quantity <= 1}
                 >
@@ -313,7 +322,7 @@ export function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
-                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-lg hover:bg-surface-hover"
+                  className="flex h-11 w-11 items-center justify-center rounded-lg border border-border text-lg hover:bg-surface-hover sm:h-10 sm:w-10"
                   aria-label="Increase quantity"
                   disabled={quantity >= maxQty}
                 >
@@ -323,44 +332,54 @@ export function ProductDetailPage() {
             </div>
           </div>
 
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-            <Button size="lg" className="flex-1" onClick={handleAddToCart} disabled={outOfStock}>
+          <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:items-stretch">
+            <Button size="lg" className="w-full flex-1 sm:w-auto" onClick={handleAddToCart} disabled={outOfStock}>
               {outOfStock
                 ? t('product.outOfStock', { defaultValue: 'Out of stock' })
                 : addedToCart
                   ? t('product.added')
                   : t('product.addToCart')}
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-12 w-12 shrink-0 p-0 sm:h-14 sm:w-14"
+            <button
+              type="button"
               aria-label={t('product.wishlist', { defaultValue: 'Wishlist' })}
+              aria-pressed={saved}
               onClick={handleToggleWishlist}
+              className={`inline-flex h-14 min-h-[3.5rem] w-full shrink-0 items-center justify-center gap-2 rounded-xl border-2 px-4 text-base font-semibold transition-all duration-200 sm:h-14 sm:w-14 sm:min-w-[3.5rem] sm:px-0 ${
+                saved
+                  ? 'border-accent bg-accent/15 text-accent shadow-sm'
+                  : 'border-border bg-surface text-foreground hover:border-accent/60 hover:bg-accent/10 hover:text-accent'
+              }`}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="27"
-                height="27"
+                width="26"
+                height="26"
                 viewBox="0 0 24 24"
-                fill="none"
+                fill={saved ? 'currentColor' : 'none'}
                 stroke="currentColor"
-                strokeWidth="1.8"
+                strokeWidth="2.2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 aria-hidden
+                className="shrink-0"
               >
                 <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
               </svg>
-            </Button>
+              <span className="sm:hidden">
+                {saved
+                  ? t('product.inWishlist', { defaultValue: 'Saved' })
+                  : t('product.wishlist', { defaultValue: 'Wishlist' })}
+              </span>
+            </button>
           </div>
 
-          <div className="mt-10">
+          <div className="mt-8 sm:mt-10">
             <h3 className="mb-3 text-sm font-semibold tracking-wide">{t('product.view3d')}</h3>
-            <Product3DViewer className="h-56 w-full border border-border" modelUrl={product.modelUrl} />
+            <Product3DViewer className="h-48 w-full border border-border sm:h-56" modelUrl={product.modelUrl} />
           </div>
 
-          <div className="mt-8 space-y-4 border-t border-border pt-8">
+          <div className="mt-8 space-y-4 border-t border-border pt-6 sm:pt-8">
             <details className="group">
               <summary className="cursor-pointer list-none text-sm font-semibold tracking-wide">
                 {t('product.details')}
@@ -388,11 +407,11 @@ export function ProductDetailPage() {
       {product.id && <ProductReviews productId={product.id} />}
 
       {related.length > 0 && (
-        <section className="mt-24">
-          <h2 className="mb-8 font-display text-2xl font-semibold tracking-tight">
+        <section className="mt-14 sm:mt-20 lg:mt-24">
+          <h2 className="mb-6 font-display text-xl font-semibold tracking-tight sm:mb-8 sm:text-2xl">
             {t('product.related')}
           </h2>
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-4">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
