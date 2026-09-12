@@ -143,7 +143,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
               <CardItem
                 translateZ={80}
-                className="pointer-events-none absolute inset-x-3 bottom-3 z-20 opacity-0 transition-all duration-300 group-hover:pointer-events-auto group-hover:opacity-100 max-sm:pointer-events-auto max-sm:opacity-100 max-sm:translate-y-0"
+                className="pointer-events-none absolute inset-x-3 bottom-3 z-20 translate-x-4 opacity-0 transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 max-sm:pointer-events-auto max-sm:translate-x-0 max-sm:opacity-100"
               >
                 <button
                   type="button"
