@@ -13,6 +13,11 @@ i18n.addResource('ar', 'translation', 'home.featured.subtitle', 'اسحب الب
 i18n.addResource('en', 'translation', 'home.featured.viewAll', 'View all featured');
 i18n.addResource('ar', 'translation', 'home.featured.viewAll', 'عرض كل المميزة');
 
+i18n.addResource('en', 'translation', 'home.brands.label', 'Featured brands');
+i18n.addResource('ar', 'translation', 'home.brands.label', 'العلامات المميزة');
+i18n.addResource('en', 'translation', 'home.brands.title', 'Houses we celebrate');
+i18n.addResource('ar', 'translation', 'home.brands.title', 'دور الأزياء التي نحتفي بها');
+
 i18n.addResource('en', 'translation', 'nav.profile', 'Profile');
 i18n.addResource('ar', 'translation', 'nav.profile', 'الملف الشخصي');
 i18n.addResource('en', 'translation', 'nav.wishlist', 'Wishlist');
