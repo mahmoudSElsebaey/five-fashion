@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { AuthShell } from '@/components/auth/AuthShell';
 import { authApi } from '@/features/auth/authApi';
 
 const schema = z
@@ -57,31 +58,38 @@ export function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-16 text-center">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">{t('auth.resetTitle')}</h1>
-        <p className="mt-4 text-sm text-muted-foreground">{t('auth.resetMissingToken')}</p>
-        <Link to="/forgot-password" className="mt-8 text-sm font-medium text-foreground underline">
-          {t('auth.forgotTitle')}
-        </Link>
-      </div>
+      <AuthShell title={t('auth.resetTitle')}>
+        <p className="text-center text-sm text-muted-foreground">{t('auth.resetMissingToken')}</p>
+        <div className="mt-8 text-center">
+          <Link to="/forgot-password" className="text-sm font-medium text-foreground underline">
+            {t('auth.forgotTitle')}
+          </Link>
+        </div>
+      </AuthShell>
     );
   }
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-16">
-      <div className="text-center">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">{t('auth.resetTitle')}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t('auth.resetSubtitle')}</p>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-5">
+    <AuthShell
+      title={t('auth.resetTitle')}
+      subtitle={t('auth.resetSubtitle')}
+      footer={
+        <Link to="/login" className="font-medium text-foreground underline-offset-4 hover:underline">
+          {t('auth.backToLogin')}
+        </Link>
+      }
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {error && (
-          <div className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error" role="alert">
+          <div className="rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-sm text-error" role="alert">
             {error}
           </div>
         )}
         {success && (
-          <div className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success" role="status">
+          <div
+            className="rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm text-success"
+            role="status"
+          >
             {success}
           </div>
         )}
@@ -91,6 +99,7 @@ export function ResetPasswordPage() {
           type="password"
           autoComplete="new-password"
           error={errors.password?.message}
+          className="h-11 rounded-xl border-border/80 bg-surface/80"
           {...register('password')}
         />
         <Input
@@ -98,19 +107,14 @@ export function ResetPasswordPage() {
           type="password"
           autoComplete="new-password"
           error={errors.confirmPassword?.message}
+          className="h-11 rounded-xl border-border/80 bg-surface/80"
           {...register('confirmPassword')}
         />
 
-        <Button type="submit" size="lg" fullWidth isLoading={loading}>
+        <Button type="submit" size="lg" fullWidth isLoading={loading} className="h-12 rounded-xl">
           {t('auth.resetSubmit')}
         </Button>
       </form>
-
-      <p className="mt-8 text-center text-sm text-muted-foreground">
-        <Link to="/login" className="font-medium text-foreground hover:underline">
-          {t('auth.backToLogin')}
-        </Link>
-      </p>
-    </div>
+    </AuthShell>
   );
 }

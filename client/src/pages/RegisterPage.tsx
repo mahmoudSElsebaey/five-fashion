@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { AuthShell } from '@/components/auth/AuthShell';
 import { authApi } from '@/features/auth/authApi';
 import { setCredentials } from '@/features/auth/authSlice';
 import type { RootState } from '@/store';
@@ -76,17 +77,21 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-16">
-      <div className="text-center">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">
-          {t('auth.registerTitle')}
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t('auth.registerSubtitle')}</p>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-5" noValidate>
+    <AuthShell
+      title={t('auth.registerTitle')}
+      subtitle={t('auth.registerSubtitle')}
+      footer={
+        <>
+          {t('auth.hasAccount')}{' '}
+          <Link to="/login" className="font-medium text-foreground underline-offset-4 hover:underline">
+            {t('auth.login')}
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         {error && (
-          <div className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error" role="alert">
+          <div className="rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-sm text-error" role="alert">
             {error}
           </div>
         )}
@@ -95,6 +100,7 @@ export function RegisterPage() {
           label={t('auth.name')}
           autoComplete="name"
           error={errors.name?.message}
+          className="h-11 rounded-xl border-border/80 bg-surface/80"
           {...register('name')}
         />
 
@@ -103,6 +109,7 @@ export function RegisterPage() {
           type="email"
           autoComplete="email"
           error={errors.email?.message}
+          className="h-11 rounded-xl border-border/80 bg-surface/80"
           {...register('email')}
         />
 
@@ -111,6 +118,7 @@ export function RegisterPage() {
           type="password"
           autoComplete="new-password"
           error={errors.password?.message}
+          className="h-11 rounded-xl border-border/80 bg-surface/80"
           {...register('password')}
         />
 
@@ -119,20 +127,14 @@ export function RegisterPage() {
           type="password"
           autoComplete="new-password"
           error={errors.confirmPassword?.message}
+          className="h-11 rounded-xl border-border/80 bg-surface/80"
           {...register('confirmPassword')}
         />
 
-        <Button type="submit" size="lg" fullWidth isLoading={loading}>
+        <Button type="submit" size="lg" fullWidth isLoading={loading} className="h-12 rounded-xl">
           {t('auth.register')}
         </Button>
       </form>
-
-      <p className="mt-8 text-center text-sm text-muted-foreground">
-        {t('auth.hasAccount')}{' '}
-        <Link to="/login" className="font-medium text-foreground hover:underline">
-          {t('auth.login')}
-        </Link>
-      </p>
-    </div>
+    </AuthShell>
   );
 }
