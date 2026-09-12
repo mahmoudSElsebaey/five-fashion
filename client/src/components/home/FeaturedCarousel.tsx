@@ -5,7 +5,7 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { animate, motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { ProductImage } from '@/components/ui/ProductImage';
@@ -21,6 +21,7 @@ const CARD_W = 210;
 export function FeaturedCarousel() {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
+  const navigate = useNavigate();
   const reduced = useReducedMotion();
   const [products, setProducts] = useState<UiProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +31,7 @@ export function FeaturedCarousel() {
   const dragging = useRef(false);
   const lastX = useRef(0);
   const velocity = useRef(0);
+  const moved = useRef(false);
 
   const rotation = useMotionValue(0);
   const smooth = useSpring(rotation, { stiffness: 110, damping: 24, mass: 0.85 });
@@ -80,7 +82,7 @@ export function FeaturedCarousel() {
       lock = true;
       const dir = Math.sign(e.deltaY || e.deltaX) || 1;
       const current = Math.round(rotation.get());
-      animate(rotation, current + (isAr ? -dir : dir), {
+      animate(rotation, current + dir, {
         type: 'spring',
         stiffness: 140,
         damping: 22,
@@ -91,7 +93,7 @@ export function FeaturedCarousel() {
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
-  }, [count, isAr, reduced, rotation]);
+  }, [count, reduced, rotation]);
 
   const snapTo = useCallback(
     (target: number) => {
@@ -121,6 +123,7 @@ export function FeaturedCarousel() {
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (reduced) return;
     dragging.current = true;
+    moved.current = false;
     lastX.current = e.clientX;
     velocity.current = 0;
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -129,8 +132,9 @@ export function FeaturedCarousel() {
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!dragging.current || reduced || !count) return;
     const dx = e.clientX - lastX.current;
+    if (Math.abs(dx) > 4) moved.current = true;
     lastX.current = e.clientX;
-    const sens = isAr ? 0.016 : -0.016;
+    const sens = -0.016;
     const delta = dx * sens;
     velocity.current = delta;
     rotation.set(rotation.get() + delta);
@@ -139,8 +143,10 @@ export function FeaturedCarousel() {
   const onPointerUp = () => {
     if (!dragging.current) return;
     dragging.current = false;
-    const boost = velocity.current * 10;
-    snapTo(Math.round(rotation.get() + boost));
+    if (moved.current) {
+      const boost = velocity.current * 10;
+      snapTo(Math.round(rotation.get() + boost));
+    }
   };
 
   if (loading) {
@@ -205,6 +211,8 @@ export function FeaturedCarousel() {
                 radius={radius}
                 rotation={smooth}
                 isAr={isAr}
+                wasDragged={() => moved.current}
+                onOpen={(href) => navigate(href)}
               />
             ))}
           </div>
@@ -213,7 +221,7 @@ export function FeaturedCarousel() {
         <div className="mt-6 flex items-center justify-center gap-4">
           <button
             type="button"
-            onClick={() => go(isAr ? 1 : -1)}
+            onClick={() => go(-1)}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-foreground transition-colors hover:bg-surface-hover"
             aria-label={t('common.previous', { defaultValue: 'Previous' })}
           >
@@ -237,7 +245,7 @@ export function FeaturedCarousel() {
           </div>
           <button
             type="button"
-            onClick={() => go(isAr ? -1 : 1)}
+            onClick={() => go(1)}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-foreground transition-colors hover:bg-surface-hover"
             aria-label={t('common.next', { defaultValue: 'Next' })}
           >
@@ -271,6 +279,8 @@ function ReelCard({
   radius,
   rotation,
   isAr,
+  wasDragged,
+  onOpen,
 }: {
   product: UiProduct;
   index: number;
@@ -278,6 +288,8 @@ function ReelCard({
   radius: number;
   rotation: ReturnType<typeof useSpring>;
   isAr: boolean;
+  wasDragged: () => boolean;
+  onOpen: (href: string) => void;
 }) {
   const { t } = useTranslation();
   const name = isAr ? product.nameAr : product.nameEn;
@@ -329,15 +341,17 @@ function ReelCard({
         pointerEvents: front ? 'auto' : 'none',
       }}
     >
-      <Link
-        to={href}
+      <button
+        type="button"
         draggable={false}
-        className={`block overflow-hidden rounded-2xl border border-border/70 bg-card shadow-xl ${
-          front ? 'ring-1 ring-accent/40' : ''
+        className={`block w-full overflow-hidden rounded-2xl border border-border/70 bg-card text-start shadow-xl ${
+          front ? 'ring-1 ring-accent/40 cursor-pointer' : 'cursor-default'
         }`}
         tabIndex={front ? 0 : -1}
         onClick={(e) => {
-          if (!front) e.preventDefault();
+          e.stopPropagation();
+          if (!front || wasDragged()) return;
+          onOpen(href);
         }}
       >
         <div className="relative aspect-[3/4] bg-muted">
@@ -366,7 +380,7 @@ function ReelCard({
             )}
           </div>
         </div>
-      </Link>
+      </button>
     </motion.div>
   );
 }
