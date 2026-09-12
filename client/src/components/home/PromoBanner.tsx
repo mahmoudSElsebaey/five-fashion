@@ -39,7 +39,6 @@ const ARRIVALS_IMAGES = [
 
 export function PromoBanner({ variant = 'featured' }: PromoBannerProps) {
   const { t } = useTranslation();
-  // Real countdown: 5 days from first mount, stable per session via sessionStorage
   const targetMs = useMemo(() => {
     const key = `five-promo-end-${variant}`;
     try {
@@ -55,7 +54,6 @@ export function PromoBanner({ variant = 'featured' }: PromoBannerProps) {
 
   const cd = useCountdown(targetMs);
   const isFeatured = variant === 'featured';
-
   const pad = (n: number) => String(n).padStart(2, '0');
   const units = [
     { label: t('home.promo.days', { defaultValue: 'Days' }), value: pad(cd.days) },
@@ -71,14 +69,13 @@ export function PromoBanner({ variant = 'featured' }: PromoBannerProps) {
     >
       <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
         <div
-          className="promo-3d relative overflow-hidden rounded-3xl border border-border/50"
+          className="promo-3d relative overflow-hidden rounded-3xl border border-accent/45"
           style={{
             perspective: '1200px',
             boxShadow:
-              '0 24px 60px -20px rgba(0,0,0,0.45), 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent)',
+              '0 24px 60px -20px rgba(0,0,0,0.45), 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent)',
           }}
         >
-          {/* Background layers */}
           <div className="absolute inset-0">
             {isFeatured ? (
               <img
@@ -98,23 +95,23 @@ export function PromoBanner({ variant = 'featured' }: PromoBannerProps) {
                 ))}
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/75 to-background/40" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-background/30" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/45" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/35" />
           </div>
 
           <div className="relative z-10 grid gap-8 px-6 py-10 sm:px-10 sm:py-14 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
             <div className="promo-rise max-w-xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.7)]">
                 {isFeatured
                   ? t('home.promo.featuredLabel', { defaultValue: 'Limited drop' })
                   : t('home.promo.arrivalsLabel', { defaultValue: 'New season' })}
               </p>
-              <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+              <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.9)] sm:text-4xl lg:text-5xl">
                 {isFeatured
                   ? t('home.promo.featuredTitle', { defaultValue: 'Evening edit — 30% off' })
                   : t('home.promo.arrivalsTitle', { defaultValue: 'Fresh silhouettes just landed' })}
               </h2>
-              <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
+              <p className="mt-4 max-w-md text-sm leading-relaxed text-white/90 [text-shadow:0_1px_2px_rgba(0,0,0,0.9)] sm:text-base">
                 {isFeatured
                   ? t('home.promo.featuredBody', {
                       defaultValue: 'Curated evening pieces with a timed offer. The clock is real — shop before it ends.',
@@ -125,7 +122,7 @@ export function PromoBanner({ variant = 'featured' }: PromoBannerProps) {
               </p>
               <Link
                 to={isFeatured ? '/shop?sale=1' : '/shop?new=1'}
-                className="mt-6 inline-flex items-center justify-center rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground shadow-lg shadow-accent/30 transition-transform hover:-translate-y-0.5 hover:opacity-95 active:translate-y-0"
+                className="mt-6 inline-flex items-center justify-center rounded-xl border border-accent/70 bg-accent px-6 py-3 text-sm font-semibold text-black shadow-lg shadow-accent/30 transition-transform hover:-translate-y-0.5 hover:brightness-105 active:translate-y-0"
               >
                 {isFeatured
                   ? t('home.promo.featuredCta', { defaultValue: 'Shop the offer' })
@@ -137,17 +134,17 @@ export function PromoBanner({ variant = 'featured' }: PromoBannerProps) {
               {units.map((u) => (
                 <div
                   key={u.label}
-                  className="flex min-w-[4.25rem] flex-col items-center rounded-2xl border border-border/60 bg-background/80 px-3 py-3 shadow-xl backdrop-blur-md sm:min-w-[5rem] sm:px-4"
+                  className="flex min-w-[4.25rem] flex-col items-center rounded-2xl border border-accent/55 bg-black/45 px-3 py-3 shadow-xl backdrop-blur-md sm:min-w-[5rem] sm:px-4"
                   style={{
                     transform: 'translateZ(20px)',
                     boxShadow:
-                      '0 12px 28px -12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+                      '0 12px 28px -12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)',
                   }}
                 >
-                  <span className="font-display text-2xl font-semibold tabular-nums text-foreground sm:text-3xl">
+                  <span className="font-display text-2xl font-semibold tabular-nums text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.9)] sm:text-3xl">
                     {cd.done ? '00' : u.value}
                   </span>
-                  <span className="mt-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                  <span className="mt-1 text-[10px] font-medium uppercase tracking-wider text-accent [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
                     {u.label}
                   </span>
                 </div>
