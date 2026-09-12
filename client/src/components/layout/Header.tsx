@@ -55,7 +55,12 @@ const navItems = [
       </svg>
     ),
   },
-];
+] as const;
+
+function pathIsActive(pathname: string, path: string) {
+  if (path === '/') return pathname === '/';
+  return pathname === path || pathname.startsWith(`${path}/`);
+}
 
 export function Header() {
   const { t } = useTranslation();
@@ -113,54 +118,57 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-md">
-      {/* Desktop: three independent equal-width columns. */}
       <div className="mx-auto hidden h-[5.25rem] max-w-7xl grid-cols-3 items-center px-4 md:grid lg:px-8">
         <div className="flex min-w-0 w-full items-center justify-center">
-          {/* Expanded Tabs — same pattern as portfolio About page */}
+          {/*
+            Portfolio About-style expand tabs.
+            Labels stay in the DOM; expand/collapse via CSS grid (0fr ↔ 1fr)
+            so it works on the first paint — no AnimatePresence width:auto glitch.
+          */}
           <nav
-            className="inline-flex max-w-full items-center gap-1 sm:gap-1.5 rounded-full border border-accent/20 bg-accent/5 p-1.5 shadow-sm backdrop-blur-sm"
+            className="inline-flex max-w-full items-center gap-1 rounded-full border border-accent/20 bg-accent/5 p-1.5 shadow-sm backdrop-blur-sm sm:gap-1.5"
             aria-label="Main navigation"
             role="tablist"
           >
             {navItems.map((item) => {
-              const isActive =
-                item.path === '/'
-                  ? location.pathname === '/'
-                  : location.pathname.startsWith(item.path);
+              const active = pathIsActive(location.pathname, item.path);
               return (
                 <NavLink
                   key={item.key}
                   to={item.path}
                   end={item.path === '/'}
                   role="tab"
-                  aria-selected={isActive}
-                  className={`relative flex cursor-pointer items-center justify-center gap-2 rounded-full transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
-                    isActive
-                      ? 'bg-accent px-3.5 py-2.5 text-accent-foreground shadow-md shadow-accent/25 sm:px-5 sm:py-3'
-                      : 'px-2.5 py-2.5 text-accent/70 hover:bg-accent/10 hover:text-accent sm:px-3 sm:py-3'
-                  }`}
+                  aria-selected={active}
+                  className={({ isActive }) =>
+                    `relative flex items-center justify-center rounded-full transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+                      isActive
+                        ? 'bg-accent px-3.5 py-2.5 text-accent-foreground shadow-md shadow-accent/25 sm:px-5 sm:py-3'
+                        : 'px-2.5 py-2.5 text-accent/70 hover:bg-accent/10 hover:text-accent sm:px-3 sm:py-3'
+                    }`
+                  }
                 >
-                  <span
-                    className={`shrink-0 transition-transform duration-300 ${
-                      isActive ? 'scale-110 [&_svg]:h-5 [&_svg]:w-5' : '[&_svg]:h-[18px] [&_svg]:w-[18px]'
-                    }`}
-                  >
-                    {item.icon}
-                  </span>
-                  <AnimatePresence initial={false}>
-                    {isActive && (
-                      <motion.span
-                        key="label"
-                        initial={{ width: 0, opacity: 0 }}
-                        animate={{ width: 'auto', opacity: 1 }}
-                        exit={{ width: 0, opacity: 0 }}
-                        transition={{ duration: 0.28, ease: 'easeOut' }}
-                        className="overflow-hidden whitespace-nowrap text-xs font-semibold sm:text-sm md:text-base"
+                  {({ isActive }) => (
+                    <>
+                      <span
+                        className={`shrink-0 transition-transform duration-300 ${
+                          isActive ? 'scale-110' : ''
+                        }`}
                       >
-                        {t(`nav.${item.key}`)}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
+                        {item.icon}
+                      </span>
+                      <span
+                        className={`grid transition-[grid-template-columns,opacity] duration-300 ease-out ${
+                          isActive ? 'grid-cols-[1fr] opacity-100' : 'grid-cols-[0fr] opacity-0'
+                        }`}
+                      >
+                        <span className="min-w-0 overflow-hidden">
+                          <span className="inline-block whitespace-nowrap ps-2 text-xs font-semibold sm:text-sm md:text-base">
+                            {t(`nav.${item.key}`)}
+                          </span>
+                        </span>
+                      </span>
+                    </>
+                  )}
                 </NavLink>
               );
             })}
@@ -289,7 +297,6 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile/tablet header remains separate from the desktop three-column layout. */}
       <div className="mx-auto flex h-[4.25rem] max-w-7xl items-center justify-between gap-3 px-4 md:hidden">
         <Link to="/" className="flex shrink-0 items-center" onClick={() => setMobileOpen(false)} aria-label="FIVE Fashion home">
           <img
