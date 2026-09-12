@@ -22,13 +22,13 @@ function Rail({ direction }: { direction: 'left' | 'right' }) {
     <div className={`five-image-stream__rail five-image-stream__rail--${direction}`} aria-hidden="true">
       {IMAGES.map((src, index) => {
         const style: StreamCardStyle = {
-          '--delay': `${-index * 1.5}s`,
+          '--delay': `${-index * 1.8}s`,
           '--index': index,
         };
 
         return (
           <div key={`${direction}-${src}`} className="five-image-stream__card" style={style}>
-            <img src={src} alt="" loading={index < 4 ? 'eager' : 'lazy'} draggable={false} />
+            <img src={src} alt="" loading="eager" decoding="async" draggable={false} />
           </div>
         );
       })}
@@ -49,9 +49,10 @@ export function ImageStreamHero() {
           z-index: 1;
           overflow: hidden;
           container-type: inline-size;
-          perspective: 900px;
+          perspective: 1100px;
           pointer-events: none;
           opacity: .9;
+          contain: layout paint;
         }
 
         .five-image-stream__wash {
@@ -71,14 +72,6 @@ export function ImageStreamHero() {
           transform-style: preserve-3d;
         }
 
-        .five-image-stream__rail--left {
-          animation: five-stream-drift-left 18s linear infinite;
-        }
-
-        .five-image-stream__rail--right {
-          animation: five-stream-drift-right 18s linear infinite;
-        }
-
         .five-image-stream__card {
           position: absolute;
           left: 50%;
@@ -91,9 +84,9 @@ export function ImageStreamHero() {
           background: var(--surface);
           box-shadow: 0 20px 60px color-mix(in srgb, #000 34%, transparent);
           transform-origin: center center;
-          animation: five-stream-card 18s linear infinite;
+          animation: five-stream-card 24s linear infinite;
           animation-delay: var(--delay);
-          will-change: transform;
+          will-change: transform, opacity;
           backface-visibility: hidden;
         }
 
@@ -103,6 +96,7 @@ export function ImageStreamHero() {
           display: block;
           object-fit: cover;
           filter: saturate(.92) contrast(1.03);
+          user-select: none;
         }
 
         .five-image-stream__rail--left .five-image-stream__card { --direction: -1; }
@@ -111,41 +105,32 @@ export function ImageStreamHero() {
         @keyframes five-stream-card {
           0% {
             opacity: 0;
-            transform: translate3d(-50%, -50%, -850px) translateX(calc(var(--direction) * -1cqw)) scale(.16) rotateY(calc(var(--direction) * -5deg));
+            transform: translate3d(-50%, -50%, -720px) translateX(calc(var(--direction) * -4cqw)) scale(.2) rotateY(calc(var(--direction) * -4deg));
           }
-          16% { opacity: .46; }
-          42% {
-            opacity: .76;
-            transform: translate3d(-50%, -50%, -260px) translateX(calc(var(--direction) * 7cqw)) scale(.48) rotateY(calc(var(--direction) * -12deg));
+          12% { opacity: .42; }
+          35% {
+            opacity: .68;
+            transform: translate3d(-50%, -50%, -360px) translateX(calc(var(--direction) * 5cqw)) scale(.42) rotateY(calc(var(--direction) * -8deg));
           }
-          68% {
-            opacity: .9;
-            transform: translate3d(-50%, -50%, 30px) translateX(calc(var(--direction) * 25cqw)) scale(.92) rotateY(calc(var(--direction) * -20deg));
+          62% {
+            opacity: .82;
+            transform: translate3d(-50%, -50%, -20px) translateX(calc(var(--direction) * 24cqw)) scale(.82) rotateY(calc(var(--direction) * -14deg));
           }
+          84% { opacity: .54; }
           100% {
             opacity: 0;
-            transform: translate3d(-50%, -50%, 420px) translateX(calc(var(--direction) * 62cqw)) scale(1.45) rotateY(calc(var(--direction) * -30deg));
+            transform: translate3d(-50%, -50%, 280px) translateX(calc(var(--direction) * 58cqw)) scale(1.22) rotateY(calc(var(--direction) * -20deg));
           }
-        }
-
-        @keyframes five-stream-drift-left {
-          from { transform: translateX(-2%); }
-          to { transform: translateX(2%); }
-        }
-
-        @keyframes five-stream-drift-right {
-          from { transform: translateX(2%); }
-          to { transform: translateX(-2%); }
         }
 
         @media (max-width: 767px) {
           .five-image-stream { opacity: .5; }
           .five-image-stream__card { width: clamp(72px, 24cqw, 120px); }
           .five-image-stream__card:nth-child(n+7) { display: none; }
+          .five-image-stream__card { animation-duration: 22s; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .five-image-stream__rail,
           .five-image-stream__card { animation-play-state: paused; }
           .five-image-stream__card {
             opacity: .34;
