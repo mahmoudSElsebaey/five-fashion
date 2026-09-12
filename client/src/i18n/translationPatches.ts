@@ -24,3 +24,6 @@ i18n.addResource('en', 'translation', 'nav.wishlist', 'Wishlist');
 i18n.addResource('ar', 'translation', 'nav.wishlist', 'المفضلة');
 i18n.addResource('en', 'translation', 'nav.cart', 'Cart');
 i18n.addResource('ar', 'translation', 'nav.cart', 'السلة');
+
+i18n.addResource('en', 'translation', 'a11y.backToTop', 'Back to top');
+i18n.addResource('ar', 'translation', 'a11y.backToTop', 'العودة للأعلى');

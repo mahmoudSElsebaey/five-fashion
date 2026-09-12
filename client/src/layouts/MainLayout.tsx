@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { BackToTop } from '@/components/layout/BackToTop';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { SkipLink } from '@/components/a11y/SkipLink';
 import { ScrollToTop } from '@/components/routing/ScrollToTop';
@@ -19,6 +20,7 @@ export function MainLayout() {
       </main>
       <Footer />
       <CartDrawer />
+      <BackToTop />
     </div>
   );
 }
