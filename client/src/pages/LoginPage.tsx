@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { AuthShell } from '@/components/auth/AuthShell';
 import { authApi } from '@/features/auth/authApi';
 import { setCredentials } from '@/features/auth/authSlice';
 import type { RootState } from '@/store';
@@ -108,17 +109,21 @@ export function LoginPage() {
   const isArabic = i18n.language.startsWith('ar');
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-4 py-16">
-      <div className="text-center">
-        <h1 className="font-display text-3xl font-semibold tracking-tight">
-          {t('auth.loginTitle')}
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t('auth.loginSubtitle')}</p>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-5" noValidate>
+    <AuthShell
+      title={t('auth.loginTitle')}
+      subtitle={t('auth.loginSubtitle')}
+      footer={
+        <>
+          {t('auth.noAccount')}{' '}
+          <Link to="/register" className="font-medium text-foreground underline-offset-4 hover:underline">
+            {t('auth.register')}
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         {error && (
-          <div className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error" role="alert">
+          <div className="rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-sm text-error" role="alert">
             {error}
           </div>
         )}
@@ -128,6 +133,7 @@ export function LoginPage() {
           type="email"
           autoComplete="email"
           error={errors.email?.message}
+          className="h-11 rounded-xl border-border/80 bg-surface/80"
           {...register('email')}
         />
 
@@ -136,21 +142,25 @@ export function LoginPage() {
           type="password"
           autoComplete="current-password"
           error={errors.password?.message}
+          className="h-11 rounded-xl border-border/80 bg-surface/80"
           {...register('password')}
         />
 
         <div className="flex justify-end">
-          <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link
+            to="/forgot-password"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
             {t('auth.forgotPassword')}
           </Link>
         </div>
 
-        <Button type="submit" size="lg" fullWidth isLoading={loading}>
+        <Button type="submit" size="lg" fullWidth isLoading={loading} className="h-12 rounded-xl">
           {t('auth.login')}
         </Button>
       </form>
 
-      <div className="mt-8 rounded-2xl border border-border/70 bg-muted/20 p-4">
+      <div className="mt-6 rounded-2xl border border-border/60 bg-muted/30 p-4">
         <div className="mb-3 text-center">
           <p className="text-sm font-semibold text-foreground">
             {isArabic ? 'حسابات التجربة' : 'Demo accounts'}
@@ -169,20 +179,28 @@ export function LoginPage() {
                 key={account.key}
                 type="button"
                 onClick={() => useDemoAccount(account)}
-                className={`rounded-xl border px-3 py-3 text-start transition-all hover:-translate-y-0.5 hover:border-foreground/30 hover:bg-background ${
-                  isSelected ? 'border-primary bg-background shadow-sm' : 'border-border/70 bg-background/50'
+                className={`rounded-xl border px-3 py-3 text-start transition-all duration-normal ease-five hover:-translate-y-0.5 hover:border-accent/40 hover:bg-background ${
+                  isSelected
+                    ? 'border-accent/50 bg-background shadow-sm ring-1 ring-accent/20'
+                    : 'border-border/70 bg-background/50'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-medium">
-                    {isArabic ? (isAdmin ? 'مدير المتجر' : 'عميل تجريبي') : isAdmin ? 'Store Admin' : 'Demo Customer'}
+                    {isArabic
+                      ? isAdmin
+                        ? 'مدير المتجر'
+                        : 'عميل تجريبي'
+                      : isAdmin
+                        ? 'Store Admin'
+                        : 'Demo Customer'}
                   </span>
                   <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
                     {isAdmin ? 'Admin' : 'Customer'}
                   </span>
                 </div>
                 <p className="mt-1 truncate text-[11px] text-muted-foreground">{account.email}</p>
-                <p className="mt-2 text-xs font-medium text-foreground">
+                <p className="mt-2 text-xs font-medium text-accent">
                   {isArabic ? 'استخدام الحساب' : 'Use this account'}
                 </p>
               </button>
@@ -191,16 +209,11 @@ export function LoginPage() {
         </div>
 
         <p className="mt-3 text-center text-[10px] text-muted-foreground">
-          {isArabic ? 'حسابات تجريبية عامة للمراجعة والعرض فقط.' : 'Public demo accounts for review and showcase only.'}
+          {isArabic
+            ? 'حسابات تجريبية عامة للمراجعة والعرض فقط.'
+            : 'Public demo accounts for review and showcase only.'}
         </p>
       </div>
-
-      <p className="mt-8 text-center text-sm text-muted-foreground">
-        {t('auth.noAccount')}{' '}
-        <Link to="/register" className="font-medium text-foreground hover:underline">
-          {t('auth.register')}
-        </Link>
-      </p>
-    </div>
+    </AuthShell>
   );
 }
