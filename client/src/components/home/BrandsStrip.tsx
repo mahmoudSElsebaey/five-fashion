@@ -1,62 +1,38 @@
 import { useTranslation } from 'react-i18next';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, FreeMode } from 'swiper/modules';
+import 'swiper/css';
 
-/** Brand tiles — fashion imagery + lettermark (no trademark logos). */
-const BRAND_TILES = [
-  {
-    name: 'Gucci',
-    img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    name: 'Prada',
-    img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    name: 'Chanel',
-    img: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    name: 'Dior',
-    img: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    name: 'Burberry',
-    img: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    name: 'Versace',
-    img: 'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    name: 'Armani',
-    img: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    name: 'Ralph Lauren',
-    img: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    name: 'Calvin Klein',
-    img: 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    name: 'Tommy Hilfiger',
-    img: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=400&q=80',
-  },
+/** Famous fashion / apparel brands — logos via Clearbit */
+const BRANDS = [
+  { name: 'Nike', domain: 'nike.com' },
+  { name: 'Adidas', domain: 'adidas.com' },
+  { name: 'Gucci', domain: 'gucci.com' },
+  { name: 'Prada', domain: 'prada.com' },
+  { name: 'Chanel', domain: 'chanel.com' },
+  { name: 'Dior', domain: 'dior.com' },
+  { name: 'Burberry', domain: 'burberry.com' },
+  { name: 'Versace', domain: 'versace.com' },
+  { name: 'Calvin Klein', domain: 'calvinklein.com' },
+  { name: 'Tommy Hilfiger', domain: 'tommy.com' },
+  { name: 'Zara', domain: 'zara.com' },
+  { name: 'H&M', domain: 'hm.com' },
 ] as const;
+
+function brandLogo(domain: string) {
+  return `https://logo.clearbit.com/${domain}`;
+}
 
 export function BrandsStrip() {
   const { t } = useTranslation();
-  // Triple for seamless continuous loop
-  const loop = [...BRAND_TILES, ...BRAND_TILES, ...BRAND_TILES];
+  // Duplicate slides so Swiper loop never shows a gap
+  const slides = [...BRANDS, ...BRANDS, ...BRANDS];
 
   return (
     <section
       className="relative overflow-hidden border-y border-border/50 bg-surface/40 py-10 sm:py-14"
       aria-label={t('home.brands.label', { defaultValue: 'Featured brands' })}
     >
-      <div className="pointer-events-none absolute inset-y-0 start-0 z-10 w-16 bg-gradient-to-r from-background to-transparent sm:w-28" />
-      <div className="pointer-events-none absolute inset-y-0 end-0 z-10 w-16 bg-gradient-to-l from-background to-transparent sm:w-28" />
-
       <div className="mb-8 text-center">
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-accent">
           {t('home.brands.label', { defaultValue: 'Featured brands' })}
@@ -66,58 +42,77 @@ export function BrandsStrip() {
         </h2>
       </div>
 
-      <div className="five-brands-track flex w-max items-center gap-5 sm:gap-7" style={{ perspective: '900px' }}>
-        {loop.map((brand, i) => (
-          <div
-            key={`${brand.name}-${i}`}
-            className="five-brand-tile group relative h-24 w-36 shrink-0 sm:h-28 sm:w-44"
-            style={{ transformStyle: 'preserve-3d' }}
-          >
-            <div
-              className="relative h-full w-full overflow-hidden rounded-2xl border border-border/50 bg-card transition-transform duration-300 ease-out group-hover:[transform:rotateY(-12deg)_rotateX(6deg)_translateZ(12px)]"
-              style={{
-                transformStyle: 'preserve-3d',
-                boxShadow:
-                  '0 14px 28px -10px rgba(0,0,0,0.45), 0 6px 12px -6px color-mix(in srgb, var(--accent) 35%, transparent), inset 0 1px 0 rgba(255,255,255,0.12)',
-              }}
+      <div className="relative px-2 sm:px-4" style={{ perspective: '1000px' }}>
+        <div className="pointer-events-none absolute inset-y-0 start-0 z-10 w-12 bg-gradient-to-r from-background to-transparent sm:w-20" />
+        <div className="pointer-events-none absolute inset-y-0 end-0 z-10 w-12 bg-gradient-to-l from-background to-transparent sm:w-20" />
+
+        <Swiper
+          modules={[Autoplay, FreeMode]}
+          slidesPerView="auto"
+          spaceBetween={16}
+          loop
+          loopAdditionalSlides={BRANDS.length}
+          freeMode={{
+            enabled: true,
+            momentum: false,
+          }}
+          autoplay={{
+            delay: 0,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true,
+          }}
+          speed={8000}
+          allowTouchMove
+          className="five-brands-swiper !overflow-visible"
+        >
+          {slides.map((brand, i) => (
+            <SwiperSlide
+              key={`${brand.domain}-${i}`}
+              className="!w-auto"
             >
-              <img
-                src={brand.img}
-                alt={brand.name}
-                loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-              <span className="absolute inset-x-0 bottom-2 text-center font-display text-xs font-semibold tracking-[0.18em] text-white sm:text-sm">
-                {brand.name.charAt(0)}
-              </span>
-            </div>
-          </div>
-        ))}
+              <div
+                className="group flex h-20 w-28 items-center justify-center rounded-2xl border border-border/50 bg-card px-3 transition-transform duration-300 sm:h-24 sm:w-36 sm:px-4"
+                style={{
+                  transformStyle: 'preserve-3d',
+                  boxShadow:
+                    '0 14px 28px -12px rgba(0,0,0,0.4), 0 6px 12px -6px color-mix(in srgb, var(--accent) 28%, transparent), inset 0 1px 0 rgba(255,255,255,0.1)',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.transform =
+                    'rotateY(-10deg) rotateX(6deg) translateZ(10px)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.transform = '';
+                }}
+              >
+                <img
+                  src={brandLogo(brand.domain)}
+                  alt={brand.name}
+                  loading="lazy"
+                  className="max-h-8 max-w-[4.5rem] object-contain opacity-80 transition-opacity group-hover:opacity-100 sm:max-h-10 sm:max-w-[5.5rem] dark:brightness-0 dark:invert"
+                  onError={(e) => {
+                    const el = e.currentTarget;
+                    el.style.display = 'none';
+                    const fallback = el.nextElementSibling as HTMLElement | null;
+                    if (fallback) fallback.hidden = false;
+                  }}
+                />
+                <span hidden className="font-display text-xs font-semibold tracking-wide text-foreground/70">
+                  {brand.name}
+                </span>
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </div>
 
       <style>{`
-        @keyframes fiveBrandsScroll {
-          from { transform: translate3d(0, 0, 0); }
-          to { transform: translate3d(-33.333%, 0, 0); }
+        .five-brands-swiper .swiper-wrapper {
+          transition-timing-function: linear !important;
+          align-items: center;
         }
-        .five-brands-track {
-          animation: fiveBrandsScroll 48s linear infinite;
-        }
-        .five-brands-track:hover {
-          animation-play-state: paused;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .five-brands-track {
-            animation: none;
-            flex-wrap: wrap;
-            justify-content: center;
-            width: 100%;
-            max-width: 72rem;
-            margin-inline: auto;
-            gap: 1rem;
-            padding-inline: 1rem;
-          }
+        .five-brands-swiper .swiper-slide {
+          width: auto;
         }
       `}</style>
     </section>

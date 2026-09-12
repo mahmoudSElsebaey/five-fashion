@@ -77,7 +77,7 @@ export function ProductCard({ product }: ProductCardProps) {
     <CardContainer className="w-full" containerClassName="w-full">
       <CardBody className="group relative w-full">
         <div className="relative">
-          {/* Wishlist — outside overflow so translateZ is visible */}
+          {/* Wishlist — pure CardItem translateZ (no Tailwind transform clash) */}
           <CardItem translateZ={90} className="absolute top-3 end-3 z-30">
             <button
               type="button"
@@ -90,14 +90,14 @@ export function ProductCard({ product }: ProductCardProps) {
               aria-pressed={saved}
               className={
                 saved
-                  ? 'flex h-10 w-10 items-center justify-center rounded-full border shadow-md backdrop-blur-md transition-all duration-200 sm:h-11 sm:w-11 border-accent/50 bg-accent text-accent-foreground'
-                  : 'flex h-10 w-10 items-center justify-center rounded-full border shadow-md backdrop-blur-md transition-all duration-200 sm:h-11 sm:w-11 border-border/60 bg-background/90 text-foreground hover:border-accent/50 hover:bg-accent/15 hover:text-accent'
+                  ? 'flex h-9 w-9 items-center justify-center rounded-full border shadow-md backdrop-blur-md transition-colors duration-200 sm:h-10 sm:w-10 border-accent/50 bg-accent text-accent-foreground'
+                  : 'flex h-9 w-9 items-center justify-center rounded-full border shadow-md backdrop-blur-md transition-colors duration-200 sm:h-10 sm:w-10 border-border/60 bg-background/90 text-foreground hover:border-accent/50 hover:bg-accent/15 hover:text-accent'
               }
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
+                width="18"
+                height="18"
                 viewBox="0 0 24 24"
                 fill={saved ? 'currentColor' : 'none'}
                 stroke="currentColor"
@@ -111,7 +111,6 @@ export function ProductCard({ product }: ProductCardProps) {
             </button>
           </CardItem>
 
-          {/* Media frame — overflow only on image, cart sits outside clip */}
           <div className="relative">
             <Link to={productHref} className="block outline-none">
               <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-b from-card via-card to-surface shadow-[0_12px_40px_-12px_rgba(0,0,0,0.35)] ring-1 ring-black/5 transition-shadow duration-500 group-hover:shadow-[0_20px_50px_-12px_color-mix(in_srgb,var(--accent)_35%,transparent)] group-hover:ring-accent/25 dark:ring-white/5">
@@ -147,20 +146,24 @@ export function ProductCard({ product }: ProductCardProps) {
               </div>
             </Link>
 
-            {/* Same 3D float as heart (positive Z), opposite horizontal slide */}
+            {/**
+             * Cart must mirror wishlist: ONLY CardItem translateZ.
+             * Never use Tailwind translate-* / scale on this wrapper —
+             * those overwrite the 3D transform and kill the float effect.
+             */}
             <CardItem
               translateZ={90}
-              className="pointer-events-none absolute inset-x-3 bottom-3 z-30 -translate-x-5 opacity-0 transition-all duration-300 group-hover:pointer-events-auto group-hover:translate-x-0 group-hover:opacity-100 max-sm:pointer-events-auto max-sm:translate-x-0 max-sm:opacity-100"
+              className="pointer-events-none absolute inset-x-2 bottom-2 z-30 opacity-0 transition-opacity duration-300 group-hover:pointer-events-auto group-hover:opacity-100 max-sm:pointer-events-auto max-sm:opacity-100 sm:inset-x-3 sm:bottom-3"
             >
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-accent/40 bg-background/95 px-3 py-2.5 text-sm font-semibold text-foreground shadow-[0_12px_28px_-8px_rgba(0,0,0,0.45)] backdrop-blur-md transition-transform duration-300 hover:scale-[1.03] hover:border-accent hover:bg-accent hover:text-accent-foreground active:scale-[0.98]"
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-accent/40 bg-white px-2 py-1.5 text-[11px] font-semibold text-black shadow-[0_10px_24px_-8px_rgba(0,0,0,0.4)] backdrop-blur-md transition-colors duration-200 hover:bg-accent hover:text-white sm:gap-2 sm:rounded-xl sm:px-3 sm:py-2.5 sm:text-sm"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -168,7 +171,7 @@ export function ProductCard({ product }: ProductCardProps) {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   aria-hidden
-                  className="shrink-0 drop-shadow-sm"
+                  className="shrink-0 sm:h-[18px] sm:w-[18px]"
                 >
                   <circle cx="8" cy="21" r="1" />
                   <circle cx="19" cy="21" r="1" />
