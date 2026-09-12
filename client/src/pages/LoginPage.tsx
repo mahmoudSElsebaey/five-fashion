@@ -50,6 +50,8 @@ export function LoginPage() {
     redirectQuery ||
     (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ||
     '/';
+  const locationMessage =
+    (location.state as { message?: string } | null)?.message || '';
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -122,6 +124,15 @@ export function LoginPage() {
       }
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        {locationMessage && (
+          <div
+            className="rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-foreground"
+            role="status"
+          >
+            {locationMessage}
+          </div>
+        )}
+
         {error && (
           <div className="rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-sm text-error" role="alert">
             {error}
@@ -179,8 +190,7 @@ export function LoginPage() {
                 key={account.key}
                 type="button"
                 onClick={() => useDemoAccount(account)}
-                className={`rounded-xl border px-3 py-3 text-start transition-all duration-normal ease-five hover:-translate-y-0.5 hover:border-accent/40 hover:bg-background ${
-                  isSelected
+                className={`rounded-xl border px-3 py-3 text-start transition-all duration-normal ease-five hover:-translate-y-0.5 hover:border-accent/40 hover:bg-background ${\n                  isSelected
                     ? 'border-accent/50 bg-background shadow-sm ring-1 ring-accent/20'
                     : 'border-border/70 bg-background/50'
                 }`}
