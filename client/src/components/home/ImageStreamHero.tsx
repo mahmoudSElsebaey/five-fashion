@@ -5,7 +5,6 @@ const IMAGES = [
   'https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=900&q=82&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=900&q=82&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=900&q=82&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1596755094514-f87e34085b81?w=900&q=82&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=900&q=82&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1611312449408-fcece27cdbb7?w=900&q=82&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=900&q=82&auto=format&fit=crop',
