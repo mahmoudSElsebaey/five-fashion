@@ -12,12 +12,10 @@ export function HeroSection() {
 
   return (
     <section className="relative flex min-h-[85vh] items-center overflow-hidden">
-      {/* Existing WebGL hero object stays as the depth anchor. */}
       <ErrorBoundary fallback={null}>
         <HeroScene />
       </ErrorBoundary>
 
-      {/* Fashion image corridor inspired by the Image Stream interaction pattern. */}
       <ImageStreamHero />
 
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/25 via-background/60 to-background" />
@@ -42,7 +40,7 @@ export function HeroSection() {
             <Button
               size="lg"
               onClick={() => navigate('/shop')}
-              className="w-full border-accent bg-accent text-white shadow-[0_10px_35px_-12px_hsl(var(--accent)/0.75)] transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/90 hover:bg-accent/90 hover:text-white hover:shadow-[0_14px_40px_-12px_hsl(var(--accent)/0.9)] sm:w-auto"
+              className="w-full transition-all duration-300 hover:-translate-y-0.5 sm:w-auto"
             >
               {t('home.hero.ctaPrimary')}
             </Button>
