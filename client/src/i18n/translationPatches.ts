@@ -27,3 +27,21 @@ i18n.addResource('ar', 'translation', 'nav.cart', 'السلة');
 
 i18n.addResource('en', 'translation', 'a11y.backToTop', 'Back to top');
 i18n.addResource('ar', 'translation', 'a11y.backToTop', 'العودة للأعلى');
+
+i18n.addResource('en', 'translation', 'auth.loginRequiredWishlist', 'Please sign in first to save items to your wishlist.');
+i18n.addResource('ar', 'translation', 'auth.loginRequiredWishlist', 'يجب تسجيل الدخول أولاً لحفظ المنتجات في المفضلة.');
+
+i18n.addResource('en', 'translation', 'product.wishlist', 'Wishlist');
+i18n.addResource('ar', 'translation', 'product.wishlist', 'المفضلة');
+i18n.addResource('en', 'translation', 'product.inWishlist', 'Saved');
+i18n.addResource('ar', 'translation', 'product.inWishlist', 'محفوظ');
+i18n.addResource('en', 'translation', 'product.addToWishlist', 'Add to wishlist');
+i18n.addResource('ar', 'translation', 'product.addToWishlist', 'أضف للمفضلة');
+i18n.addResource('en', 'translation', 'product.removeFromWishlist', 'Remove from wishlist');
+i18n.addResource('ar', 'translation', 'product.removeFromWishlist', 'إزالة من المفضلة');
+i18n.addResource('en', 'translation', 'product.outOfStock', 'Out of stock');
+i18n.addResource('ar', 'translation', 'product.outOfStock', 'غير متوفر');
+i18n.addResource('en', 'translation', 'product.selectSize', 'Please select a size');
+i18n.addResource('ar', 'translation', 'product.selectSize', 'يرجى اختيار المقاس');
+i18n.addResource('en', 'translation', 'product.notFoundDesc', 'This piece may have been removed or the link is incorrect.');
+i18n.addResource('ar', 'translation', 'product.notFoundDesc', 'قد يكون هذا المنتج قد أُزيل أو الرابط غير صحيح.');
