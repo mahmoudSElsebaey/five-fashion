@@ -1,16 +1,54 @@
+import { useCallback, useState } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/Button';
 
+/** Curtain wipe theme toggle (21st-style). */
 export function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const [animating, setAnimating] = useState(false);
+
+  const handleToggle = useCallback(() => {
+    if (animating) return;
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setAnimating(true);
+
+    const curtain = document.createElement('div');
+    curtain.setAttribute('aria-hidden', 'true');
+    curtain.style.cssText = [
+      'position:fixed',
+      'inset:0',
+      'z-index:9999',
+      'pointer-events:none',
+      `background:${next === 'dark' ? '#1A1A1C' : '#F9F7F4'}`,
+      'transform:translateY(-100%)',
+      'transition:transform 0.55s cubic-bezier(0.65,0,0.35,1)',
+    ].join(';');
+    document.body.appendChild(curtain);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        curtain.style.transform = 'translateY(0)';
+      });
+    });
+
+    window.setTimeout(() => {
+      setTheme(next);
+      curtain.style.transform = 'translateY(100%)';
+      window.setTimeout(() => {
+        curtain.remove();
+        setAnimating(false);
+      }, 560);
+    }, 520);
+  }, [animating, setTheme, theme]);
 
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={toggleTheme}
+      onClick={handleToggle}
+      disabled={animating}
       aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-      className="h-9 w-9 p-0"
+      className="h-9 w-9 rounded-full p-0 text-muted-foreground transition-all duration-200 hover:-translate-y-1 hover:scale-110 hover:bg-muted hover:text-foreground"
     >
       {theme === 'dark' ? (
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
