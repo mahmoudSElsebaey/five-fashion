@@ -45,3 +45,31 @@ i18n.addResource('en', 'translation', 'product.selectSize', 'Please select a siz
 i18n.addResource('ar', 'translation', 'product.selectSize', 'يرجى اختيار المقاس');
 i18n.addResource('en', 'translation', 'product.notFoundDesc', 'This piece may have been removed or the link is incorrect.');
 i18n.addResource('ar', 'translation', 'product.notFoundDesc', 'قد يكون هذا المنتج قد أُزيل أو الرابط غير صحيح.');
+
+// Home promotional banners.
+i18n.addResource('en', 'translation', 'home.promo.label', 'Promotion');
+i18n.addResource('ar', 'translation', 'home.promo.label', 'عرض ترويجي');
+i18n.addResource('en', 'translation', 'home.promo.featuredLabel', 'Limited drop');
+i18n.addResource('ar', 'translation', 'home.promo.featuredLabel', 'إصدار محدود');
+i18n.addResource('en', 'translation', 'home.promo.featuredTitle', 'Evening edit — 30% off');
+i18n.addResource('ar', 'translation', 'home.promo.featuredTitle', 'اختيارات المساء — خصم 30%');
+i18n.addResource('en', 'translation', 'home.promo.featuredBody', 'Curated evening pieces with a timed offer. The clock is real — shop before it ends.');
+i18n.addResource('ar', 'translation', 'home.promo.featuredBody', 'قطع مسائية مختارة بعرض لفترة محدودة. الوقت حقيقي — تسوق قبل انتهاء العرض.');
+i18n.addResource('en', 'translation', 'home.promo.featuredCta', 'Shop the offer');
+i18n.addResource('ar', 'translation', 'home.promo.featuredCta', 'تسوق العرض');
+i18n.addResource('en', 'translation', 'home.promo.arrivalsLabel', 'New season');
+i18n.addResource('ar', 'translation', 'home.promo.arrivalsLabel', 'الموسم الجديد');
+i18n.addResource('en', 'translation', 'home.promo.arrivalsTitle', 'Fresh silhouettes just landed');
+i18n.addResource('ar', 'translation', 'home.promo.arrivalsTitle', 'تصاميم جديدة وصلت للتو');
+i18n.addResource('en', 'translation', 'home.promo.arrivalsBody', 'A gallery of new textures and cuts. Explore the latest arrivals across the house.');
+i18n.addResource('ar', 'translation', 'home.promo.arrivalsBody', 'تشكيلة من الخامات والقصّات الجديدة. اكتشف أحدث القطع من FIVE.');
+i18n.addResource('en', 'translation', 'home.promo.arrivalsCta', 'Browse new arrivals');
+i18n.addResource('ar', 'translation', 'home.promo.arrivalsCta', 'استكشف الجديد');
+i18n.addResource('en', 'translation', 'home.promo.days', 'Days');
+i18n.addResource('ar', 'translation', 'home.promo.days', 'يوم');
+i18n.addResource('en', 'translation', 'home.promo.hours', 'Hours');
+i18n.addResource('ar', 'translation', 'home.promo.hours', 'ساعة');
+i18n.addResource('en', 'translation', 'home.promo.mins', 'Mins');
+i18n.addResource('ar', 'translation', 'home.promo.mins', 'دقيقة');
+i18n.addResource('en', 'translation', 'home.promo.secs', 'Secs');
+i18n.addResource('ar', 'translation', 'home.promo.secs', 'ثانية');
