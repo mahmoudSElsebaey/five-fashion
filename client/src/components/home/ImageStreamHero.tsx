@@ -12,7 +12,7 @@ const IMAGES = [
   'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=900&q=82&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1678366033925-b917160e101a?w=900&q=82&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1779675789410-85a43261a172?w=900&q=82&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1785199366362-5a0ea5e933a0?w=900&q=82&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900&q=82&auto=format&fit=crop',
 ];
 
 type StreamCardStyle = CSSProperties & { '--delay': string; '--index': number };
@@ -22,12 +22,12 @@ function Rail({ direction }: { direction: 'left' | 'right' }) {
     <div className={`five-image-stream__rail five-image-stream__rail--${direction}`} aria-hidden="true">
       {IMAGES.map((src, index) => {
         const style: StreamCardStyle = {
-          '--delay': `${-index * 1.8}s`,
+          '--delay': `${-index * 3.2}s`,
           '--index': index,
         };
 
         return (
-          <div key={`${direction}-${src}`} className="five-image-stream__card" style={style}>
+          <div key={`${direction}-${src}-${index}`} className="five-image-stream__card" style={style}>
             <img src={src} alt="" loading="eager" decoding="async" draggable={false} />
           </div>
         );
@@ -51,7 +51,7 @@ export function ImageStreamHero() {
           container-type: inline-size;
           perspective: 1100px;
           pointer-events: none;
-          opacity: .9;
+          opacity: .88;
           contain: layout paint;
         }
 
@@ -84,7 +84,7 @@ export function ImageStreamHero() {
           background: var(--surface);
           box-shadow: 0 20px 60px color-mix(in srgb, #000 34%, transparent);
           transform-origin: center center;
-          animation: five-stream-card 24s linear infinite;
+          animation: five-stream-card 48s cubic-bezier(0.37, 0, 0.63, 1) infinite;
           animation-delay: var(--delay);
           will-change: transform, opacity;
           backface-visibility: hidden;
@@ -107,31 +107,31 @@ export function ImageStreamHero() {
             opacity: 0;
             transform: translate3d(-50%, -50%, -720px) translateX(calc(var(--direction) * -4cqw)) scale(.2) rotateY(calc(var(--direction) * -4deg));
           }
-          12% { opacity: .42; }
-          35% {
-            opacity: .68;
+          14% { opacity: .38; }
+          38% {
+            opacity: .66;
             transform: translate3d(-50%, -50%, -360px) translateX(calc(var(--direction) * 5cqw)) scale(.42) rotateY(calc(var(--direction) * -8deg));
           }
           62% {
-            opacity: .82;
+            opacity: .8;
             transform: translate3d(-50%, -50%, -20px) translateX(calc(var(--direction) * 24cqw)) scale(.82) rotateY(calc(var(--direction) * -14deg));
           }
-          84% { opacity: .54; }
+          86% { opacity: .48; }
           100% {
             opacity: 0;
-            transform: translate3d(-50%, -50%, 280px) translateX(calc(var(--direction) * 58cqw)) scale(1.22) rotateY(calc(var(--direction) * -20deg));
+            transform: translate3d(-50%, -50%, 280px) translateX(calc(var(--direction) * 58cqw)) scale(1.18) rotateY(calc(var(--direction) * -20deg));
           }
         }
 
         @media (max-width: 767px) {
-          .five-image-stream { opacity: .5; }
+          .five-image-stream { opacity: .48; }
           .five-image-stream__card { width: clamp(72px, 24cqw, 120px); }
           .five-image-stream__card:nth-child(n+7) { display: none; }
-          .five-image-stream__card { animation-duration: 22s; }
+          .five-image-stream__card { animation-duration: 42s; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .five-image-stream__card { animation-play-state: paused; }
+          .five-image-stream__card { animation: none !important; }
           .five-image-stream__card {
             opacity: .34;
             transform: translate3d(-50%, -50%, -260px) translateX(calc(var(--direction) * 10cqw)) scale(.5) rotateY(calc(var(--direction) * -10deg));

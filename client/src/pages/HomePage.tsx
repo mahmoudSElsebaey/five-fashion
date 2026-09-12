@@ -2,6 +2,7 @@ import { Seo } from '@/components/seo/Seo';
 import { OrganizationJsonLd } from '@/components/seo/OrganizationJsonLd';
 import { HeroSection } from '@/components/home/HeroSection';
 import { FeaturedCollections } from '@/components/home/FeaturedCollections';
+import { FeaturedCarousel } from '@/components/home/FeaturedCarousel';
 import { NewArrivals } from '@/components/home/NewArrivals';
 import { EditorialSection } from '@/components/home/EditorialSection';
 import { OffersSection } from '@/components/home/OffersSection';
@@ -17,15 +18,18 @@ export function HomePage() {
       <OrganizationJsonLd />
       <HeroSection />
       <Reveal>
+        <FeaturedCarousel />
+      </Reveal>
+      <Reveal delay={0.05}>
         <FeaturedCollections />
       </Reveal>
-      <Reveal delay={0.05}>
+      <Reveal>
         <NewArrivals />
       </Reveal>
-      <Reveal>
+      <Reveal delay={0.05}>
         <EditorialSection />
       </Reveal>
-      <Reveal delay={0.05}>
+      <Reveal>
         <OffersSection />
       </Reveal>
     </>
