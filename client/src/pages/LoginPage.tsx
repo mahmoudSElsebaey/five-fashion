@@ -38,6 +38,21 @@ const DEMO_ACCOUNTS: DemoAccount[] = [
   },
 ];
 
+function EyeIcon({ off = false }: { off?: boolean }) {
+  return off ? (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5" aria-hidden="true">
+      <path d="M3 3l18 18" strokeLinecap="round" />
+      <path d="M10.6 10.7a2 2 0 002.7 2.7" strokeLinecap="round" />
+      <path d="M9.9 4.3A10.8 10.8 0 0112 4c5.5 0 9 5.8 9 5.8a17.7 17.7 0 01-3.1 3.8M6.1 6.2C3.9 7.9 3 9.8 3 9.8s3.5 5.8 9 5.8c.8 0 1.6-.1 2.3-.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5" aria-hidden="true">
+      <path d="M3 12s3.5-5.8 9-5.8S21 12 21 12s-3.5 5.8-9 5.8S3 12 3 12z" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="2.6" />
+    </svg>
+  );
+}
+
 export function LoginPage() {
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
@@ -56,6 +71,7 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedDemo, setSelectedDemo] = useState<DemoAccount['key'] | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -123,7 +139,7 @@ export function LoginPage() {
         </>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
         {locationMessage && (
           <div
             className="rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm text-foreground"
@@ -144,23 +160,34 @@ export function LoginPage() {
           type="email"
           autoComplete="email"
           error={errors.email?.message}
-          className="h-11 rounded-xl border-border/80 bg-surface/80"
+          className="h-12 rounded-xl border-border/80 bg-surface/70"
           {...register('email')}
         />
 
-        <Input
-          label={t('auth.password')}
-          type="password"
-          autoComplete="current-password"
-          error={errors.password?.message}
-          className="h-11 rounded-xl border-border/80 bg-surface/80"
-          {...register('password')}
-        />
+        <div className="relative">
+          <Input
+            label={t('auth.password')}
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
+            error={errors.password?.message}
+            className="h-12 rounded-xl border-border/80 bg-surface/70 pe-12"
+            {...register('password')}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((value) => !value)}
+            className="absolute end-3 top-[2.15rem] flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+            aria-label={showPassword ? (isArabic ? 'إخفاء كلمة المرور' : 'Hide password') : isArabic ? 'إظهار كلمة المرور' : 'Show password'}
+            title={showPassword ? (isArabic ? 'إخفاء كلمة المرور' : 'Hide password') : isArabic ? 'إظهار كلمة المرور' : 'Show password'}
+          >
+            <EyeIcon off={showPassword} />
+          </button>
+        </div>
 
         <div className="flex justify-end">
           <Link
             to="/forgot-password"
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="text-sm text-muted-foreground transition-colors hover:text-accent"
           >
             {t('auth.forgotPassword')}
           </Link>
@@ -171,7 +198,7 @@ export function LoginPage() {
         </Button>
       </form>
 
-      <div className="mt-6 rounded-2xl border border-border/60 bg-muted/30 p-4">
+      <div className="mt-7 rounded-2xl border border-border/60 bg-muted/30 p-4">
         <div className="mb-3 text-center">
           <p className="text-sm font-semibold text-foreground">
             {isArabic ? 'حسابات التجربة' : 'Demo accounts'}
