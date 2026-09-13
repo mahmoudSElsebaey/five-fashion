@@ -6,7 +6,7 @@ import 'swiper/css';
 type Brand = {
   name: string;
   domain: string;
-  /** simpleicons slug when available */
+  /** Simple Icons slug for a reliable brand mark. */
   slug?: string;
 };
 
@@ -18,10 +18,10 @@ const BRANDS: Brand[] = [
   { name: 'New Balance', domain: 'newbalance.com', slug: 'newbalance' },
   { name: 'Converse', domain: 'converse.com', slug: 'converse' },
   { name: 'Vans', domain: 'vans.com', slug: 'vans' },
-  { name: 'Gucci', domain: 'gucci.com' },
-  { name: 'Prada', domain: 'prada.com' },
-  { name: 'Chanel', domain: 'chanel.com' },
-  { name: 'Dior', domain: 'dior.com' },
+  { name: 'Gucci', domain: 'gucci.com', slug: 'gucci' },
+  { name: 'Prada', domain: 'prada.com', slug: 'prada' },
+  { name: 'Chanel', domain: 'chanel.com', slug: 'chanel' },
+  { name: 'Dior', domain: 'dior.com', slug: 'dior' },
   { name: 'Zara', domain: 'zara.com', slug: 'zara' },
   { name: 'H&M', domain: 'hm.com', slug: 'hm' },
 ];
@@ -29,6 +29,7 @@ const BRANDS: Brand[] = [
 function logoCandidates(brand: Brand): string[] {
   const list: string[] = [];
   if (brand.slug) {
+    // Simple Icons provides a consistent, high-quality monochrome brand mark.
     list.push(`https://cdn.simpleicons.org/${brand.slug}`);
   }
   list.push(`https://logo.clearbit.com/${brand.domain}`);
