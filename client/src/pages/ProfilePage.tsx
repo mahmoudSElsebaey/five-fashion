@@ -100,7 +100,8 @@ export function ProfilePage() {
   const [openPanel, setOpenPanel] = useState<PanelId>('account');
   const [logoutConfirm, setLogoutConfirm] = useState(false);
 
-  const isAdmin = String(user?.role || '').toLowerCase() === 'admin';
+  const role = String(user?.role || '').toLowerCase();
+  const isAdmin = role === 'admin' || role === 'administrator' || role === 'superadmin';
   const initials = (user?.name || user?.email || 'U')
     .split(' ')
     .map((p) => p[0])
@@ -150,7 +151,6 @@ export function ProfilePage() {
     <div className="relative mx-auto max-w-2xl px-3 py-10 sm:px-6 sm:py-16">
       <Seo title={t('auth.profile')} />
 
-      {/* ambient glow */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 mx-auto h-64 max-w-lg opacity-50 blur-3xl"
         style={{
@@ -159,7 +159,6 @@ export function ProfilePage() {
         }}
       />
 
-      {/* 3D identity card */}
       <CardContainer className="w-full" containerClassName="w-full">
         <CardBody className="w-full">
           <div
@@ -212,7 +211,6 @@ export function ProfilePage() {
         </CardBody>
       </CardContainer>
 
-      {/* Controllable 3D panels */}
       <div className="mt-8 space-y-3" style={{ perspective: '1200px' }}>
         <ProfilePanel
           id="account"
@@ -355,11 +353,9 @@ export function ProfilePage() {
                 defaultValue: 'You have admin access. Open the control panel to manage the store.',
               })}
             </p>
-            <Link to="/admin">
-              <Button fullWidth>
-                {t('admin.nav.dashboard', { defaultValue: 'Open dashboard' })}
-              </Button>
-            </Link>
+            <Button fullWidth onClick={() => navigate('/admin')}>
+              {t('admin.nav.dashboard', { defaultValue: 'Open dashboard' })}
+            </Button>
           </ProfilePanel>
         )}
 
