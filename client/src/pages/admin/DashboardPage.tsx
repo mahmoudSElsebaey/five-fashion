@@ -6,9 +6,11 @@ import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { productsApi, ordersApi, usersApi } from '@/services/apiClient';
 
+type Localized = string | { en?: string; ar?: string } | null | undefined;
+
 type ProductSnapshot = {
   _id: string;
-  name?: string;
+  name?: Localized;
   slug?: string;
   stock?: number;
   price?: number;
@@ -50,9 +52,21 @@ const dashboardLabels: Record<string, string> = {
   lowStock: 'مخزون منخفض',
 };
 
+/** API returns bilingual objects {en,ar} — never render the object as a React child. */
+function pickLocalized(value: Localized, isAr: boolean): string {
+  if (value == null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object') {
+    const primary = isAr ? value.ar : value.en;
+    const fallback = isAr ? value.en : value.ar;
+    return (primary || fallback || '').trim();
+  }
+  return String(value);
+}
+
 export function DashboardPage() {
   const { t, i18n } = useTranslation();
-  const isAr = i18n.language === 'ar';
+  const isAr = i18n.language === 'ar' || i18n.language.startsWith('ar');
   const text = (en: string, ar: string) => (isAr ? ar : en);
   const statusLabel = (status?: string) =>
     isAr ? statusAr[status || ''] || status || '—' : status || '—';
@@ -253,22 +267,29 @@ export function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {inventoryPreview.map((product) => (
-                  <tr key={product._id} className="border-b border-border last:border-0">
-                    <td className="px-4 py-3">
-                      <Link className="hover:underline" to={`/admin/products?id=${product._id}`}>
-                        {product.name || product.slug || product._id?.slice(-6)}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3">{product.stock ?? 0}</td>
-                    <td className="px-4 py-3">${Number(product.price || 0).toFixed(2)}</td>
-                    <td className="px-4 py-3">
-                      {product.isActive === false
-                        ? text('Inactive', 'غير نشط')
-                        : text('Active', 'نشط')}
-                    </td>
-                  </tr>
-                ))}
+                {inventoryPreview.map((product) => {
+                  const displayName =
+                    pickLocalized(product.name, isAr) ||
+                    product.slug ||
+                    product._id?.slice(-6) ||
+                    '—';
+                  return (
+                    <tr key={product._id} className="border-b border-border last:border-0">
+                      <td className="px-4 py-3">
+                        <Link className="hover:underline" to={`/admin/products?id=${product._id}`}>
+                          {displayName}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3">{product.stock ?? 0}</td>
+                      <td className="px-4 py-3">${Number(product.price || 0).toFixed(2)}</td>
+                      <td className="px-4 py-3">
+                        {product.isActive === false
+                          ? text('Inactive', 'غير نشط')
+                          : text('Active', 'نشط')}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
