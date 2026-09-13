@@ -3,29 +3,78 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, FreeMode } from 'swiper/modules';
 import 'swiper/css';
 
-/** Famous fashion / apparel brands — logos via Clearbit */
-const BRANDS = [
-  { name: 'Nike', domain: 'nike.com' },
-  { name: 'Adidas', domain: 'adidas.com' },
-  { name: 'Gucci', domain: 'gucci.com' },
+type Brand = {
+  name: string;
+  domain: string;
+  /** simple-icons slug when available */
+  icon?: string;
+};
+
+const BRANDS: Brand[] = [
+  { name: 'Nike', domain: 'nike.com', icon: 'nike' },
+  { name: 'Adidas', domain: 'adidas.com', icon: 'adidas' },
+  { name: 'Puma', domain: 'puma.com', icon: 'puma' },
+  { name: 'Gucci', domain: 'gucci.com', icon: 'gucci' },
   { name: 'Prada', domain: 'prada.com' },
   { name: 'Chanel', domain: 'chanel.com' },
   { name: 'Dior', domain: 'dior.com' },
-  { name: 'Burberry', domain: 'burberry.com' },
+  { name: 'Burberry', domain: 'burberry.com', icon: 'burberry' },
   { name: 'Versace', domain: 'versace.com' },
   { name: 'Calvin Klein', domain: 'calvinklein.com' },
   { name: 'Tommy Hilfiger', domain: 'tommy.com' },
-  { name: 'Zara', domain: 'zara.com' },
+  { name: 'Zara', domain: 'zara.com', icon: 'zara' },
   { name: 'H&M', domain: 'hm.com' },
-] as const;
+  { name: 'New Balance', domain: 'newbalance.com', icon: 'newbalance' },
+];
 
-function brandLogo(domain: string) {
+function simpleIconUrl(slug: string) {
+  return `https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/${slug}.svg`;
+}
+
+function clearbitUrl(domain: string) {
   return `https://logo.clearbit.com/${domain}`;
+}
+
+function googleIconUrl(domain: string) {
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+}
+
+function BrandLogo({ brand }: { brand: Brand }) {
+  const sources = [
+    brand.icon ? simpleIconUrl(brand.icon) : null,
+    clearbitUrl(brand.domain),
+    googleIconUrl(brand.domain),
+  ].filter(Boolean) as string[];
+
+  return (
+    <img
+      src={sources[0]}
+      alt={brand.name}
+      title={brand.name}
+      loading="lazy"
+      decoding="async"
+      className="h-8 w-auto max-w-[5.5rem] object-contain opacity-90 transition-opacity duration-300 group-hover:opacity-100 sm:h-10 sm:max-w-[6.5rem] dark:invert"
+      onError={(e) => {
+        const img = e.currentTarget;
+        const current = img.getAttribute('src') || '';
+        const idx = sources.indexOf(current);
+        const next = sources[idx + 1];
+        if (next) {
+          img.src = next;
+          // Clearbit / favicon are full-color — disable invert on those
+          img.classList.remove('dark:invert');
+          return;
+        }
+        img.style.display = 'none';
+        const fallback = img.nextElementSibling as HTMLElement | null;
+        if (fallback) fallback.hidden = false;
+      }}
+    />
+  );
 }
 
 export function BrandsStrip() {
   const { t } = useTranslation();
-  // Duplicate slides so Swiper loop never shows a gap
   const slides = [...BRANDS, ...BRANDS, ...BRANDS];
 
   return (
@@ -66,38 +115,28 @@ export function BrandsStrip() {
           className="five-brands-swiper !overflow-visible"
         >
           {slides.map((brand, i) => (
-            <SwiperSlide
-              key={`${brand.domain}-${i}`}
-              className="!w-auto"
-            >
+            <SwiperSlide key={`${brand.domain}-${i}`} className="!w-auto">
               <div
-                className="group flex h-20 w-28 items-center justify-center rounded-2xl border border-border/50 bg-card px-3 transition-transform duration-300 sm:h-24 sm:w-36 sm:px-4"
+                className="group flex h-20 w-32 items-center justify-center rounded-2xl border border-border/50 bg-card px-4 transition-transform duration-300 sm:h-24 sm:w-40 sm:px-5"
                 style={{
                   transformStyle: 'preserve-3d',
                   boxShadow:
                     '0 14px 28px -12px rgba(0,0,0,0.4), 0 6px 12px -6px color-mix(in srgb, var(--accent) 28%, transparent), inset 0 1px 0 rgba(255,255,255,0.1)',
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.transform =
+                  e.currentTarget.style.transform =
                     'rotateY(-10deg) rotateX(6deg) translateZ(10px)';
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.transform = '';
+                  e.currentTarget.style.transform = '';
                 }}
               >
-                <img
-                  src={brandLogo(brand.domain)}
-                  alt={brand.name}
-                  loading="lazy"
-                  className="max-h-8 max-w-[4.5rem] object-contain opacity-80 transition-opacity group-hover:opacity-100 sm:max-h-10 sm:max-w-[5.5rem] dark:brightness-0 dark:invert"
-                  onError={(e) => {
-                    const el = e.currentTarget;
-                    el.style.display = 'none';
-                    const fallback = el.nextElementSibling as HTMLElement | null;
-                    if (fallback) fallback.hidden = false;
-                  }}
-                />
-                <span hidden className="font-display text-xs font-semibold tracking-wide text-foreground/70">
+                <BrandLogo brand={brand} />
+                {/* Fallback text only if every logo source fails */}
+                <span
+                  hidden
+                  className="font-display text-xs font-semibold tracking-wide text-foreground/70"
+                >
                   {brand.name}
                 </span>
               </div>
