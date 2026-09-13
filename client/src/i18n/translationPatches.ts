@@ -117,3 +117,5 @@ i18n.addResource('en', 'translation', 'auth.roleAdmin', 'Admin');
 i18n.addResource('ar', 'translation', 'auth.roleAdmin', 'مسؤول');
 i18n.addResource('en', 'translation', 'auth.roleStaff', 'Staff');
 i18n.addResource('ar', 'translation', 'auth.roleStaff', 'موظف');
+i18n.addResource('en', 'translation', 'admin.nav.dashboard', 'Dashboard');
+i18n.addResource('ar', 'translation', 'admin.nav.dashboard', 'لوحة التحكم');
