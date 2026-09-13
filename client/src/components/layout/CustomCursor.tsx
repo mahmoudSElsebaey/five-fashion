@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
-const MAX_POINTS = 28;
+/** Medium trail length */
+const MAX_POINTS = 16;
 
 /** Natural OS-style arrow (hotspot at tip). */
 function NaturalPointer() {
@@ -18,7 +19,7 @@ function NaturalPointer() {
 }
 
 /**
- * Natural mouse pointer + one continuous soft cloud trail (canvas).
+ * Natural mouse pointer + simple medium-length smoke trail.
  */
 export function CustomCursor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -88,14 +89,14 @@ export function CustomCursor() {
     const onTheme = () => readAccent();
 
     const tick = () => {
-      // ease trail head toward pointer for softer cloud
       const last = points[0];
       if (!last) {
         points.unshift({ x: mx, y: my });
       } else {
+        // Slight lag so smoke feels soft, not glued to tip
         points.unshift({
-          x: last.x + (mx - last.x) * 0.55,
-          y: last.y + (my - last.y) * 0.55,
+          x: last.x + (mx - last.x) * 0.42,
+          y: last.y + (my - last.y) * 0.42,
         });
       }
       if (points.length > MAX_POINTS) points.length = MAX_POINTS;
@@ -105,55 +106,38 @@ export function CustomCursor() {
       ctx.clearRect(0, 0, w, h);
 
       if (points.length > 2) {
-        // Continuous ribbon: layered strokes, one path
-        for (let layer = 0; layer < 3; layer++) {
-          const width = 22 - layer * 6;
-          const alpha = 0.16 - layer * 0.04;
+        // Simple smoke: one soft stroke that thins toward the tail
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = accent;
+        ctx.shadowBlur = 12;
+
+        for (let i = 0; i < points.length - 1; i++) {
+          const a = points[i];
+          const b = points[i + 1];
+          const t = i / (points.length - 1);
+          // Head thicker/more opaque, tail thinner/fainter — medium distance overall
+          const width = 10 * (1 - t * 0.85);
+          const alpha = 0.14 * (1 - t);
 
           ctx.beginPath();
-          ctx.lineCap = 'round';
-          ctx.lineJoin = 'round';
           ctx.strokeStyle = accent;
           ctx.globalAlpha = alpha;
-          ctx.lineWidth = width;
-          ctx.shadowColor = accent;
-          ctx.shadowBlur = 18 - layer * 4;
-
-          ctx.moveTo(points[0].x, points[0].y);
-          for (let i = 1; i < points.length - 1; i++) {
-            const c = points[i];
-            const n = points[i + 1];
-            const mxid = (c.x + n.x) / 2;
-            const myid = (c.y + n.y) / 2;
-            ctx.quadraticCurveTo(c.x, c.y, mxid, myid);
-          }
-          const tail = points[points.length - 1];
-          ctx.lineTo(tail.x, tail.y);
+          ctx.lineWidth = Math.max(1.5, width);
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
           ctx.stroke();
         }
-
-        // Soft head cloud (still one blob, not dots)
-        const head = points[0];
-        const grd = ctx.createRadialGradient(head.x, head.y, 0, head.x, head.y, 28);
-        grd.addColorStop(0, accent);
-        grd.addColorStop(0.35, accent);
-        grd.addColorStop(1, 'transparent');
-        ctx.globalAlpha = 0.2;
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = grd;
-        ctx.beginPath();
-        ctx.arc(head.x, head.y, 28, 0, Math.PI * 2);
-        ctx.fill();
 
         ctx.globalAlpha = 1;
         ctx.shadowBlur = 0;
       }
 
-      // Fade trail by dropping oldest gradually when idle
-      if (points.length > 8) {
+      // Shorten trail when idle
+      if (points.length > 6) {
         const dx = Math.abs(mx - points[0].x);
         const dy = Math.abs(my - points[0].y);
-        if (dx < 0.5 && dy < 0.5 && points.length > 10) {
+        if (dx < 0.4 && dy < 0.4) {
           points.pop();
         }
       }
