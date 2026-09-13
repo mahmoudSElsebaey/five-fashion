@@ -1,16 +1,45 @@
 import { useEffect, useRef, useState } from 'react';
 
-const TRAIL_COUNT = 4;
-/** Lag factors: head follows tight, tail is softer */
-const LAGS = [1, 0.35, 0.2, 0.12, 0.07];
+const CLOUD_COUNT = 5;
+const LAGS = [1, 0.28, 0.16, 0.1, 0.065, 0.04];
+
+/** Classic OS-style pointer path (16×16 viewBox, tip at 0,0). */
+function PointerIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <path
+        d="M5.5 3.2L18.2 12.1l-5.4 1.2 2.6 7.1-2.4.9-2.7-7.2-4.3 3.6V3.2Z"
+        fill="var(--foreground)"
+        stroke="var(--background)"
+        strokeWidth="1.25"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5.5 3.2L18.2 12.1l-5.4 1.2 2.6 7.1-2.4.9-2.7-7.2-4.3 3.6V3.2Z"
+        fill="none"
+        stroke="color-mix(in srgb, var(--accent) 55%, transparent)"
+        strokeWidth="0.75"
+        strokeLinejoin="round"
+        opacity="0.9"
+      />
+    </svg>
+  );
+}
 
 /**
- * Brand custom cursor — accent core + fading trail.
+ * Classic mouse pointer + soft golden cloud trail.
  * Fine-pointer only; respects prefers-reduced-motion.
  */
 export function CustomCursor() {
-  const coreRef = useRef<HTMLDivElement>(null);
-  const trailRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const pointerRef = useRef<HTMLDivElement>(null);
+  const cloudRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [enabled, setEnabled] = useState(false);
   const hoveringInteractive = useRef(false);
 
@@ -39,8 +68,7 @@ export function CustomCursor() {
 
     let targetX = window.innerWidth / 2;
     let targetY = window.innerHeight / 2;
-    // positions: [0]=core, [1..n]=trail
-    const pts = Array.from({ length: TRAIL_COUNT + 1 }, () => ({
+    const pts = Array.from({ length: CLOUD_COUNT + 1 }, () => ({
       x: targetX,
       y: targetY,
     }));
@@ -66,23 +94,27 @@ export function CustomCursor() {
       pts[0].y = targetY;
 
       for (let i = 1; i < pts.length; i++) {
-        const lag = LAGS[i] ?? 0.1;
+        const lag = LAGS[i] ?? 0.08;
         pts[i].x += (pts[i - 1].x - pts[i].x) * lag;
         pts[i].y += (pts[i - 1].y - pts[i].y) * lag;
       }
 
-      const scale = hoveringInteractive.current ? 1.35 : 1;
-
-      if (coreRef.current) {
-        coreRef.current.style.transform = `translate3d(${pts[0].x}px, ${pts[0].y}px, 0) translate(-50%, -50%) scale(${scale})`;
+      if (pointerRef.current) {
+        // Tip of arrow aligns with hotspot (~1px,1px)
+        pointerRef.current.style.transform = `translate3d(${pts[0].x}px, ${pts[0].y}px, 0)`;
+        pointerRef.current.style.opacity = hoveringInteractive.current ? '1' : '0.95';
       }
 
-      trailRefs.current.forEach((el, i) => {
+      cloudRefs.current.forEach((el, i) => {
         if (!el) return;
         const p = pts[i + 1];
         if (!p) return;
-        const tScale = (1 - i * 0.18) * (hoveringInteractive.current ? 1.15 : 1);
-        el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) translate(-50%, -50%) scale(${tScale})`;
+        const grow = hoveringInteractive.current ? 1.25 : 1;
+        const base = 14 + i * 6;
+        el.style.width = `${base * grow}px`;
+        el.style.height = `${base * grow}px`;
+        el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) translate(-50%, -50%)`;
+        el.style.opacity = String((0.28 - i * 0.04) * (hoveringInteractive.current ? 1.15 : 1));
       });
 
       raf = requestAnimationFrame(tick);
@@ -101,33 +133,34 @@ export function CustomCursor() {
 
   return (
     <>
-      {Array.from({ length: TRAIL_COUNT }).map((_, i) => (
+      {Array.from({ length: CLOUD_COUNT }).map((_, i) => (
         <div
           key={i}
           ref={(el) => {
-            trailRefs.current[i] = el;
+            cloudRefs.current[i] = el;
           }}
           aria-hidden
-          className="pointer-events-none fixed left-0 top-0 z-[9998] rounded-full bg-accent"
+          className="pointer-events-none fixed left-0 top-0 z-[9998] rounded-full"
           style={{
-            width: `${10 - i * 1.5}px`,
-            height: `${10 - i * 1.5}px`,
-            opacity: 0.45 - i * 0.09,
-            willChange: 'transform',
-            boxShadow: '0 0 10px color-mix(in srgb, var(--accent) 50%, transparent)',
+            willChange: 'transform, opacity, width, height',
+            background:
+              'radial-gradient(circle, color-mix(in srgb, var(--accent) 55%, transparent) 0%, color-mix(in srgb, var(--accent) 18%, transparent) 45%, transparent 72%)',
+            filter: 'blur(6px)',
           }}
         />
       ))}
       <div
-        ref={coreRef}
+        ref={pointerRef}
         aria-hidden
-        className="pointer-events-none fixed left-0 top-0 z-[9999] h-2.5 w-2.5 rounded-full bg-accent"
+        className="pointer-events-none fixed left-0 top-0 z-[9999]"
         style={{
           willChange: 'transform',
-          boxShadow:
-            '0 0 14px color-mix(in srgb, var(--accent) 75%, transparent), 0 0 4px color-mix(in srgb, var(--accent) 90%, transparent)',
+          filter:
+            'drop-shadow(0 1px 1px rgba(0,0,0,0.35)) drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 45%, transparent))',
         }}
-      />
+      >
+        <PointerIcon />
+      </div>
     </>
   );
 }
