@@ -10,7 +10,7 @@ type Brand = {
   slug?: string;
 };
 
-/** Famous apparel brands — original logos (no text names on the tile). */
+/** Famous apparel brands — logo with the brand name underneath. */
 const BRANDS: Brand[] = [
   { name: 'Nike', domain: 'nike.com', slug: 'nike' },
   { name: 'Adidas', domain: 'adidas.com', slug: 'adidas' },
@@ -29,12 +29,9 @@ const BRANDS: Brand[] = [
 function logoCandidates(brand: Brand): string[] {
   const list: string[] = [];
   if (brand.slug) {
-    // Official monochrome mark from Simple Icons
     list.push(`https://cdn.simpleicons.org/${brand.slug}`);
   }
-  // Clearbit full-color wordmark / mark
   list.push(`https://logo.clearbit.com/${brand.domain}`);
-  // Google favicon high-res as last resort
   list.push(`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=128`);
   return list;
 }
@@ -49,7 +46,7 @@ function BrandLogo({ brand }: { brand: Brand }) {
       title={brand.name}
       loading="lazy"
       decoding="async"
-      className="max-h-9 max-w-[5.5rem] object-contain opacity-90 transition-opacity duration-300 group-hover:opacity-100 sm:max-h-11 sm:max-w-[6.5rem] dark:brightness-0 dark:invert"
+      className="h-10 max-h-10 w-auto max-w-[5.5rem] object-contain opacity-90 transition-opacity duration-300 group-hover:opacity-100 sm:h-12 sm:max-h-12 sm:max-w-[6.5rem] dark:brightness-0 dark:invert"
       onError={(e) => {
         const img = e.currentTarget;
         const idx = Number(img.dataset.idx || '0');
@@ -59,10 +56,7 @@ function BrandLogo({ brand }: { brand: Brand }) {
           img.src = next;
           return;
         }
-        // Absolute last resort: initial letter only if every logo URL failed
         img.style.display = 'none';
-        const fallback = img.nextElementSibling as HTMLElement | null;
-        if (fallback) fallback.hidden = false;
       }}
     />
   );
@@ -86,7 +80,7 @@ export function BrandsStrip() {
         </h2>
       </div>
 
-      <div className="relative px-2 sm:px-4" style={{ perspective: '1000px' }}>
+      <div className="relative px-2 sm:px-4">
         <div className="pointer-events-none absolute inset-y-0 start-0 z-10 w-12 bg-gradient-to-r from-background to-transparent sm:w-20" />
         <div className="pointer-events-none absolute inset-y-0 end-0 z-10 w-12 bg-gradient-to-l from-background to-transparent sm:w-20" />
 
@@ -111,28 +105,9 @@ export function BrandsStrip() {
         >
           {slides.map((brand, i) => (
             <SwiperSlide key={`${brand.domain}-${i}`} className="!w-auto">
-              <div
-                className="group flex h-20 w-32 items-center justify-center rounded-2xl border border-border/50 bg-card px-4 transition-transform duration-300 sm:h-24 sm:w-40 sm:px-5"
-                style={{
-                  transformStyle: 'preserve-3d',
-                  boxShadow:
-                    '0 14px 28px -12px rgba(0,0,0,0.4), 0 6px 12px -6px color-mix(in srgb, var(--accent) 28%, transparent), inset 0 1px 0 rgba(255,255,255,0.1)',
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.transform =
-                    'rotateY(-10deg) rotateX(6deg) translateZ(10px)';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.transform = '';
-                }}
-              >
+              <div className="group flex h-24 w-32 flex-col items-center justify-center gap-2 px-4 transition-transform duration-300 hover:scale-105 sm:h-28 sm:w-40 sm:px-5">
                 <BrandLogo brand={brand} />
-                {/* Hidden unless every logo URL fails */}
-                <span
-                  hidden
-                  className="font-display text-sm font-semibold tracking-wide text-foreground/70"
-                  aria-hidden
-                >
+                <span className="text-center text-xs font-medium tracking-wide text-foreground/70 transition-colors duration-300 group-hover:text-foreground sm:text-sm">
                   {brand.name}
                 </span>
               </div>
