@@ -15,8 +15,22 @@ type ProductSnapshot = {
   isActive?: boolean;
 };
 
-type Stats = { products: number; orders: number; customers: number; revenue: number; pending: number; lowStock: number };
-type RecentOrder = { _id: string; orderNumber?: string; total?: number; status?: string; customerEmail?: string; user?: { email?: string } };
+type Stats = {
+  products: number;
+  orders: number;
+  customers: number;
+  revenue: number;
+  pending: number;
+  lowStock: number;
+};
+type RecentOrder = {
+  _id: string;
+  orderNumber?: string;
+  total?: number;
+  status?: string;
+  customerEmail?: string;
+  user?: { email?: string };
+};
 
 const statusAr: Record<string, string> = {
   pending: 'قيد الانتظار',
@@ -40,7 +54,8 @@ export function DashboardPage() {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
   const text = (en: string, ar: string) => (isAr ? ar : en);
-  const statusLabel = (status?: string) => (isAr ? statusAr[status || ''] || status || '—' : status || '—');
+  const statusLabel = (status?: string) =>
+    isAr ? statusAr[status || ''] || status || '—' : status || '—';
   const [stats, setStats] = useState<Stats | null>(null);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [inventory, setInventory] = useState<ProductSnapshot[]>([]);
@@ -48,36 +63,76 @@ export function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
+  const asArray = <T,>(value: unknown): T[] => {
+    if (Array.isArray(value)) return value as T[];
+    if (value && typeof value === 'object') {
+      const obj = value as Record<string, unknown>;
+      for (const key of ['items', 'results', 'docs', 'products', 'orders', 'users']) {
+        if (Array.isArray(obj[key])) return obj[key] as T[];
+      }
+    }
+    return [];
+  };
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [prod, orders, users, inventoryRes, pendingRes] = await Promise.all([
+      const [prodRes, ordersRes, usersRes, pendingRes] = await Promise.allSettled([
         productsApi.adminList({ limit: 100, status: 'all' }),
         ordersApi.adminList({ limit: 8 }),
         usersApi.list({ limit: 1 }),
-        productsApi.adminList({ limit: 100, status: 'all' }),
         ordersApi.adminList({ limit: 1, status: 'pending' }),
       ]);
 
-      const orderItems = (orders.data as RecentOrder[]) || [];
-      const products = (inventoryRes.data as ProductSnapshot[]) || [];
+      const prod = prodRes.status === 'fulfilled' ? prodRes.value : null;
+      const orders = ordersRes.status === 'fulfilled' ? ordersRes.value : null;
+      const users = usersRes.status === 'fulfilled' ? usersRes.value : null;
+      const pendingPayload = pendingRes.status === 'fulfilled' ? pendingRes.value : null;
+
+      const orderItems = asArray<RecentOrder>(orders?.data);
+      const products = asArray<ProductSnapshot>(prod?.data);
       const revenue = orderItems.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
-      const pending = pendingRes.meta?.total ?? orderItems.filter((order) => order.status === 'pending').length;
-      const lowStock = products.filter((product) => (product.stock ?? 0) > 0 && (product.stock ?? 0) < 10).length;
+      const pending =
+        pendingPayload?.meta?.total ??
+        orderItems.filter((order) => order.status === 'pending').length;
+      const lowStock = products.filter(
+        (product) => (product.stock ?? 0) > 0 && (product.stock ?? 0) < 10
+      ).length;
 
       setStats({
-        products: prod.meta?.total ?? products.length,
-        orders: orders.meta?.total ?? orderItems.length,
-        customers: users.meta?.total ?? 0,
+        products: prod?.meta?.total ?? products.length,
+        orders: orders?.meta?.total ?? orderItems.length,
+        customers: users?.meta?.total ?? 0,
         revenue,
         pending,
         lowStock,
       });
       setInventory(products);
       setRecentOrders(orderItems.slice(0, 6));
+
+      const failures = [prodRes, ordersRes, usersRes, pendingRes].filter(
+        (r) => r.status === 'rejected'
+      );
+      if (failures.length === 4) {
+        const first = failures[0] as PromiseRejectedResult;
+        const msg =
+          first.reason instanceof Error
+            ? first.reason.message
+            : text('Failed to load dashboard', 'تعذر تحميل لوحة التحكم');
+        setError(msg);
+      } else if (failures.length > 0) {
+        setError(
+          text(
+            'Some dashboard widgets could not be loaded.',
+            'تعذر تحميل بعض أقسام لوحة التحكم.'
+          )
+        );
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : text('Failed to load dashboard', 'تعذر تحميل لوحة التحكم'));
+      setError(
+        e instanceof Error ? e.message : text('Failed to load dashboard', 'تعذر تحميل لوحة التحكم')
+      );
     } finally {
       setLoading(false);
     }
@@ -88,11 +143,21 @@ export function DashboardPage() {
   }, [load, reloadKey]);
 
   if (loading) {
-    return <div className="flex justify-center py-20" role="status"><Spinner size="lg" /></div>;
+    return (
+      <div className="flex justify-center py-20" role="status">
+        <Spinner size="lg" />
+      </div>
+    );
   }
 
   if (error && !stats) {
-    return <ErrorState message={error} onRetry={() => setReloadKey((key) => key + 1)} />;
+    return (
+      <ErrorState
+        message={error}
+        onRetry={() => setReloadKey((key) => key + 1)}
+        retryLabel={text('Retry', 'إعادة المحاولة')}
+      />
+    );
   }
 
   const cards = [
@@ -114,8 +179,26 @@ export function DashboardPage() {
         {t('admin.dashboard.title', { defaultValue: text('Dashboard', 'لوحة التحكم') })}
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        {t('admin.dashboard.subtitle', { defaultValue: text('Overview of your store performance.', 'نظرة عامة على أداء متجرك.') })}
+        {t('admin.dashboard.subtitle', {
+          defaultValue: text('Overview of your store performance.', 'نظرة عامة على أداء متجرك.'),
+        })}
       </p>
+
+      {error && stats && (
+        <div
+          className="mt-4 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-foreground"
+          role="status"
+        >
+          {error}{' '}
+          <button
+            type="button"
+            className="font-medium underline"
+            onClick={() => setReloadKey((k) => k + 1)}
+          >
+            {text('Retry', 'إعادة المحاولة')}
+          </button>
+        </div>
+      )}
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => (
@@ -143,7 +226,10 @@ export function DashboardPage() {
               {text('Inventory snapshot', 'ملخص المخزون')}
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              {text('Products with the lowest stock are shown first.', 'المنتجات الأقل مخزونًا تظهر أولًا.')}
+              {text(
+                'Products with the lowest stock are shown first.',
+                'المنتجات الأقل مخزونًا تظهر أولًا.'
+              )}
             </p>
           </div>
           <Link className="text-sm font-medium hover:underline" to="/admin/products">
@@ -161,28 +247,28 @@ export function DashboardPage() {
               <thead className="border-b border-border bg-surface text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 font-medium">{text('Product', 'المنتج')}</th>
-                  <th className="px-4 py-3 font-medium">{text('Price', 'السعر')}</th>
                   <th className="px-4 py-3 font-medium">{text('Stock', 'المخزون')}</th>
+                  <th className="px-4 py-3 font-medium">{text('Price', 'السعر')}</th>
                   <th className="px-4 py-3 font-medium">{text('Status', 'الحالة')}</th>
                 </tr>
               </thead>
               <tbody>
-                {inventoryPreview.map((product) => {
-                  const stock = product.stock ?? 0;
-                  const status = stock === 0 ? text('Out of stock', 'نفد المخزون') : stock < 10 ? text('Low stock', 'مخزون منخفض') : text('In stock', 'متوفر');
-                  return (
-                    <tr key={product._id} className="border-b border-border last:border-0">
-                      <td className="px-4 py-3 font-medium">
-                        <Link className="hover:underline" to={`/admin/products?id=${product._id}`}>
-                          {product.name || product.slug || product._id.slice(-8)}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3">${Number(product.price || 0).toFixed(2)}</td>
-                      <td className="px-4 py-3 font-semibold">{stock}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{status}</td>
-                    </tr>
-                  );
-                })}
+                {inventoryPreview.map((product) => (
+                  <tr key={product._id} className="border-b border-border last:border-0">
+                    <td className="px-4 py-3">
+                      <Link className="hover:underline" to={`/admin/products?id=${product._id}`}>
+                        {product.name || product.slug || product._id?.slice(-6)}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">{product.stock ?? 0}</td>
+                    <td className="px-4 py-3">${Number(product.price || 0).toFixed(2)}</td>
+                    <td className="px-4 py-3">
+                      {product.isActive === false
+                        ? text('Inactive', 'غير نشط')
+                        : text('Active', 'نشط')}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -190,13 +276,18 @@ export function DashboardPage() {
       </div>
 
       <div className="mt-10">
-        <h3 className="text-sm font-semibold tracking-wide text-muted-foreground">
-          {t('admin.dashboard.recentOrders', { defaultValue: text('Recent orders', 'أحدث الطلبات') })}
-        </h3>
+        <div className="flex items-center justify-between gap-4">
+          <h3 className="text-sm font-semibold tracking-wide text-muted-foreground">
+            {text('Recent orders', 'أحدث الطلبات')}
+          </h3>
+          <Link className="text-sm font-medium hover:underline" to="/admin/orders">
+            {text('View all', 'عرض الكل')}
+          </Link>
+        </div>
 
         {recentOrders.length === 0 ? (
           <p className="mt-4 text-sm text-muted-foreground">
-            {t('admin.dashboard.noOrders', { defaultValue: text('No orders yet', 'لا توجد طلبات حتى الآن') })}
+            {text('No orders yet.', 'لا توجد طلبات بعد.')}
           </p>
         ) : (
           <div className="mt-4 overflow-x-auto rounded-xl border border-border">
