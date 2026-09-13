@@ -6,45 +6,41 @@ import 'swiper/css';
 type Brand = {
   name: string;
   domain: string;
-  /** simple-icons slug when available */
-  icon?: string;
+  /** simpleicons slug when available */
+  slug?: string;
 };
 
+/** Famous apparel brands — original logos (no text names on the tile). */
 const BRANDS: Brand[] = [
-  { name: 'Nike', domain: 'nike.com', icon: 'nike' },
-  { name: 'Adidas', domain: 'adidas.com', icon: 'adidas' },
-  { name: 'Puma', domain: 'puma.com', icon: 'puma' },
-  { name: 'Gucci', domain: 'gucci.com', icon: 'gucci' },
+  { name: 'Nike', domain: 'nike.com', slug: 'nike' },
+  { name: 'Adidas', domain: 'adidas.com', slug: 'adidas' },
+  { name: 'Puma', domain: 'puma.com', slug: 'puma' },
+  { name: 'New Balance', domain: 'newbalance.com', slug: 'newbalance' },
+  { name: 'Converse', domain: 'converse.com', slug: 'converse' },
+  { name: 'Vans', domain: 'vans.com', slug: 'vans' },
+  { name: 'Gucci', domain: 'gucci.com' },
   { name: 'Prada', domain: 'prada.com' },
   { name: 'Chanel', domain: 'chanel.com' },
   { name: 'Dior', domain: 'dior.com' },
-  { name: 'Burberry', domain: 'burberry.com', icon: 'burberry' },
-  { name: 'Versace', domain: 'versace.com' },
-  { name: 'Calvin Klein', domain: 'calvinklein.com' },
-  { name: 'Tommy Hilfiger', domain: 'tommy.com' },
-  { name: 'Zara', domain: 'zara.com', icon: 'zara' },
-  { name: 'H&M', domain: 'hm.com' },
-  { name: 'New Balance', domain: 'newbalance.com', icon: 'newbalance' },
+  { name: 'Zara', domain: 'zara.com', slug: 'zara' },
+  { name: 'H&M', domain: 'hm.com', slug: 'hm' },
 ];
 
-function simpleIconUrl(slug: string) {
-  return `https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/${slug}.svg`;
-}
-
-function clearbitUrl(domain: string) {
-  return `https://logo.clearbit.com/${domain}`;
-}
-
-function googleIconUrl(domain: string) {
-  return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+function logoCandidates(brand: Brand): string[] {
+  const list: string[] = [];
+  if (brand.slug) {
+    // Official monochrome mark from Simple Icons
+    list.push(`https://cdn.simpleicons.org/${brand.slug}`);
+  }
+  // Clearbit full-color wordmark / mark
+  list.push(`https://logo.clearbit.com/${brand.domain}`);
+  // Google favicon high-res as last resort
+  list.push(`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=128`);
+  return list;
 }
 
 function BrandLogo({ brand }: { brand: Brand }) {
-  const sources = [
-    brand.icon ? simpleIconUrl(brand.icon) : null,
-    clearbitUrl(brand.domain),
-    googleIconUrl(brand.domain),
-  ].filter(Boolean) as string[];
+  const sources = logoCandidates(brand);
 
   return (
     <img
@@ -53,18 +49,17 @@ function BrandLogo({ brand }: { brand: Brand }) {
       title={brand.name}
       loading="lazy"
       decoding="async"
-      className="h-8 w-auto max-w-[5.5rem] object-contain opacity-90 transition-opacity duration-300 group-hover:opacity-100 sm:h-10 sm:max-w-[6.5rem] dark:invert"
+      className="max-h-9 max-w-[5.5rem] object-contain opacity-90 transition-opacity duration-300 group-hover:opacity-100 sm:max-h-11 sm:max-w-[6.5rem] dark:brightness-0 dark:invert"
       onError={(e) => {
         const img = e.currentTarget;
-        const current = img.getAttribute('src') || '';
-        const idx = sources.indexOf(current);
+        const idx = Number(img.dataset.idx || '0');
         const next = sources[idx + 1];
         if (next) {
+          img.dataset.idx = String(idx + 1);
           img.src = next;
-          // Clearbit / favicon are full-color — disable invert on those
-          img.classList.remove('dark:invert');
           return;
         }
+        // Absolute last resort: initial letter only if every logo URL failed
         img.style.display = 'none';
         const fallback = img.nextElementSibling as HTMLElement | null;
         if (fallback) fallback.hidden = false;
@@ -124,18 +119,19 @@ export function BrandsStrip() {
                     '0 14px 28px -12px rgba(0,0,0,0.4), 0 6px 12px -6px color-mix(in srgb, var(--accent) 28%, transparent), inset 0 1px 0 rgba(255,255,255,0.1)',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform =
+                  (e.currentTarget as HTMLDivElement).style.transform =
                     'rotateY(-10deg) rotateX(6deg) translateZ(10px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = '';
+                  (e.currentTarget as HTMLDivElement).style.transform = '';
                 }}
               >
                 <BrandLogo brand={brand} />
-                {/* Fallback text only if every logo source fails */}
+                {/* Hidden unless every logo URL fails */}
                 <span
                   hidden
-                  className="font-display text-xs font-semibold tracking-wide text-foreground/70"
+                  className="font-display text-sm font-semibold tracking-wide text-foreground/70"
+                  aria-hidden
                 >
                   {brand.name}
                 </span>
