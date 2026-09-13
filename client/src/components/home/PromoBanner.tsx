@@ -95,8 +95,8 @@ export function PromoBanner({ variant = 'featured' }: PromoBannerProps) {
                 ))}
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/45" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/35" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-black/10 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent" />
           </div>
 
           <div className="relative z-10 grid gap-8 px-6 py-10 sm:px-10 sm:py-14 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
@@ -151,36 +151,36 @@ export function PromoBanner({ variant = 'featured' }: PromoBannerProps) {
               ))}
             </div>
           </div>
+
+          <style>{`
+            @keyframes promoKenBurns {
+              0% { transform: scale(1.05) translate(0, 0); }
+              50% { transform: scale(1.12) translate(-1.5%, 1%); }
+              100% { transform: scale(1.05) translate(0, 0); }
+            }
+            @keyframes promoRise {
+              from { opacity: 0; transform: translateY(18px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            .promo-kenburns {
+              animation: promoKenBurns 18s ease-in-out infinite;
+            }
+            .promo-rise {
+              animation: promoRise 0.7s ease-out both;
+            }
+            .promo-rise-delay {
+              animation-delay: 0.15s;
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .promo-kenburns,
+              .promo-rise,
+              .promo-rise-delay {
+                animation: none;
+              }
+            }
+          `}</style>
         </div>
       </div>
-
-      <style>{`
-        @keyframes promoKenBurns {
-          0% { transform: scale(1.05) translate(0, 0); }
-          50% { transform: scale(1.12) translate(-1.5%, 1%); }
-          100% { transform: scale(1.05) translate(0, 0); }
-        }
-        @keyframes promoRise {
-          from { opacity: 0; transform: translateY(18px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .promo-kenburns {
-          animation: promoKenBurns 18s ease-in-out infinite;
-        }
-        .promo-rise {
-          animation: promoRise 0.7s ease-out both;
-        }
-        .promo-rise-delay {
-          animation-delay: 0.15s;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .promo-kenburns,
-          .promo-rise,
-          .promo-rise-delay {
-            animation: none;
-          }
-        }
-      `}</style>
     </section>
   );
 }
