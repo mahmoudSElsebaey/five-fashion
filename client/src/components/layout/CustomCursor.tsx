@@ -1,47 +1,29 @@
 import { useEffect, useRef, useState } from 'react';
 
-const CLOUD_COUNT = 5;
-const LAGS = [1, 0.28, 0.16, 0.1, 0.065, 0.04];
+const MAX_POINTS = 28;
 
-/** Classic OS-style pointer path (16×16 viewBox, tip at 0,0). */
-function PointerIcon({ className }: { className?: string }) {
+/** Natural OS-style arrow (hotspot at tip). */
+function NaturalPointer() {
   return (
-    <svg
-      className={className}
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden
-    >
+    <svg width="20" height="24" viewBox="0 0 20 24" fill="none" aria-hidden>
       <path
-        d="M5.5 3.2L18.2 12.1l-5.4 1.2 2.6 7.1-2.4.9-2.7-7.2-4.3 3.6V3.2Z"
-        fill="var(--foreground)"
-        stroke="var(--background)"
-        strokeWidth="1.25"
+        d="M1.2 1.2l16.2 11.4-7.1 1.5 3.4 8.4-2.6.9L7.6 14.4 2.2 18.6V1.2Z"
+        fill="#1A1A1C"
+        stroke="#F9F7F4"
+        strokeWidth="1.15"
         strokeLinejoin="round"
-      />
-      <path
-        d="M5.5 3.2L18.2 12.1l-5.4 1.2 2.6 7.1-2.4.9-2.7-7.2-4.3 3.6V3.2Z"
-        fill="none"
-        stroke="color-mix(in srgb, var(--accent) 55%, transparent)"
-        strokeWidth="0.75"
-        strokeLinejoin="round"
-        opacity="0.9"
       />
     </svg>
   );
 }
 
 /**
- * Classic mouse pointer + soft golden cloud trail.
- * Fine-pointer only; respects prefers-reduced-motion.
+ * Natural mouse pointer + one continuous soft cloud trail (canvas).
  */
 export function CustomCursor() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointerRef = useRef<HTMLDivElement>(null);
-  const cloudRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [enabled, setEnabled] = useState(false);
-  const hoveringInteractive = useRef(false);
 
   useEffect(() => {
     const fine = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -66,65 +48,132 @@ export function CustomCursor() {
   useEffect(() => {
     if (!enabled) return;
 
-    let targetX = window.innerWidth / 2;
-    let targetY = window.innerHeight / 2;
-    const pts = Array.from({ length: CLOUD_COUNT + 1 }, () => ({
-      x: targetX,
-      y: targetY,
-    }));
-    let raf = 0;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    const isInteractive = (el: EventTarget | null) => {
-      if (!(el instanceof Element)) return false;
-      return Boolean(
-        el.closest(
-          'a, button, [role="button"], input, textarea, select, label[for], .cursor-pointer'
-        )
-      );
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const points: { x: number; y: number }[] = [];
+    let mx = window.innerWidth / 2;
+    let my = window.innerHeight / 2;
+    let raf = 0;
+    let accent = '#B08D6A';
+
+    const readAccent = () => {
+      const v = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+      if (v) accent = v;
     };
+    readAccent();
+
+    const resize = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
 
     const onMove = (e: MouseEvent) => {
-      targetX = e.clientX;
-      targetY = e.clientY;
-      hoveringInteractive.current = isInteractive(e.target);
+      mx = e.clientX;
+      my = e.clientY;
+      if (pointerRef.current) {
+        pointerRef.current.style.transform = `translate3d(${mx}px, ${my}px, 0)`;
+      }
     };
 
+    const onTheme = () => readAccent();
+
     const tick = () => {
-      pts[0].x = targetX;
-      pts[0].y = targetY;
+      // ease trail head toward pointer for softer cloud
+      const last = points[0];
+      if (!last) {
+        points.unshift({ x: mx, y: my });
+      } else {
+        points.unshift({
+          x: last.x + (mx - last.x) * 0.55,
+          y: last.y + (my - last.y) * 0.55,
+        });
+      }
+      if (points.length > MAX_POINTS) points.length = MAX_POINTS;
 
-      for (let i = 1; i < pts.length; i++) {
-        const lag = LAGS[i] ?? 0.08;
-        pts[i].x += (pts[i - 1].x - pts[i].x) * lag;
-        pts[i].y += (pts[i - 1].y - pts[i].y) * lag;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      ctx.clearRect(0, 0, w, h);
+
+      if (points.length > 2) {
+        // Continuous ribbon: layered strokes, one path
+        for (let layer = 0; layer < 3; layer++) {
+          const width = 22 - layer * 6;
+          const alpha = 0.16 - layer * 0.04;
+
+          ctx.beginPath();
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.strokeStyle = accent;
+          ctx.globalAlpha = alpha;
+          ctx.lineWidth = width;
+          ctx.shadowColor = accent;
+          ctx.shadowBlur = 18 - layer * 4;
+
+          ctx.moveTo(points[0].x, points[0].y);
+          for (let i = 1; i < points.length - 1; i++) {
+            const c = points[i];
+            const n = points[i + 1];
+            const mxid = (c.x + n.x) / 2;
+            const myid = (c.y + n.y) / 2;
+            ctx.quadraticCurveTo(c.x, c.y, mxid, myid);
+          }
+          const tail = points[points.length - 1];
+          ctx.lineTo(tail.x, tail.y);
+          ctx.stroke();
+        }
+
+        // Soft head cloud (still one blob, not dots)
+        const head = points[0];
+        const grd = ctx.createRadialGradient(head.x, head.y, 0, head.x, head.y, 28);
+        grd.addColorStop(0, accent);
+        grd.addColorStop(0.35, accent);
+        grd.addColorStop(1, 'transparent');
+        ctx.globalAlpha = 0.2;
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(head.x, head.y, 28, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
       }
 
-      if (pointerRef.current) {
-        // Tip of arrow aligns with hotspot (~1px,1px)
-        pointerRef.current.style.transform = `translate3d(${pts[0].x}px, ${pts[0].y}px, 0)`;
-        pointerRef.current.style.opacity = hoveringInteractive.current ? '1' : '0.95';
+      // Fade trail by dropping oldest gradually when idle
+      if (points.length > 8) {
+        const dx = Math.abs(mx - points[0].x);
+        const dy = Math.abs(my - points[0].y);
+        if (dx < 0.5 && dy < 0.5 && points.length > 10) {
+          points.pop();
+        }
       }
-
-      cloudRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const p = pts[i + 1];
-        if (!p) return;
-        const grow = hoveringInteractive.current ? 1.25 : 1;
-        const base = 14 + i * 6;
-        el.style.width = `${base * grow}px`;
-        el.style.height = `${base * grow}px`;
-        el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) translate(-50%, -50%)`;
-        el.style.opacity = String((0.28 - i * 0.04) * (hoveringInteractive.current ? 1.15 : 1));
-      });
 
       raf = requestAnimationFrame(tick);
     };
 
     window.addEventListener('mousemove', onMove, { passive: true });
+    window.addEventListener('resize', resize);
+    const themeObs = new MutationObserver(onTheme);
+    themeObs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme', 'class'],
+    });
     raf = requestAnimationFrame(tick);
 
     return () => {
       window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('resize', resize);
+      themeObs.disconnect();
       cancelAnimationFrame(raf);
     };
   }, [enabled]);
@@ -133,33 +182,21 @@ export function CustomCursor() {
 
   return (
     <>
-      {Array.from({ length: CLOUD_COUNT }).map((_, i) => (
-        <div
-          key={i}
-          ref={(el) => {
-            cloudRefs.current[i] = el;
-          }}
-          aria-hidden
-          className="pointer-events-none fixed left-0 top-0 z-[9998] rounded-full"
-          style={{
-            willChange: 'transform, opacity, width, height',
-            background:
-              'radial-gradient(circle, color-mix(in srgb, var(--accent) 55%, transparent) 0%, color-mix(in srgb, var(--accent) 18%, transparent) 45%, transparent 72%)',
-            filter: 'blur(6px)',
-          }}
-        />
-      ))}
+      <canvas
+        ref={canvasRef}
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-[9998]"
+      />
       <div
         ref={pointerRef}
         aria-hidden
         className="pointer-events-none fixed left-0 top-0 z-[9999]"
         style={{
           willChange: 'transform',
-          filter:
-            'drop-shadow(0 1px 1px rgba(0,0,0,0.35)) drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 45%, transparent))',
+          filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))',
         }}
       >
-        <PointerIcon />
+        <NaturalPointer />
       </div>
     </>
   );
