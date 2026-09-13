@@ -7,6 +7,7 @@ import { store } from './store';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './styles/tokens.css';
 import './styles/index.css';
+import './styles/chrome.css';
 import './i18n';
 import './i18n/translationPatches';
 
